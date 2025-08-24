@@ -1,5 +1,6 @@
 require("dotenv").config();
 const express = require("express");
+const cookieParser = require("cookie-parser");
 const connectDB = require("../server/src/config/db");
 const cors = require('cors'); // Install with: npm install cors
 
@@ -9,6 +10,7 @@ app.use(cors({
     origin: 'http://localhost:3000'
 }));
 app.use(express.json());
+app.use(cookieParser());
 
 // Routes
 const authRoutes = require("../server/src/routes/authRoutes");

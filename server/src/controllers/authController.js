@@ -1,7 +1,16 @@
 const bcrypt = require("bcrypt");
 const User = require("../models/User");
 const Otp = require("../models/Otp");
+const RefreshToken = require("../models/RefreshToken");
 const { sendEmail } = require("../services/emailService");
+const { comparePassword } = require("../services/passwordService");
+const {
+  signAccessToken,
+  signRefreshToken,
+  verifyRefreshToken,
+  getExpiryDateFromJwt,
+} = require("../services/tokenService");
+const e = require("express");
 
 const generateOtp = () => {
     return Math.floor(100000 + Math.random() * 900000).toString();
@@ -59,7 +68,7 @@ const verifyOtp = async (req, res) => {
         }
 
         // Cập nhật user thành verified
-        await User.updateOne({ email }, { verified: true });
+        await User.updateOne({ email }, { isVerified: true });
 
         // Xóa OTP đã sử dụng
         await Otp.deleteOne({ _id: otpEntry._id });
@@ -117,10 +126,118 @@ const resendOtp = async (req, res) => {
     return res.status(500).json({ message: "Lỗi server", error: error.message });
   }
 };
-    
+
+// API Login (email + password --> AccessToken + refreshToken)
+const login = async (req, res) => {
+  try {
+    const email = (req.body.email || "").toLowerCase().trim();
+    const { password } = req.body;
+
+    // 1. Kiểm tra user
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(400).json({ message: "Không tìm thấy tài khoản" });
+    }
+    if (!user.isVerified) {
+      return res.status(403).json({ message: "Tài khoản chưa được xác thực" });
+    }
+
+    // 2. Kiểm tra mật khẩu
+    const isPasswordValid = await comparePassword(password, user.password);
+    if (!isPasswordValid) {
+      return res.status(400).json({ message: "Email hoặc Mật khẩu không đúng" });
+    }
+
+    // 3. Tạo và gửi token
+    const payload = { sub: user._id.toString(), email: user.email, name: user.name };
+    const accessToken = signAccessToken(payload);
+    const refreshToken = signRefreshToken({ sub: user._id.toString() });
+
+    // Lưu refresh token vào database (để có thể revoke)
+    const expiresAt = getExpiryDateFromJwt(refreshToken);
+    await RefreshToken.create({ userId: user._id, token: refreshToken, expiresAt });
+
+    return res.status(200).json({
+      message: "Đăng nhập thành công",
+      user: {
+        id: user._id,
+        email: user.email,
+        name: user.name
+      },
+      accessToken,
+      refreshToken
+    });
+  } catch (error) {
+    console.error("Error logging in:", error);
+    return res.status(500).json({ message: "Internal server error", error: error.message });
+  }
+}
+
+// REFRESH: nhận refreshToken => cấp accessToken mới (+ xoay refresh token)
+const refreshToken = async (req, res) => {
+  try {
+    const { refreshToken } = req.body;
+    if (!refreshToken) return res.status(400).json({ message: "Thiếu refreshToken" });
+
+    // Tồn tại trong DB và chưa revoke?
+    const tokenDoc = await RefreshToken.findOne({ token: refreshToken, revokedAt: null });
+    if (!tokenDoc) return res.status(401).json({ message: "Refresh token không hợp lệ" });
+
+    // Verify chữ ký & hạn
+    let payload;
+    try {
+      payload = verifyRefreshToken(refreshToken); // { sub, iat, exp }
+    } catch {
+      return res.status(401).json({ message: "Refresh token không hợp lệ hoặc đã hết hạn" });
+    }
+
+    // Xoay refresh token: revoke cái cũ, tạo cái mới
+    tokenDoc.revokedAt = new Date();
+    await tokenDoc.save();
+
+    const newAccess = signAccessToken({ sub: payload.sub });
+    const newRefresh = signRefreshToken({ sub: payload.sub });
+    const expiresAt = getExpiryDateFromJwt(newRefresh);
+
+    await RefreshToken.create({
+      userId: payload.sub,
+      token: newRefresh,
+      expiresAt,
+    });
+
+    return res.status(200).json({
+      accessToken: newAccess,
+      refreshToken: newRefresh,
+    });
+  } catch (err) {
+    return res.status(500).json({ message: "Lỗi server", error: err.message });
+  }
+};
+
+// LOGOUT: nhận refreshToken => revoke
+const logout = async (req, res) => {
+  try {
+    const { refreshToken } = req.body;
+    if (!refreshToken) return res.status(400).json({ message: "Thiếu refreshToken" });
+
+    const tokenDoc = await RefreshToken.findOne({ token: refreshToken, revokedAt: null });
+    if (!tokenDoc) return res.status(200).json({ message: "Đã đăng xuất" }); // idempotent
+
+    tokenDoc.revokedAt = new Date();
+    await tokenDoc.save();
+
+    return res.status(200).json({ message: "Đăng xuất thành công" });
+  } catch (err) {
+    return res.status(500).json({ message: "Lỗi server", error: err.message });
+  }
+};
+
 
 module.exports = {
     register,
     verifyOtp,
-    resendOtp
+    resendOtp,
+    login,
+    refreshToken,
+    logout
 };
