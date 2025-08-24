@@ -1,6 +1,7 @@
 const express = require("express");
 const { register } = require("../controllers/authController");
 const { verifyOtp } = require("../controllers/authController");
+const { resendOtp } = require("../controllers/authController");
 
 const router = express.Router();
 

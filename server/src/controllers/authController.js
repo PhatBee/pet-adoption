@@ -22,11 +22,6 @@ const register = async (req, res) => {
         const hashedPassword = await bcrypt.hash(password, 10);
 
         // Tạo người dùng mới
-        const newUser = new User({
-            name,
-            email,
-            password: hashedPassword
-        });
         await User.create({ name, email, password: hashedPassword });
 
         // Gửi email xác thực

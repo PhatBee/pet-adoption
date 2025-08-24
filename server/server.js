@@ -1,8 +1,13 @@
 require("dotenv").config();
 const express = require("express");
 const connectDB = require("../server/src/config/db");
+const cors = require('cors'); // Install with: npm install cors
+
 
 const app = express();
+app.use(cors({
+    origin: 'http://localhost:3000'
+}));
 app.use(express.json());
 
 // Routes
