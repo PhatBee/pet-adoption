@@ -11,7 +11,7 @@ router.post("/verify-otp", verifyOtp);
 router.post("/resend-otp", resendOtp);
 
 router.post("/login", loginLimiter, login);
-router.post("/refresh-token", refreshToken);
+router.post("/refresh", refreshToken);
 router.post("/logout", authenticate, logout);
 
 // demo test

@@ -148,24 +148,42 @@ const login = async (req, res) => {
       return res.status(400).json({ message: "Email hoặc Mật khẩu không đúng" });
     }
 
-    // 3. Tạo và gửi token
-    const payload = { sub: user._id.toString(), email: user.email, name: user.name };
-    const accessToken = signAccessToken(payload);
-    const refreshToken = signRefreshToken({ sub: user._id.toString() });
+    // // 3. Tạo và gửi token
+    // const payload = { sub: user._id.toString(), email: user.email, name: user.name };
+    // const accessToken = signAccessToken(payload);
+    // const refreshToken = signRefreshToken({ sub: user._id.toString() });
 
-    // Lưu refresh token vào database (để có thể revoke)
-    const expiresAt = getExpiryDateFromJwt(refreshToken);
-    await RefreshToken.create({ userId: user._id, token: refreshToken, expiresAt });
+    // // Lưu refresh token vào database (để có thể revoke)
+    // const expiresAt = getExpiryDateFromJwt(refreshToken);
+    // await RefreshToken.create({ userId: user._id, token: refreshToken, expiresAt });
 
-    return res.status(200).json({
+    // return res.status(200).json({
+    //   message: "Đăng nhập thành công",
+    //   user: {
+    //     id: user._id,
+    //     email: user.email,
+    //     name: user.name
+    //   },
+    //   accessToken,
+    //   refreshToken
+    // });
+
+     // Tạo tokens
+    const accessToken = signAccessToken(user);
+    const refreshToken = signRefreshToken(user);
+
+    // Gửi refresh token bằng HttpOnly cookie
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,    // không cho JS đọc
+      secure: false,     // true nếu dùng HTTPS
+      sameSite: "strict", 
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 ngày
+    });
+
+    return res.json({
       message: "Đăng nhập thành công",
-      user: {
-        id: user._id,
-        email: user.email,
-        name: user.name
-      },
+      refreshToken,
       accessToken,
-      refreshToken
     });
   } catch (error) {
     console.error("Error logging in:", error);
@@ -173,58 +191,29 @@ const login = async (req, res) => {
   }
 }
 
-// REFRESH: nhận refreshToken => cấp accessToken mới (+ xoay refresh token)
+// REFRESH: nhận refreshToken => cấp accessToken mới
 const refreshToken = async (req, res) => {
   try {
-    const { refreshToken } = req.body;
-    if (!refreshToken) return res.status(400).json({ message: "Thiếu refreshToken" });
+    const token = req.cookies.refreshToken;
+    if (!token) return res.status(401).json({ message: "Không có refresh token" });
 
-    // Tồn tại trong DB và chưa revoke?
-    const tokenDoc = await RefreshToken.findOne({ token: refreshToken, revokedAt: null });
-    if (!tokenDoc) return res.status(401).json({ message: "Refresh token không hợp lệ" });
+    const decoded = verifyRefreshToken(token);
+    const newAccessToken = signAccessToken(decoded);
 
-    // Verify chữ ký & hạn
-    let payload;
-    try {
-      payload = verifyRefreshToken(refreshToken); // { sub, iat, exp }
-    } catch {
-      return res.status(401).json({ message: "Refresh token không hợp lệ hoặc đã hết hạn" });
-    }
-
-    // Xoay refresh token: revoke cái cũ, tạo cái mới
-    tokenDoc.revokedAt = new Date();
-    await tokenDoc.save();
-
-    const newAccess = signAccessToken({ sub: payload.sub });
-    const newRefresh = signRefreshToken({ sub: payload.sub });
-    const expiresAt = getExpiryDateFromJwt(newRefresh);
-
-    await RefreshToken.create({
-      userId: payload.sub,
-      token: newRefresh,
-      expiresAt,
-    });
-
-    return res.status(200).json({
-      accessToken: newAccess,
-      refreshToken: newRefresh,
-    });
-  } catch (err) {
-    return res.status(500).json({ message: "Lỗi server", error: err.message });
+    return res.json({ accessToken: newAccessToken });
+  } catch (error) {
+    return res.status(403).json({ message: "Refresh token không hợp lệ", error: error.message });
   }
 };
 
 // LOGOUT: nhận refreshToken => revoke
 const logout = async (req, res) => {
   try {
-    const { refreshToken } = req.body;
-    if (!refreshToken) return res.status(400).json({ message: "Thiếu refreshToken" });
+    const token = req.cookies.refreshToken;
+    if (!token) return res.status(401).json({ message: "Không có refresh token" });
 
-    const tokenDoc = await RefreshToken.findOne({ token: refreshToken, revokedAt: null });
-    if (!tokenDoc) return res.status(200).json({ message: "Đã đăng xuất" }); // idempotent
-
-    tokenDoc.revokedAt = new Date();
-    await tokenDoc.save();
+    const decoded = verifyRefreshToken(token);
+    await RefreshToken.deleteMany({ userId: decoded.sub });
 
     return res.status(200).json({ message: "Đăng xuất thành công" });
   } catch (err) {

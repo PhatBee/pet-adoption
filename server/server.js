@@ -7,7 +7,8 @@ const cors = require('cors'); // Install with: npm install cors
 
 const app = express();
 app.use(cors({
-    origin: 'http://localhost:3000'
+    origin: 'http://localhost:3000',
+    credentials: true
 }));
 app.use(express.json());
 app.use(cookieParser());

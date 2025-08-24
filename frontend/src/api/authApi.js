@@ -1,16 +1,22 @@
-import axios from "axios";
+import axiosClient from "./axiosClient";
 
-const API_URL = "http://localhost:5000/api/auth";
 
 export const registerApi = (data) => {
-  return axios.post(`${API_URL}/register`, data);
+  return axiosClient.post("/register", data);
 };
 
 export const verifyOtpApi = (data) => {
-  return axios.post(`${API_URL}/verify-otp`, data);
+  return axiosClient.post("/verify-otp", data);
 };
 
 export const resendOtpApi = (data) => {
-  return axios.post(`${API_URL}/resend-otp`, data);
+  return axiosClient.post("/resend-otp", data);
 };
 
+export const loginApi = (data) => axiosClient.post("/login", data);
+// server trả { accessToken } và tự set cookie refreshToken
+
+export const meApi = () => axiosClient.get("/me"); // route đã bảo vệ
+
+export const logoutApi = () => axiosClient.post("/logout");
+// server sẽ clear cookie refreshToken; client tự xoá access token
