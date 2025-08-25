@@ -2,7 +2,7 @@ const bcrypt = require("bcrypt");
 const User = require("../models/User");
 const Otp = require("../models/Otp");
 const RefreshToken = require("../models/RefreshToken");
-const { sendEmail } = require("../services/emailService");
+const { sendEmail, sendPasswordResetOtpEmail } = require("../services/emailService");
 const { comparePassword } = require("../services/passwordService");
 const {
   signAccessToken,
@@ -221,6 +221,66 @@ const logout = async (req, res) => {
   }
 };
 
+// API Forgot password (request)
+const requestPasswordResetOtp = async (req, res) => {
+  try{
+    const email = (req.body.email || "").toLowerCase().trim();
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(400).json({ message: "Không tìm thấy tài khoản" });
+    }
+
+    // Tạo OTP
+    const otp = generateOtp();
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 phút sau
+
+    // Lưu OTP vào database
+    await Otp.create({ email, otp, expiresAt });
+
+    // Gửi email
+    await sendPasswordResetOtpEmail(email, otp, 10);
+
+    return res.status(200).json({ message: "Đã gửi OTP qua email" });
+  } catch (error) {
+    return res.status(500).json({ message: "Lỗi server", error: error.message });
+  }
+};
+
+// API: Forgot Password (reset)
+const resetPasswordWithOtp = async (req, res) => {
+  try {
+    const { email, otp, newPassword } = req.body;
+
+    // Kiểm tra OTP
+    const otpRecord = await Otp.findOne({ email, otp });
+    if (!otpRecord) {
+      return res.status(400).json({ message: "OTP không hợp lệ" });
+    }
+
+    // Kiểm tra thời gian hết hạn
+    if (otpRecord.expiresAt < Date.now()) {
+      return res.status(400).json({ message: "OTP đã hết hạn" });
+    }
+
+    // Cập nhật mật khẩu
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(400).json({ message: "Không tìm thấy tài khoản" });
+    }
+
+    user.password = await hashPassword(newPassword);
+    await user.save();
+
+    // Xoá OTP đã sử dụng
+    await Otp.deleteOne({ email, otp });
+    await RefreshToken.deleteMany({ userId: user._id });
+
+    return res.status(200).json({ message: "Đặt lại mật khẩu thành công" });
+  } catch (error) {
+    return res.status(500).json({ message: "Lỗi server", error: error.message });
+  }
+};
+
 
 module.exports = {
     register,
@@ -228,5 +288,7 @@ module.exports = {
     resendOtp,
     login,
     refreshToken,
-    logout
+    logout,
+    requestPasswordResetOtp,
+    resetPasswordWithOtp
 };

@@ -20,6 +20,19 @@ const sendEmail = async (to, subject, text) => {
     });
 };
 
+const sendPasswordResetOtpEmail = async (to, otp, ttlMinutes) => {
+  const subject = "Pet Adoption - Đặt lại mật khẩu (OTP)";
+  const text =
+`Bạn vừa yêu cầu đặt lại mật khẩu cho tài khoản Pet Adoption.
+
+Mã OTP của bạn là: ${otp}
+OTP có hiệu lực trong ${ttlMinutes} phút.
+
+Nếu không phải bạn yêu cầu, hãy bỏ qua email này.`;
+  await sendEmail(to, subject, text);
+};
+
 module.exports = {
     sendEmail,
+    sendPasswordResetOtpEmail,
 };
