@@ -3,7 +3,7 @@ const User = require("../models/User");
 const Otp = require("../models/Otp");
 const RefreshToken = require("../models/RefreshToken");
 const { sendEmail, sendPasswordResetOtpEmail } = require("../services/emailService");
-const { comparePassword } = require("../services/passwordService");
+const { comparePassword, hashPassword } = require("../services/passwordService");
 const {
   signAccessToken,
   signRefreshToken,

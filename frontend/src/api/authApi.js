@@ -20,3 +20,11 @@ export const meApi = () => axiosClient.get("/me"); // route đã bảo vệ
 
 export const logoutApi = () => axiosClient.post("/logout");
 // server sẽ clear cookie refreshToken; client tự xoá access token
+
+// Yêu cầu gửi OTP reset
+export const requestResetOtpApi = (email) =>
+  axiosClient.post("/forgot-password", { email });
+
+// Đặt lại mật khẩu bằng OTP
+export const resetPasswordApi = ({ email, otp, newPassword }) =>
+  axiosClient.post("/reset-password", { email, otp, newPassword });
