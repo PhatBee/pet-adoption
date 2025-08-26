@@ -12,6 +12,7 @@ router.post("/resend-otp", resendOtp);
 
 router.post("/login", loginLimiter, login);
 router.post("/refresh", refreshToken);
+router.get("/refresh", refreshToken); // for axios interceptor demo
 router.post("/logout", logout);
 
 router.post("/forgot-password", requestPasswordResetOtp); // API: Forgot Password (request)

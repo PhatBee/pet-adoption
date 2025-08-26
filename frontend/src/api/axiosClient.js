@@ -2,7 +2,7 @@ import axios from "axios";
 import { getAccessToken, setAccessToken, clearAccessToken } from "../utils/tokenStorage";
 
 const axiosClient = axios.create({
-  baseURL: "http://localhost:5000/api/auth",
+  baseURL: "http://localhost:5000/api",
   withCredentials: true, // QUAN TRỌNG: gửi/nhận HttpOnly cookie (refreshToken)
   timeout: 10000,
 });
@@ -46,7 +46,7 @@ axiosClient.interceptors.response.use(
       isRefreshing = true;
       try {
         // GỌI /auth/refresh – server đọc refreshToken từ HttpOnly cookie
-        const resp = await axiosClient.get("/refresh");
+        const resp = await axiosClient.get("/auth/refresh");
         const { accessToken } = resp.data;
 
         setAccessToken(accessToken);

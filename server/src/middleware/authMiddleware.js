@@ -9,6 +9,8 @@ const authenticate = (req, res, next) => {
     try {
         const userData = verifyAccessToken(token);
         req.user = userData;
+        console.log('Token payload:', userData); // Để debug
+
         return next();
     } catch (error) {
         return res.sendStatus(403).json({ message: "Token không hợp lệ hoặc đã hết hạn" });

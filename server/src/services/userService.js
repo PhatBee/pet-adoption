@@ -3,8 +3,13 @@ const fs = require("fs").promises;
 const path = require("path");
 
 // Lấy thông tin user
-const getUserById = (id) => User.findById(id).select("-password");
-
+const getUserById = async (id) => {
+  const user = await User.findById(id).select("-password");
+  if (!user) {
+    throw { status: 404, message: "Người dùng không tồn tại" };
+  }
+  return user;
+};
 // Lấy thông tin profile user
 const getProfile = async (req, res) => {
   try {
@@ -27,7 +32,8 @@ const updateProfile = async (userId, { name, email, phone }, res) => {
     // Nếu email thay đổi -> kiểm tra unique
   if (email && email.toLowerCase().trim() !== user.email) {
     const exists = await User.findOne({ email: email.toLowerCase().trim() });
-    if (exists) throw { status: 409, message: "Email đã được dùng bởi tài khoản khác" };
+    if (exists)         
+        throw { status: 400, message: "Email đã được sử dụng" };
 
     user.email = email.toLowerCase().trim();
   }
@@ -49,8 +55,9 @@ const updateProfile = async (userId, { name, email, phone }, res) => {
 
     // return res.json({ message: "Profile updated successfully", user });
   } catch (error) {
-    return res.status(500).json({ message: "Server error", error: error.message });
-  }
+ if (error.status) throw error;
+    throw { status: 500, message: error.message || "Lỗi cập nhật thông tin" };
+    }
 };
 
 // Xoá file avatar cũ (helper)
@@ -93,4 +100,4 @@ const clearAvatar = async (userId) => {
   return user.toObject();
 }
 
-module.exports = { getProfile, updateProfile, removeFileIfExists, updateAvatar, clearAvatar };
+module.exports = { getUserById, getProfile, updateProfile, removeFileIfExists, updateAvatar, clearAvatar };

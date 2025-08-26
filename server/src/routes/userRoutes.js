@@ -1,6 +1,8 @@
 const express = require("express");
 const { getProfile, updateProfile } = require("../controllers/userController");
 const { authenticate } = require("../middleware/authMiddleware");
+const upload = require("../middleware/uploadAvatar"); // multer
+
 
 const router = express.Router();
 

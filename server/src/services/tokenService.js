@@ -1,11 +1,11 @@
 const jwt = require("jsonwebtoken");
 
 const signAccessToken = (payload) => {
-  return jwt.sign({ id: payload._id, email: payload.email }, process.env.JWT_ACCESS_SECRET, { expiresIn: process.env.JWT_ACCESS_EXPIRES || '15m' });
+  return jwt.sign({ id: payload.id, email: payload.email, name: payload.name }, process.env.JWT_ACCESS_SECRET, { expiresIn: process.env.JWT_ACCESS_EXPIRES || '1h' });
 };
 
 const signRefreshToken = (payload) => {
-  return jwt.sign({ id: payload._id, email: payload.email }, process.env.JWT_REFRESH_SECRET, { expiresIn: process.env.JWT_REFRESH_EXPIRES || '7d' });
+  return jwt.sign({ id: payload.id, email: payload.email, name: payload.name }, process.env.JWT_REFRESH_SECRET, { expiresIn: process.env.JWT_REFRESH_EXPIRES || '7d' });
 };
 
 const verifyAccessToken = (token) =>

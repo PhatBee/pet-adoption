@@ -6,7 +6,7 @@ const fs = require("fs").promises;
 // GET /api/users/me
 const getProfile = async (req, res) => {
   try {
-    const userId = req.user.sub; // giả sử authenticate đặt payload vào req.user.sub
+    const userId = req.user.id; // giả sử authenticate đặt payload vào req.userId
     const user = await userService.getUserById(userId);
     return res.json({ user });
   } catch (err) {
@@ -17,7 +17,7 @@ const getProfile = async (req, res) => {
 // PUT /api/users/me (multipart/form-data: fields + optional avatar file)
 const updateProfile = async (req, res) => {
   try {
-    const userId = req.user.sub;
+    const userId = req.user.id;
     // fields: name, email, phone
     const { name, email, phone, removeAvatar } = req.body;
 

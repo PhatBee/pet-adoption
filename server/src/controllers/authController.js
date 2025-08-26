@@ -171,7 +171,7 @@ const login = async (req, res) => {
      // Tạo tokens
     const accessToken = signAccessToken(user);
     const refreshToken = signRefreshToken(user);
-
+    
     // Gửi refresh token bằng HttpOnly cookie
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,    // không cho JS đọc
@@ -185,14 +185,9 @@ const login = async (req, res) => {
       user: {
         id: user._id,
         email: user.email,
-        name: user.name
-      },
-      user: {
-        id: user._id,
-        email: user.email,
         name: user.name,
         avatarUrl: user.avatarUrl,
-        fullName: user.fullName,
+        phone: user.phone,
       },
       refreshToken,
       accessToken,
