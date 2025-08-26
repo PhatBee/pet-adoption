@@ -24,8 +24,11 @@ const userSchema = new mongoose.Schema({
   },
   avatarUrl: {
     type: String
-  }
-}, {Timestamp: true});
+  },
+  role: { type: String, default: "user" },
+  phone: { type: String, default: "" },
+
+}, { timestamps: true });
 
 const User = mongoose.model("User", userSchema);
 

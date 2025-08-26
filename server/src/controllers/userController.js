@@ -1,36 +1,66 @@
-const User = require("../models/User");
+const userService = require("../services/userService");
+const sharp = require("sharp");
+const path = require("path");
+const fs = require("fs").promises;
 
-// Lấy thông tin profile user
+// GET /api/users/me
 const getProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select("-password");
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-    return res.json(user);
-  } catch (error) {
-    return res.status(500).json({ message: "Server error", error: error.message });
+    const userId = req.user.sub; // giả sử authenticate đặt payload vào req.user.sub
+    const user = await userService.getUserById(userId);
+    return res.json({ user });
+  } catch (err) {
+    return res.status(err.status || 500).json({ message: err.message || "Lỗi server" });
   }
 };
 
-// Cập nhật profile user
+// PUT /api/users/me (multipart/form-data: fields + optional avatar file)
 const updateProfile = async (req, res) => {
   try {
-    const { name, avatarUrl } = req.body;
+    const userId = req.user.sub;
+    // fields: name, email, phone
+    const { name, email, phone, removeAvatar } = req.body;
 
-    const user = await User.findByIdAndUpdate(
-      req.user.id,
-      { name, avatarUrl, updatedAt: new Date() },
-      { new: true, runValidators: true, select: "-password" }
-    );
+    // 1) nếu có avatar file (multer) -> xử lý resize và lưu đường dẫn
+    let avatarRelativeUrl = null;
+    if (req.file) {
+      // tuỳ chọn: dùng sharp để resize trước khi lưu (ghi đè file hiện tại)
+      const filePath = req.file.path; // absolute path
+      const resizedPath = filePath; // ta có thể overwrite
+      // resize to 256x256
+      await sharp(filePath).resize(256, 256).toFile(resizedPath + "-tmp");
+      // replace file
+      await fs.rename(resizedPath + "-tmp", filePath);
 
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      // lưu relative url (ví dụ: /uploads/avatars/<filename>)
+      avatarRelativeUrl = `/uploads/avatars/${req.file.filename}`;
     }
 
-    return res.json({ message: "Profile updated successfully", user });
-  } catch (error) {
-    return res.status(500).json({ message: "Server error", error: error.message });
+    // 2) Cập nhật thông tin (không xử avatar ở đây)
+    const updated = await userService.updateProfile(userId, {
+      name, email, phone,
+    });
+
+    // 3) Nếu có avatarRelativeUrl -> update avatar field
+    if (avatarRelativeUrl) {
+      await userService.updateAvatar(userId, avatarRelativeUrl);
+      updated.avatarUrl = avatarRelativeUrl;
+    } else if (removeAvatar === "true") {
+      // client có thể gửi removeAvatar=true để xoá avatar
+      await userService.clearAvatar(userId);
+      updated.avatarUrl = null;
+    }
+
+    // Trả về profile mới (loại bỏ password)
+    const safe = await userService.getUserById(userId);
+    return res.json({ message: "Cập nhật thành công", user: safe });
+  } catch (err) {
+    // Nếu multer ném lỗi file lớn / loại file -> trả 400
+    if (err.message && err.message.includes("Chỉ chấp nhận ảnh")) {
+      return res.status(400).json({ message: err.message });
+    }
+    const code = err.status || 500;
+    return res.status(code).json({ message: err.message || "Lỗi server" });
   }
 };
 

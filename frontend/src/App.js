@@ -33,17 +33,11 @@ function App() {
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="*" element={<LoginPage />} />
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/profile" element={<ProfilePage />} />
           </Routes>
         </BrowserRouter>
         <ToastContainer position="top-right" autoClose={3000} />
       </>
-            <Route path="/profile" element={<ProfilePage />} />
-          </Route>
-          <Route path="*" element={<LoginPage />} />
-        </Routes>
-      </BrowserRouter>
-      <ToastContainer position="top-right" autoClose={3000} />
-    </AuthProvider>
   );
 }
 

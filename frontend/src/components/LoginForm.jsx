@@ -61,10 +61,10 @@ const LoginForm = ({ onSubmit, isLoading }) => {
           {/* Button */}
           <button
             type="submit"
-            disabled={submitting}
+            disabled={isLoading}
             className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-xl shadow-md transition disabled:opacity-50"
           >
-            {submitting ? "Đang xử lý..." : "Đăng nhập"}
+            {isLoading ? "Đang xử lý..." : "Đăng nhập"}
           </button>
         </form>
 
@@ -79,35 +79,6 @@ const LoginForm = ({ onSubmit, isLoading }) => {
           </a>
         </p>
       </div>
-    <div className="card p-3 shadow" style={{ maxWidth: 420 }}>
-      <h3 className="mb-3">Đăng nhập</h3>
-      <form onSubmit={handleSubmit}>
-        <input
-          className="form-control mb-2"
-          type="email"
-          name="email"
-          placeholder="Email"
-          value={form.email}
-          onChange={handleChange}
-          required
-        />
-        <input
-          className="form-control mb-3"
-          type="password"
-          name="password"
-          placeholder="Mật khẩu"
-          value={form.password}
-          onChange={handleChange}
-          required
-        />
-        <button 
-          className="btn btn-primary w-100" 
-          type="submit" 
-          disabled={isLoading}
-        >
-          {isLoading ? "Đang xử lý..." : "Đăng nhập"}
-        </button>
-      </form>
     </div>
   );
 };
