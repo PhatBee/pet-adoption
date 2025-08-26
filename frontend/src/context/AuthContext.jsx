@@ -1,7 +1,7 @@
 // Quản lý phiên đăng nhập 
 
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { loginApi, meApi, logoutApi } from "../api/authApi";
+import { loginApi, meApi, logoutApi, getProfileApi } from "../api/authApi";
 import { getAccessToken, setAccessToken, clearAccessToken } from "../utils/tokenStorage";
 
 const AuthContext = createContext(null);
@@ -40,6 +40,20 @@ const AuthProvider = ({ children }) => {
     setIsAuthed(true);
     return res.data;
   };
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const profile = await getProfileApi();
+        setUser(profile);
+      } catch (error) {
+        setUser(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProfile();
+  }, []);
 
   const logout = async () => {
     try { await logoutApi(); } catch {}

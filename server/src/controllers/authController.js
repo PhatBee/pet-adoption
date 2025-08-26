@@ -182,6 +182,13 @@ const login = async (req, res) => {
 
     return res.json({
       message: "Đăng nhập thành công",
+      user: {
+        id: user._id,
+        email: user.email,
+        name: user.name,
+        avatarUrl: user.avatarUrl,
+        fullName: user.fullName,
+      },
       refreshToken,
       accessToken,
     });
