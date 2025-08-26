@@ -8,7 +8,8 @@ const cors = require('cors'); // Install with: npm install cors
 const app = express();
 app.use(cors({
     origin: 'http://localhost:3000',
-    credentials: true
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
 }));
 app.use(express.json());
 app.use(cookieParser());

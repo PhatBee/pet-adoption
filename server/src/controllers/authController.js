@@ -182,6 +182,11 @@ const login = async (req, res) => {
 
     return res.json({
       message: "Đăng nhập thành công",
+      user: {
+        id: user._id,
+        email: user.email,
+        name: user.name
+      },
       refreshToken,
       accessToken,
     });
@@ -210,17 +215,31 @@ const refreshToken = async (req, res) => {
 const logout = async (req, res) => {
   try {
     const token = req.cookies.refreshToken;
-    if (!token) return res.status(401).json({ message: "Không có refresh token" });
+    
+    // Xóa cookie ngay cả khi không có token
+    res.clearCookie('refreshToken', {
+      httpOnly: true,
+      secure: false,
+      sameSite: 'strict'
+    });
 
-    const decoded = verifyRefreshToken(token);
-    await RefreshToken.deleteMany({ userId: decoded.sub });
+    if (!token) {
+      return res.status(200).json({ message: "Đăng xuất thành công" });
+    }
+
+    try {
+      // Thử xóa token từ database nếu có
+      await RefreshToken.deleteOne({ token });
+    } catch (error) {
+      console.error("Error deleting refresh token:", error);
+    }
 
     return res.status(200).json({ message: "Đăng xuất thành công" });
   } catch (err) {
-    return res.status(500).json({ message: "Lỗi server", error: err.message });
+    console.error("Logout error:", err);
+    return res.status(500).json({ message: "Lỗi server" });
   }
 };
-
 // API Forgot password (request)
 const requestPasswordResetOtp = async (req, res) => {
   try{

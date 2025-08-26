@@ -18,7 +18,7 @@ export const loginApi = (data) => axiosClient.post("/login", data);
 
 export const meApi = () => axiosClient.get("/me"); // route đã bảo vệ
 
-export const logoutApi = () => axiosClient.post("/logout");
+export const logoutApi = () => axiosClient.post("/logout", {}, { withCredentials: true });
 // server sẽ clear cookie refreshToken; client tự xoá access token
 
 // Yêu cầu gửi OTP reset

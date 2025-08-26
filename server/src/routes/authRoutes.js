@@ -12,7 +12,7 @@ router.post("/resend-otp", resendOtp);
 
 router.post("/login", loginLimiter, login);
 router.post("/refresh", refreshToken);
-router.post("/logout", authenticate, logout);
+router.post("/logout", logout);
 
 router.post("/forgot-password", requestPasswordResetOtp); // API: Forgot Password (request)
 router.post("/reset-password", resetPasswordWithOtp); // API: Forgot Password (reset)
