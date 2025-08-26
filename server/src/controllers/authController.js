@@ -205,7 +205,12 @@ const refreshToken = async (req, res) => {
     if (!token) return res.status(401).json({ message: "Không có refresh token" });
 
     const decoded = verifyRefreshToken(token);
-    const newAccessToken = signAccessToken(decoded);
+     // Tạo access token mới
+    const newAccessToken = signAccessToken({
+      id: decoded.id,
+      email: decoded.email,
+      name: decoded.name
+    });
 
     return res.json({ accessToken: newAccessToken });
   } catch (error) {
