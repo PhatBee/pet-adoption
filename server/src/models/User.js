@@ -22,7 +22,10 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
-});
+  avatarUrl: {
+    type: String
+  }
+}, {Timestamp: true});
 
 const User = mongoose.model("User", userSchema);
 

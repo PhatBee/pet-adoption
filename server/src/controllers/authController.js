@@ -187,6 +187,13 @@ const login = async (req, res) => {
         email: user.email,
         name: user.name
       },
+      user: {
+        id: user._id,
+        email: user.email,
+        name: user.name,
+        avatarUrl: user.avatarUrl,
+        fullName: user.fullName,
+      },
       refreshToken,
       accessToken,
     });

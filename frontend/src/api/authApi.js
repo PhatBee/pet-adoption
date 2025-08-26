@@ -18,6 +18,15 @@ export const loginApi = (data) => axiosClient.post("/login", data);
 
 export const meApi = () => axiosClient.get("/me"); // route đã bảo vệ
 
+export const getProfileApi = async () => {
+  const res = await axiosClient.get("/profile");
+  return res.data;
+};
+
+export const updateProfileApi = async (data) => {
+  const res = await axiosClient.put("/profile", data);
+  return res.data;
+};
 export const logoutApi = () => axiosClient.post("/logout", {}, { withCredentials: true });
 // server sẽ clear cookie refreshToken; client tự xoá access token
 
