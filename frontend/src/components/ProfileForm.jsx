@@ -114,101 +114,90 @@ export default function ProfileForm() {
 
   if (loading) return <p className="text-center">Đang tải profile...</p>;
 
-  return (
-    <div className="card p-4" style={{ maxWidth: 720 }}>
-      <h4 className="mb-3">Thông tin cá nhân</h4>
+return (
+  <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="bg-white shadow-xl rounded-2xl p-8 w-full max-w-md">
+      <h1 className="text-2xl font-bold mb-4 text-center">Thông tin cá nhân</h1>
 
-      <form onSubmit={handleSubmit}>
-        <div className="mb-3">
-          <label className="form-label">Ảnh đại diện</label>
-          <div>
-            <AvatarUploader src={avatarUrl} onFileSelect={handleFileSelect} onRemove={handleRemoveAvatar} />
-          </div>
+      {/* Avatar */}
+      <div className="flex flex-col items-center mb-6">
+        <AvatarUploader
+          src={avatarUrl}
+          onFileSelect={handleFileSelect}
+          onRemove={handleRemoveAvatar}
+        />
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium mb-1">Họ tên</label>
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400"
+            required
+          />
         </div>
 
-        <div className="mb-3">
-          <label className="form-label">Họ tên</label>
-          <input className="form-control" value={name} onChange={(e) => setName(e.target.value)} required />
+        <div>
+          <label className="block text-sm font-medium mb-1">Email</label>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400"
+            required
+          />
+          <p className="text-xs text-gray-500 mt-1">
+            Thay đổi email có thể yêu cầu xác nhận lại theo cấu hình server.
+          </p>
         </div>
 
-        <div className="mb-3">
-          <label className="form-label">Email</label>
-          <input className="form-control" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-          <div className="form-text">Thay đổi email có thể yêu cầu xác nhận lại theo cấu hình server.</div>
+        <div>
+          <label className="block text-sm font-medium mb-1">Số điện thoại</label>
+          <input
+            type="text"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400"
+          />
         </div>
 
-        <div className="mb-3">
-          <label className="form-label">Số điện thoại</label>
-          <input className="form-control" value={phone} onChange={(e) => setPhone(e.target.value)} />
-        </div>
-
-        <div className="d-flex gap-2">
-          <button className="btn btn-primary" type="submit" disabled={submitting}>
+        <div className="flex gap-3 pt-4">
+          <button
+            type="submit"
+            disabled={submitting}
+            className="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-xl shadow-md transition disabled:opacity-50"
+          >
             {submitting ? "Đang lưu..." : "Lưu thay đổi"}
           </button>
           <button
             type="button"
-            className="btn btn-outline-secondary"
             onClick={() => {
-              // revert to redux values
               const u = reduxUser;
               if (u) {
                 setName(u.name || "");
                 setEmail(u.email || "");
                 setPhone(u.phone || "");
                 setAvatarFile(null);
-                setAvatarUrl(u.avatarUrl ? (u.avatarUrl.startsWith("http") ? u.avatarUrl : SERVER_BASE + u.avatarUrl) : null);
+                setAvatarUrl(
+                  u.avatarUrl
+                    ? u.avatarUrl.startsWith("http")
+                      ? u.avatarUrl
+                      : SERVER_BASE + u.avatarUrl
+                    : null
+                );
                 setRemoveAvatar(false);
               }
             }}
-          >
+            className="flex-1 py-2.5 bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium rounded-xl shadow-sm transition"
+            >
             Hủy
           </button>
         </div>
       </form>
     </div>
-  );
-
-  // useEffect(() => {
-  //   if (!profile) {
-  //     dispatch(getMyProfile());
-  //   } else {
-  //     setForm({ ...profile });
-  //   }
-  // }, [profile, dispatch]);
-
-  // if (!profile) return <p className="text-center">Loading...</p>;
-
-  // return (
-  //   <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
-  //     <div className="bg-white shadow-xl rounded-2xl p-8 w-full max-w-md">
-  //       <h1 className="text-2xl font-bold mb-4 text-center">Profile</h1>
-  //       <img
-  //         src={profile.avatarUrl || "https://via.placeholder.com/100"}
-  //         alt="avatar"
-  //         className="w-24 h-24 rounded-full mx-auto mb-4"
-  //       />
-  //       <input
-  //         type="text"
-  //         value={form.fullName}
-  //         onChange={(e) => setForm({ ...form, fullName: e.target.value })}
-  //         placeholder="Full name"
-  //         className="w-full mb-3 px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400"
-  //       />
-  //       <input
-  //         type="text"
-  //         value={form.avatarUrl}
-  //         onChange={(e) => setForm({ ...form, avatarUrl: e.target.value })}
-  //         placeholder="Avatar URL"
-  //         className="w-full mb-3 px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400"
-  //       />
-  //       <button
-  //         onClick={onUpdate}
-  //         className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-xl shadow-md transition"
-  //       >
-  //         Update
-  //       </button>
-  //     </div>
-  //   </div>
-  // );
+  </div>
+);
 };
