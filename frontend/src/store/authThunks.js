@@ -13,6 +13,9 @@ export const loginThunk = createAsyncThunk(
           id: response.data.user._id,
           name: response.data.user.name,
           email: response.data.user.email,
+          avatarUrl: response.data.user.avatarUrl || null,
+          phone: response.data.user.phone || null,
+          role: response.data.user.role || null
         },
         accessToken: response.data.accessToken
       };

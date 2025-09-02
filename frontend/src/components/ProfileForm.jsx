@@ -1,15 +1,18 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import { getProfileApi, updateProfileApi } from "../api/userApi";
 import AvatarUploader from "./AvatarUploader";
 import { toast } from "react-toastify";
 import { selectUser, updateUser } from "../store/authSlice";
+import { SERVER_BASE } from "../config"; 
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const phoneRegex = /^\+?[0-9]{7,15}$/;
   
 export default function ProfileForm() {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const reduxUser = useSelector(selectUser);
   // const [form, setForm] = useState({ ...reduxUser });
 
@@ -24,8 +27,6 @@ export default function ProfileForm() {
   const [avatarFile, setAvatarFile] = useState(null);
   const [avatarUrl, setAvatarUrl] = useState(null); // full url or null
   const [removeAvatar, setRemoveAvatar] = useState(false);
-
-  const SERVER_BASE = "http://localhost:5000";
 
 
   // load profile: ưu tiên redux, nếu không có -> gọi API
@@ -190,7 +191,9 @@ return (
                 );
                 setRemoveAvatar(false);
               }
+              navigate(-1);
             }}
+            
             className="flex-1 py-2.5 bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium rounded-xl shadow-sm transition"
             >
             Hủy

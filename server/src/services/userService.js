@@ -24,7 +24,7 @@ const getProfile = async (req, res) => {
 };
 
 // Cập nhật profile user
-const updateProfile = async (userId, { name, email, phone }, res) => {
+const updateProfile = async (userId, { name, email, phone }) => {
   try {
     const user = await User.findById(userId);
     if (!user) throw { status: 404, message: "Người dùng không tồn tại" };
@@ -43,17 +43,6 @@ const updateProfile = async (userId, { name, email, phone }, res) => {
   await user.save();
   return user.toObject();
 
-    // const user = await User.findByIdAndUpdate(
-    //   userId,
-    //   { name, email, phone, updatedAt: new Date() },
-    //   { new: true, runValidators: true, select: "-password" }
-    // );
-
-    // if (!user) {
-    //   return res.status(404).json({ message: "User not found" });
-    // }
-
-    // return res.json({ message: "Profile updated successfully", user });
   } catch (error) {
  if (error.status) throw error;
     throw { status: 500, message: error.message || "Lỗi cập nhật thông tin" };

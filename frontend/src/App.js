@@ -11,27 +11,21 @@ import LoginPage from "./pages/LoginPage";
 import Dashboard from "./pages/Dashboard";
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ProfilePage from "./pages/ProfilePage";
+import Header from './components/header';
 
 
 
 function App() {
 
-  // return (
-  //   <>
-  //     <RegisterPage />
-  //     {/* ToastContainer phải nằm trong App để toast hiển thị ở mọi nơi */}
-  //     <ToastContainer position="top-right" autoClose={3000} />
-  //   </>
-  // );
-
    return (
       <>
         <BrowserRouter>
+          <Header />
           <Routes>
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-            <Route path="*" element={<LoginPage />} />
+            <Route path="*" element={<Dashboard />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/profile" element={<ProfilePage />} />
           </Routes>
