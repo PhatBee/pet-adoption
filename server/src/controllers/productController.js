@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const Product = require("../models/Product");
 
 // 08 sản phẩm mới nhất
@@ -26,6 +27,13 @@ exports.getTopDiscount = async (req, res) => {
 
 // Chi tiết sản phẩm
 exports.getProductById = async (req, res) => {
+  const { id } = req.params;
+
+  // Kiểm tra id có hợp lệ không
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(400).json({ message: "Invalid product ID" });
+  }
+
   const product = await Product.findById(req.params.id);
   if (!product) return res.status(404).json({ message: "Product not found" });
   res.json(product);
