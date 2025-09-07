@@ -2,7 +2,7 @@
 import { useSelector, useDispatch } from "react-redux";
 import { Link } from "react-router-dom";
 import { useState } from "react";
-import { selectUser, clearCredentials } from "../store/authSlice";
+import { selectUser, clearCredentials } from "../../store/authSlice";
 
 export default function Navbar() {
   const user = useSelector(selectUser);

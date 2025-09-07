@@ -14,7 +14,7 @@ import ProfilePage from "./pages/ProfilePage";
 import Header from './components/header';
 import HomePage from './pages/HomePage';
 import ProductDetailPage from './pages/ProductDetailPage';
-import Navbar from './components/Navbar';
+import Navbar from './components/test/Navbar';
 
 
 
