@@ -21,7 +21,8 @@ const userRoutes = require("../server/src/routes/userRoutes");
 app.use("/api/users", userRoutes);
 const productRoutes = require("../server/src/routes/productRoutes");
 app.use("/api/products", productRoutes);
-
+const orderRoutes = require("../server/src/routes/orderRoutes");
+app.use("/api/orders", orderRoutes);
 app.use('/uploads', express.static(path.join(__dirname, '/uploads'))); // Serve static files
 
 // Start Server
