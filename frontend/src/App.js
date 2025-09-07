@@ -32,7 +32,7 @@ function App() {
             <Route path="*" element={<Dashboard />} />
             {/* <Route path="/dashboard" element={<Dashboard />} /> */}
             <Route path="/profile" element={<ProfilePage />} />
-            <Route path="/products/:id" element={<ProductDetailPage />} />
+            <Route path="/products/:slug" element={<ProductDetailPage />} />
           </Routes>
         </BrowserRouter>
         <ToastContainer position="top-right" autoClose={3000} />

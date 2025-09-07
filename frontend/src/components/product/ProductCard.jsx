@@ -1,12 +1,18 @@
+import { Link } from "react-router-dom";
+
 export default function ProductCard({ product }) {
   return (
     <div className="bg-white shadow rounded-lg p-4 hover:shadow-lg transition">
-      <img
-        src={product.thumbnail}
-        alt={product.name}
-        className="w-full h-40 object-cover rounded-md"
-      />
-      <h3 className="mt-2 text-lg font-semibold">{product.name}</h3>
+      <Link to={`/products/${product.slug}`}>
+        <img
+          src={product.thumbnail}
+          alt={product.name}
+          className="w-full h-40 object-cover rounded-md"
+        />
+      </Link>
+      <Link to={`/products/${product.slug}`} className="block mt-2 font-semibold hover:text-blue-600">
+        {product.name}
+      </Link>
       <p className="text-sm text-gray-500">{product.description}</p>
       <div className="flex justify-between items-center mt-2">
         <span className="text-red-500 font-bold">

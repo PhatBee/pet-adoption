@@ -31,7 +31,7 @@
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchProducts } from "../store/productSlice";
-import ProductSection from "../components/ProductSection";
+import ProductSection from "../components/product/ProductSection";
 
 export default function HomePage() {
   const dispatch = useDispatch();

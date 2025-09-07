@@ -12,6 +12,7 @@ const PUBLIC_FIELDS = [
   "images",
   "viewCount",
   "createdAt",
+  "slug"
 ].join(" ");
 
 function toLeanQuery(q) {

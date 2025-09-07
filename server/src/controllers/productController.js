@@ -11,8 +11,9 @@ const getBySlug = async (req, res) => {
   // tăng viewCount “fire-and-forget”
   Product.updateOne({ _id: product._id }, { $inc: { viewCount: 1 } }).catch(() => {});
 };
+
 // Chi tiết sản phẩm
-exports.getProductById = async (req, res) => {
+const getProductById = async (req, res) => {
   const { id } = req.params;
 
   // Kiểm tra id có hợp lệ không
@@ -25,4 +26,4 @@ exports.getProductById = async (req, res) => {
   res.json(product);
 };
 
-module.exports = { getBySlug };
+module.exports = { getBySlug, getProductById };

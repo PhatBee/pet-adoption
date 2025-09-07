@@ -8,6 +8,11 @@ async function getAll() {
   return res.data;
 }
 
+const productApi = {
+  getBySlug: (slug) => axiosClient.get(`/products/${encodeURIComponent(slug)}`),
+};
+
 export default {
   getAll,
+  ...productApi,
 };
