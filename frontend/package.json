@@ -19,6 +19,7 @@
     "react-scripts": "^5.0.1",
     "react-toastify": "^11.0.5",
     "redux-persist": "^6.0.0",
+    "swiper": "^6.8.4",
     "web-vitals": "^2.1.4"
   },
   "scripts": {

@@ -1,6 +1,6 @@
 // src/components/ProductDetail.jsx
 import { Swiper, SwiperSlide } from "swiper/react";
-import "swiper/css";
+import "swiper/swiper.min.css";
 
 export default function ProductDetail({ product, qty, setQty }) {
   return (
