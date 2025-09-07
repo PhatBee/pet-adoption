@@ -19,6 +19,8 @@ const authRoutes = require("../server/src/routes/authRoutes");
 app.use("/api/auth", authRoutes);
 const userRoutes = require("../server/src/routes/userRoutes");
 app.use("/api/users", userRoutes);
+const productRoutes = require("../server/src/routes/productRoutes");
+app.use("/api/products", productRoutes);
 
 app.use('/uploads', express.static(path.join(__dirname, '/uploads'))); // Serve static files
 
