@@ -1,4 +1,4 @@
-const cart = require("../models/Cart");
+const Cart = require("../models/Cart");
 const Product = require("../models/Product");
 
 // Lấy giỏ hàng của user hiện tại

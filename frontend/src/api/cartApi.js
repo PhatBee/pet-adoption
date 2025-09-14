@@ -10,3 +10,5 @@ export const cartApi = {
         return axiosClient.get(`${BASE}`);
     },
 };
+
+export default cartApi;
