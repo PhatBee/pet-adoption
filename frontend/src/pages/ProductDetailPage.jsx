@@ -54,7 +54,7 @@ export default function ProductDetailPage() {
       return;
     }
 
-    dispatch(addCartItem({ productId: product._id, qty }))
+    dispatch(addCartItem({ productId: product._id, quantity: qty }))
       .unwrap()
       .then(() => toast.success("Đã thêm vào giỏ hàng"))
       .catch((err) => toast.error(err));
