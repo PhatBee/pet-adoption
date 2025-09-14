@@ -26,7 +26,6 @@ import ImageCarousel from "../components/product/ImageCarousel";
 import QuantitySelector from "../components/product/QuantitySelector";
 import StockBadge from "../components/product/StockBadge";
 import { toast } from "react-toastify";
-// import { updateUser } from "../store/authSlice"; // nếu cần update user avatar elsewhere
 // optional: cart action
 // import { addItem as addCartItem } from "../features/cart/cartSlice"; // nếu bạn có cart slice
 

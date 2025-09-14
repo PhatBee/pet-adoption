@@ -43,11 +43,6 @@ const productSchema = new mongoose.Schema({
     min: 0
   },
   isActive: { type: Boolean, default: true },
-
-  discount: {
-    type: Number,
-    default: 0
-  } // %
 }, { timestamps: true });
 
 const Product = mongoose.model("Product", productSchema);

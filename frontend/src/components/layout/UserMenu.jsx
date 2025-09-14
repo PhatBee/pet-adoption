@@ -1,11 +1,11 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { selectUser } from "../store/authSlice";
-import { SERVER_BASE } from "../config";
+import { selectUser } from "../../../src/store/authSlice";
+import { SERVER_BASE } from "../../../src/config";
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { logoutThunk } from '../store/authThunks';
+import { logoutThunk } from '../../../src/store/authThunks';
 import { toast } from 'react-toastify';
 
 const AVATAR_SIZE = 32;

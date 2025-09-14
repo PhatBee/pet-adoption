@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { selectUser } from "../store/authSlice";
+import { selectUser } from "../../../src/store/authSlice";
 import UserMenu from "./UserMenu";
 
 export default function Header() {

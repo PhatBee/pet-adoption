@@ -11,7 +11,7 @@ import LoginPage from "./pages/LoginPage";
 import Dashboard from "./pages/Dashboard";
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ProfilePage from "./pages/ProfilePage";
-import Header from './components/header';
+import Header from './components/layout/header';
 import HomePage from './pages/HomePage';
 import ProductDetailPage from './pages/ProductDetailPage';
 import Navbar from './components/test/Navbar';
