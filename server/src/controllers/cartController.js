@@ -1,13 +1,11 @@
-const Cart = require("../models/Cart");
-const Product = require("../models/Product");
-const mongoose = require("mongoose");
+const cartService = require("../services/cartService");
+
 
 // Lấy giỏ hàng của user hiện tại
 const getCart = async (req, res) => {
     try {
         const userId = req.user.id;
-        const cart = await Cart.findOne({ user: userId }).populate("items.product");
-       
+        const cart = await cartService.getCartByUser(userId);
         res.json(cart || { user: userId, items: [] });
     } catch (error) {
         console.error("Lỗi khi lấy giỏ hàng:", error);
@@ -20,29 +18,15 @@ const addToCart = async (req, res) => {
     try {
         const userId = req.user.id;
         const { productId, quantity } = req.body;
-        const product = await Product.findById(productId);
-        if (!product) {
-            return res.status(404).json({ message: "Không tìm thấy sản phẩm" });
-        }
-        if (product.stock < quantity) {
-            return res.status(400).json({ message: "Sản phẩm không đủ hàng" });
-        }
-
-        let cart = await Cart.findOne({ user: userId });
-        if (!cart) {
-            cart = new Cart({ user: userId, items: [] });
-        }
-
-        const itemIndex = cart.items.findIndex(item => item.product.toString() === productId);
-        if (itemIndex > -1) {
-            cart.items[itemIndex].quantity += quantity;
-        } else {
-            cart.items.push({ product: productId, quantity });
-        }
-
-        await cart.save();
+        const cart = await cartService.addProductToCart(userId, productId, quantity);
         res.json(cart);
     } catch (error) {
+        if (error.message === "NOT_FOUND") {
+            return res.status(404).json({ message: "Không tìm thấy sản phẩm" });
+        }
+        if (error.message === "OUT_OF_STOCK") {
+            return res.status(400).json({ message: "Sản phẩm không đủ hàng" });
+        }
         console.error("Lỗi khi thêm vào giỏ hàng:", error);
         res.status(500).json({ message: "Lỗi server" });
     }
