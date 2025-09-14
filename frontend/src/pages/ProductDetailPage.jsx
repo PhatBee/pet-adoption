@@ -52,13 +52,11 @@ export default function ProductDetailPage() {
       toast.error("Sản phẩm đã hết hàng");
       return;
     }
-    // // Nếu bạn có cart slice:
-    // try {
-    //   dispatch(addCartItem({ productId: product._id, name: product.name, price: product.price, qty }));
-    //   toast.success("Đã thêm vào giỏ hàng");
-    // } catch {
-    //   toast.error("Không thể thêm vào giỏ hàng");
-    // }
+
+    dispatch(addCartItem({ productId: product._id, qty }))
+      .unwrap()
+      .then(() => toast.success("Đã thêm vào giỏ hàng"))
+      .catch((err) => toast.error(err));
   };
 
   if (isLoading) return <div className="p-6">Đang tải...</div>;
