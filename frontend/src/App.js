@@ -15,6 +15,7 @@ import Header from './components/layout/header';
 import HomePage from './pages/HomePage';
 import ProductDetailPage from './pages/ProductDetailPage';
 import Navbar from './components/test/Navbar';
+import CartPage from './pages/CartPage';
 
 
 
@@ -33,6 +34,7 @@ function App() {
             {/* <Route path="/dashboard" element={<Dashboard />} /> */}
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/products/:slug" element={<ProductDetailPage />} />
+            <Route path="/cart" element={<CartPage />} />
           </Routes>
         </BrowserRouter>
         <ToastContainer position="top-right" autoClose={3000} />
