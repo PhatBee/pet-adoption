@@ -23,6 +23,8 @@ const productRoutes = require("../server/src/routes/productRoutes");
 app.use("/api/products", productRoutes);
 const cartRoutes = require("../server/src/routes/cartRoutes");
 app.use("/api/cart", cartRoutes);
+const checkoutRoutes = require("../server/src/routes/checkoutRoutes");
+app.use("/api/checkout", checkoutRoutes);
 const orderRoutes = require("../server/src/routes/orderRoutes");
 app.use("/api/orders", orderRoutes);
 app.use('/uploads', express.static(path.join(__dirname, '/uploads'))); // Serve static files
