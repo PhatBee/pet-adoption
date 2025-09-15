@@ -1,24 +1,26 @@
 const mongoose = require("mongoose");
 
-const orderItemSchema = new mongoose.Schema(
-  {
-    product: { type: mongoose.Types.ObjectId, ref: "Product", required: true },
-    qty: { type: Number, required: true, min: 1 },
-    price: { type: Number, required: true, min: 0 },
-  },
-  { _id: false }
-);
+const orderItemSchema = new mongoose.Schema({
+  product: { type: mongoose.Schema.Types.ObjectId, ref: "Product", required: true },
+  productSnapshot: { type: Object, required: true }, // lưu trữ thông tin sản phẩm tại thời điểm đặt hàng
+  quantity: { type: Number, required: true },
+}, { _id: false });
 
-const orderSchema = new mongoose.Schema(
-  {
-    user: { type: mongoose.Types.ObjectId, ref: "User", required: true },
-    items: { type: [orderItemSchema], required: true },
-    status: { type: String, default: "pending" },      // pending | paid | shipped | completed | cancelled
-    paymentStatus: { type: String, default: "unpaid" } // unpaid | paid | refunded
-  },
-  { timestamps: true }
-);
+const addressSchema = new mongoose.Schema({
+  fullName: String, phone: String, street: String,
+  ward: String, district: String, city: String
+}, { _id: false });
 
-orderSchema.index({ status: 1, paymentStatus: 1, createdAt: -1 });
+const orderSchema = new mongoose.Schema({
+  user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+  items: [orderItemSchema],
+  shippingAddress: addressSchema,
+  paymentMethod: { type: String, enum: ["COD", "VNPAY"], default: "COD" },
+  itemsTotal: { type: Number, required: true },
+  total: { type: Number, required: true },
+  status: { type: String, default: "pending" }, // pending | shipping | completed | cancelled
+  orderedAt: { type: Date },
+  deliveredAt: { type: Date },
+}, { timestamps: true });
 
 module.exports = mongoose.model("Order", orderSchema);
