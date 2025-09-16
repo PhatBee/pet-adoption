@@ -1,4 +1,6 @@
 const cartService = require("../services/cartService");
+const userService = require("../services/userService");
+const {createOrderFromCart} = require("../services/cartService");
 
 
 // Lấy giỏ hàng của user hiện tại
@@ -82,4 +84,52 @@ const clearCart = async (req, res) => {
     }
 };
 
-module.exports = { getCart, addToCart, removeCartItem, updateCartItem, clearCart };
+// Lấy giỏ hàng để thanh toán
+const getCheckoutCart = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const cart = await cartService.getCartByUser(userId);
+        const user = await userService.getUserById(userId);
+
+        res.json({
+            cart: cart || { user: userId, items: [] },
+            address: user?.addresses || [],
+        });
+    } catch (error) {
+        console.error("Lỗi khi lấy giỏ hàng để thanh toán:", error);
+        res.status(500).json({ message: "Lỗi khi lấy giỏ hàng để thanh toán" });
+    }
+};
+
+// Tạo đơn hàng từ giỏ hàng
+const placeOrder = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { shippingAddress, paymentMethod } = req.body;
+
+        if (!shippingAddress || !shippingAddress.fullName || !shippingAddress.phone || !shippingAddress.street || !shippingAddress.city) {
+            return res.status(400).json({ message: "Địa chỉ giao hàng không hợp lệ" });
+        }
+
+        if (paymentMethod && !["COD", "VNPAY"].includes(paymentMethod)) {
+            return res.status(400).json({ message: "Phương thức thanh toán không hợp lệ" });
+        }
+
+        const  { order }  = await createOrderFromCart({userId, shippingAddress, paymentMethod});
+
+        // Nếu dùng VNPAY -> trả về URL thanh toán
+        if (paymentMethod === "VNPAY") {
+            // Tạo URL thanh toán giả lập
+            const vnpayUrl = `https://sandbox.vnpayment.vn/paymentv2/vpcpay.html?vnp_Amount=${order.total * 100}&vnp_OrderInfo=Thanh+toan+don+hang+${order._id}&vnp_TxnRef=${order._id}`;
+            return res.json({ orderId: order._id, paymentUrl: vnpayUrl });
+        }
+
+        res.json({ orderId: order._id, order });
+    } catch (error) {
+        const code = error.status || 500;
+        res.status(code).json({ message: error.message || "Lỗi khi tạo đơn hàng" });
+        console.error("Lỗi khi tạo đơn hàng:", error);
+    }
+};
+
+module.exports = { getCart, addToCart, removeCartItem, updateCartItem, clearCart, getCheckoutCart, placeOrder };
