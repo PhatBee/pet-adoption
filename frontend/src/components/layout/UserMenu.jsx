@@ -77,24 +77,24 @@ export default function UserMenu() {
       </button>
 
       {open && (
-        <div className="absolute right-0 mt-2 w-56 bg-white shadow-lg rounded-lg border z-50">
+        <div className="absolute right-0 mt-2 w-56 bg-white shadow-lg rounded-lg border z-50 no-underline">
           <Link
             to="/profile"
             onClick={close}
-            className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+            className="block px-4 py-2 text-gray-700 hover:bg-gray-100 no-underline"
           >
             Profile
           </Link>
           <Link
             to="/orders"
             onClick={close}
-            className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+            className="block px-4 py-2 text-gray-700 hover:bg-gray-100 no-underline"
           >
             Đơn hàng của tôi
           </Link>
           <button
             onClick={handleLogout}
-            className="w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100"
+            className="w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100 no-underline"
           >
             Đăng xuất
           </button>
