@@ -8,22 +8,42 @@ export default function Header() {
   const user = useSelector(selectUser);
 
   return (
-    <header className="border-bottom">
-      <div className="container d-flex align-items-center justify-content-between py-2">
-        <Link to="/" className="text-decoration-none">
-          <h1 className="h5 m-0">🐾 Pet Adoption</h1>
+    <header className="border-b bg-white">
+      <div className="container mx-auto flex items-center justify-between py-3 px-4">
+        <Link to="/" className="text-indigo-600 font-bold text-lg no-underline">
+          🐾 Pet Adoption
         </Link>
 
-        <nav className="d-flex align-items-center gap-3">
-          <Link to="/pets" className="text-decoration-none">Thú cưng</Link>
-          <Link to="/about" className="text-decoration-none">Giới thiệu</Link>
+        <nav className="flex items-center gap-5">
+          <Link
+            to="/pets"
+            className="text-gray-700 hover:text-indigo-600 no-underline"
+          >
+            Thú cưng
+          </Link>
+          <Link
+            to="/about"
+            className="text-gray-700 hover:text-indigo-600 no-underline"
+          >
+            Giới thiệu
+          </Link>
 
           {user ? (
             <UserMenu />
           ) : (
-            <div className="d-flex gap-2">
-              <Link to="/login" className="btn btn-outline-primary btn-sm">Đăng nhập</Link>
-              <Link to="/register" className="btn btn-primary btn-sm">Đăng ký</Link>
+            <div className="flex gap-2">
+              <Link
+                to="/login"
+                className="px-3 py-1 border border-indigo-600 text-indigo-600 rounded-lg hover:bg-indigo-50 text-sm no-underline"
+              >
+                Đăng nhập
+              </Link>
+              <Link
+                to="/register"
+                className="px-3 py-1 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm no-underline"
+              >
+                Đăng ký
+              </Link>
             </div>
           )}
         </nav>

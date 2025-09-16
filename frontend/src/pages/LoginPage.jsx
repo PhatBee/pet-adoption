@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from 'react-toastify';
 import LoginForm from "../components/LoginForm";
 import { loginThunk } from '../store/authThunks';
+import AuthModal from "../components/AuthModal";
 
 const LoginPage = () => {
   const dispatch = useDispatch();
@@ -25,12 +26,12 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="container mt-5 d-flex justify-content-center">
+    <AuthModal onClose={() => navigate("/")}>
       <LoginForm 
         onSubmit={handleSubmit}
         isLoading={isLoading}
       />
-    </div>
+    </AuthModal>
   );
 };
 

@@ -52,53 +52,52 @@ export default function UserMenu() {
   };
 
   return (
-    <div className="position-relative" ref={ref}>
+    <div className="relative" ref={ref}>
       <button
         type="button"
-        className="btn btn-light d-flex align-items-center"
         onClick={toggle}
-        aria-haspopup="menu"
-        aria-expanded={open}
+        className="flex items-center px-2 py-1 rounded-lg hover:bg-gray-100"
       >
-        {/* Avatar nhỏ + tên */}
         <div
-          className="me-2 d-flex align-items-center justify-content-center bg-secondary text-white"
-          style={{
-            width: AVATAR_SIZE,
-            height: AVATAR_SIZE,
-            borderRadius: "50%",
-            overflow: "hidden",
-            fontSize: 12,
-          }}
+          className="flex items-center justify-center bg-gray-400 text-white rounded-full mr-2"
+          style={{ width: AVATAR_SIZE, height: AVATAR_SIZE, fontSize: 12 }}
         >
           {avatar ? (
-            <img src={avatar} alt="avatar" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-          ) : (<span>{user.name || user.email}</span>)}
+            <img
+              src={avatar}
+              alt="avatar"
+              className="w-full h-full object-cover rounded-full"
+            />
+          ) : (
+            <span>{user.name?.charAt(0) || user.email?.charAt(0)}</span>
+          )}
         </div>
-        <span className="me-1">{user.name || user.email}</span>
-        <span className="ms-1" aria-hidden>▾</span>
+        <span className="text-sm font-medium">{user.name || user.email}</span>
+        <span className="ml-1 text-gray-500">▾</span>
       </button>
 
       {open && (
-        <div
-          role="menu"
-          className="card shadow position-absolute"
-          style={{ right: 0, top: "110%", minWidth: 220, zIndex: 1000 }}
-        >
-          <div className="list-group list-group-flush">
-            <Link to="/profile" className="list-group-item list-group-item-action" onClick={close}>
-              Profile
-            </Link>
-            <Link to="/orders" className="list-group-item list-group-item-action" onClick={close}>
-              Đơn hàng của tôi
-            </Link>
-            <button
-              className="list-group-item list-group-item-action text-danger"
-              onClick={handleLogout}
-            >
-              Logout
-            </button>
-          </div>
+        <div className="absolute right-0 mt-2 w-56 bg-white shadow-lg rounded-lg border z-50">
+          <Link
+            to="/profile"
+            onClick={close}
+            className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+          >
+            Profile
+          </Link>
+          <Link
+            to="/orders"
+            onClick={close}
+            className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+          >
+            Đơn hàng của tôi
+          </Link>
+          <button
+            onClick={handleLogout}
+            className="w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100"
+          >
+            Đăng xuất
+          </button>
         </div>
       )}
     </div>
