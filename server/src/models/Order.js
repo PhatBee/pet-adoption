@@ -21,6 +21,8 @@ const orderSchema = new mongoose.Schema({
   status: { type: String, default: "pending", enum: ["confirmed", "preparing","shipping", "delivered","cancelled","cancel_requested"] },
   orderedAt: { type: Date },
   deliveredAt: { type: Date },
+  autoConfirmJobId: { type: String, default: null },
+  cancellableUntil: { type: Date }, 
 }, { timestamps: true });
 
 module.exports = mongoose.model("Order", orderSchema);
