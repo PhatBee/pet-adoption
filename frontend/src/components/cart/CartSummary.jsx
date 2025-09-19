@@ -14,7 +14,7 @@ export default function CartSummary({ items }) {
 
   const onCheckout = () => {
     // placeholder, chuyển sang trang checkout
-    alert("Tạm thời: chức năng thanh toán sẽ được làm sau");
+    navigator("/checkout")
   };
 
   return (

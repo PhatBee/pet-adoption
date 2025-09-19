@@ -79,7 +79,7 @@ const clearCart = async (userId) => {
 };
 
 // Tao đơn hàng từ giỏ hàng
-const createOrderFromCart = async (userId, shippingAddress, paymentMethod) => {
+const createOrderFromCart = async ({userId, shippingAddress, paymentMethod}) => {
   // Bắt đầu phiên giao dịch
   const session = await mongoose.startSession();
   try {
@@ -87,15 +87,17 @@ const createOrderFromCart = async (userId, shippingAddress, paymentMethod) => {
     await session.withTransaction(async () => {
       // Lấy giỏ hàng
       const cart = await Cart.findOne({ user: userId }).populate("items.product").session(session);
-      if (!cart || !cart.items.length) throw { status: 400, message: "Giỏ hàng trống" };
+      if (!cart || !cart.items.length)         
+        throw new Error("Giỏ hàng trống");
+
 
       // Kiểm tra tồn kho
       let itemsTotal = 0;
       const orderItems = cart.items.map((item) => {
         const product = item.product;
         const quantity = item.quantity;
-        if (!product) throw { status: 400, message: "Sản phẩm trong giỏ hàng không tồn tại" };
-        if (product.stock < quantity) throw { status: 400, message: `Sản phẩm ${product.name} không đủ hàng` };
+        if (!product) throw new Error("Sản phẩm trong giỏ hàng không tồn tại");
+        if (product.stock < quantity) throw new Error(`Sản phẩm ${product.name} không đủ hàng`);
 
         const price = product.price;
         const lineTotal = price * quantity;
@@ -148,22 +150,24 @@ const createOrderFromCart = async (userId, shippingAddress, paymentMethod) => {
 
       result = order;
 
-      // Kết thúc phiên giao dịch
-      session.endSession();
-
-      return { order: result };
+      
     });
 
-  } catch (error) {
-    session.endSession();
+    return { order: result };
 
-    // Dự phòng: nếu lỗi trong transaction, rollback thủ công
-    if (error.message && error.message.match("/transactions/")) {
-      // Fallback: rollback thủ công
-      return await createOrderFromCartFallback({ userId, shippingAddress, paymentMethod });
-    }
+  } catch (error) {
+
+    // // Dự phòng: nếu lỗi trong transaction, rollback thủ công
+    // if (error.message && error.message.match("/transactions/")) {
+    //   // Fallback: rollback thủ công
+    //   return await createOrderFromCartFallback({ userId, shippingAddress, paymentMethod });
+    // }
+     console.error("Lỗi trong transaction:", err);
 
     throw error;
+  } finally {
+    // Kết thúc phiên giao dịch
+      session.endSession();
   }
 }
 // Fallback: tạo đơn hàng từ giỏ hàng nếu lỗi trong transaction
