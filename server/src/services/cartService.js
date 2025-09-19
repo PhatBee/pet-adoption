@@ -82,6 +82,8 @@ const clearCart = async (userId) => {
 const createOrderFromCart = async ({userId, shippingAddress, paymentMethod}) => {
   // Bắt đầu phiên giao dịch
   const session = await mongoose.startSession();
+  let savedOrder = null;
+
   try {
     let result;
     await session.withTransaction(async () => {
@@ -148,14 +150,28 @@ const createOrderFromCart = async ({userId, shippingAddress, paymentMethod}) => 
       cart.items = [];
       await cart.save({ session });
 
-      result = order;
+        if (savedOrder) {
+          const job = await autoConfirmQueue.add(
+          { orderId: savedOrder._id },
+          {
+            delay: 30 * 60 * 1000, // 30 phút
+            attempts: 3,
+            backoff: { type: "exponential", delay: 60 * 1000 },
+            removeOnComplete: true,
+            removeOnFail: false,
+          }
+        );
 
+        // Lưu jobId vào order (ngoài transaction)
+        savedOrder.autoConfirmJobId = job.id.toString();
+        await savedOrder.save();
+      }
       
-    });
 
-    return { order: result };
+      return { order: savedOrder };
+      });
 
-  } catch (error) {
+    } catch (error) {
 
     // // Dự phòng: nếu lỗi trong transaction, rollback thủ công
     // if (error.message && error.message.match("/transactions/")) {

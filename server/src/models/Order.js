@@ -18,9 +18,11 @@ const orderSchema = new mongoose.Schema({
   paymentMethod: { type: String, enum: ["COD", "VNPAY"], default: "COD" },
   itemsTotal: { type: Number, required: true },
   total: { type: Number, required: true },
-  status: { type: String, default: "pending" }, // pending | shipping | completed | cancelled
+  status: { type: String, default: "pending", enum: ["confirmed", "preparing","shipping", "delivered","cancelled","cancel_requested"] },
   orderedAt: { type: Date },
   deliveredAt: { type: Date },
+  autoConfirmJobId: { type: String, default: null },
+  cancellableUntil: { type: Date }, 
 }, { timestamps: true });
 
 module.exports = mongoose.model("Order", orderSchema);
