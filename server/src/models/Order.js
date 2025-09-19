@@ -18,7 +18,7 @@ const orderSchema = new mongoose.Schema({
   paymentMethod: { type: String, enum: ["COD", "VNPAY"], default: "COD" },
   itemsTotal: { type: Number, required: true },
   total: { type: Number, required: true },
-  status: { type: String, default: "pending", enum: ["confirmed", "preparing","shipping", "delivered","cancelled","cancel_requested"] },
+  status: { type: String, default: "pending", enum: ["pending","confirmed", "preparing","shipping", "delivered","cancelled","cancel_requested"] },
   orderedAt: { type: Date },
   deliveredAt: { type: Date },
   autoConfirmJobId: { type: String, default: null },

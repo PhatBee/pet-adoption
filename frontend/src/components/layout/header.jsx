@@ -27,7 +27,6 @@ export default function Header() {
           >
             Giới thiệu
           </Link>
-
           {user ? (
             <UserMenu />
           ) : (

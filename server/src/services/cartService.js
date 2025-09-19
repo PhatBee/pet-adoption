@@ -79,17 +79,17 @@ const clearCart = async (userId) => {
 };
 
 // Tao đơn hàng từ giỏ hàng
-const createOrderFromCart = async ({userId, shippingAddress, paymentMethod}) => {
+const createOrderFromCart = async ({ userId, shippingAddress, paymentMethod }) => {
   // Bắt đầu phiên giao dịch
   const session = await mongoose.startSession();
-  let savedOrder = null;
 
   try {
     let result;
+    let savedOrder;
     await session.withTransaction(async () => {
       // Lấy giỏ hàng
       const cart = await Cart.findOne({ user: userId }).populate("items.product").session(session);
-      if (!cart || !cart.items.length)         
+      if (!cart || !cart.items.length)
         throw new Error("Giỏ hàng trống");
 
 
@@ -150,40 +150,44 @@ const createOrderFromCart = async ({userId, shippingAddress, paymentMethod}) => 
       cart.items = [];
       await cart.save({ session });
 
-        if (savedOrder) {
-          const job = await autoConfirmQueue.add(
-          { orderId: savedOrder._id },
-          {
-            delay: 30 * 60 * 1000, // 30 phút
-            attempts: 3,
-            backoff: { type: "exponential", delay: 60 * 1000 },
-            removeOnComplete: true,
-            removeOnFail: false,
-          }
-        );
+      //   if (savedOrder) {
+      //     const job = await autoConfirmQueue.add(
+      //     { orderId: savedOrder._id },
+      //     {
+      //       delay: 30 * 60 * 1000, // 30 phút
+      //       attempts: 3,
+      //       backoff: { type: "exponential", delay: 60 * 1000 },
+      //       removeOnComplete: true,
+      //       removeOnFail: false,
+      //     }
+      //   );
 
-        // Lưu jobId vào order (ngoài transaction)
-        savedOrder.autoConfirmJobId = job.id.toString();
-        await savedOrder.save();
-      }
+      //   // Lưu jobId vào order (ngoài transaction)
+      //   savedOrder.autoConfirmJobId = job.id.toString();
+      //   await savedOrder.save();
+      // }
+
+      result = order
+
+
       
+    });
 
-      return { order: savedOrder };
-      });
+    return { order: result };
 
-    } catch (error) {
+  } catch (error) {
 
     // // Dự phòng: nếu lỗi trong transaction, rollback thủ công
     // if (error.message && error.message.match("/transactions/")) {
     //   // Fallback: rollback thủ công
     //   return await createOrderFromCartFallback({ userId, shippingAddress, paymentMethod });
     // }
-     console.error("Lỗi trong transaction:", err);
+    console.error("Lỗi trong transaction:", error);
 
     throw error;
   } finally {
     // Kết thúc phiên giao dịch
-      session.endSession();
+    session.endSession();
   }
 }
 // Fallback: tạo đơn hàng từ giỏ hàng nếu lỗi trong transaction
