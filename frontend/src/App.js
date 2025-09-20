@@ -16,6 +16,7 @@ import HomePage from './pages/HomePage';
 import ProductDetailPage from './pages/ProductDetailPage';
 import Navbar from './components/test/Navbar';
 import CartPage from './pages/CartPage';
+import OrderListPage from './pages/OrderListPage';
 
 
 
@@ -35,6 +36,7 @@ function App() {
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/products/:slug" element={<ProductDetailPage />} />
             <Route path="/cart" element={<CartPage />} />
+            <Route path="/orders" element={<OrderListPage />} />
           </Routes>
         </BrowserRouter>
         <ToastContainer position="top-right" autoClose={3000} />

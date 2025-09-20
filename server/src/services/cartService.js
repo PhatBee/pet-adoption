@@ -3,7 +3,6 @@
   const mongoose = require("mongoose");
   const Order = require("../models/Order");
   const User = require("../models/User");
-  const autoConfirmQueue = require('../queues/autoConfirmQueue');
 
   // Lấy giỏ hàng của user hiện tại
   const getCartByUser = async (userId) => {
