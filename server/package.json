@@ -8,7 +8,6 @@
     "dev": "nodemon server.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "worker": "node workers/autoConfirmWorker.js"
-
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
@@ -23,6 +22,7 @@
     "mongodb": "^6.18.0",
     "mongoose": "^8.18.0",
     "multer": "^2.0.2",
+    "node-cron": "^4.2.1",
     "nodemailer": "^7.0.5",
     "sharp": "^0.34.3"
   },
