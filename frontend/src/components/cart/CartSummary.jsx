@@ -1,10 +1,12 @@
 // src/components/CartSummary.jsx
 import React from "react";
 import { useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import { clearCart } from "../../store/cartSlice";
 
 export default function CartSummary({ items }) {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const subtotal = items.reduce((s, it) => s + (it.product?.price || 0) * it.quantity, 0);
 
   const onClear = () => {
@@ -13,8 +15,7 @@ export default function CartSummary({ items }) {
   };
 
   const onCheckout = () => {
-    // placeholder, chuyển sang trang checkout
-    alert("Tạm thời: chức năng thanh toán sẽ được làm sau");
+    navigate('/checkout');
   };
 
   return (

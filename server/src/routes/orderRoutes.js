@@ -1,9 +1,19 @@
 const express = require("express");
 const router = express.Router();
-const orderController = require("../controllers/orderController");
-const { authenticate } = require("../middleware/authMiddleware");
+const {authenticate} = require("../middleware/authMiddleware");
+const { getMyOrders, getOrderDetails, cancelOrder, changeOrderStatus } = require("../controllers/orderController")
 
-router.get("/orders", authenticate, orderController.getOrders);       // xem lịch sử đơn hàng
-router.get("/orders/:id", authenticate, orderController.getOrderDetail); // xem chi tiết đơn hàng
+// danh sách đơn của user
+router.get("/my-orders", authenticate, getMyOrders);
+
+// chi tiết đơn
+router.get("/:id", authenticate, getOrderDetails);
+
+// user hủy
+router.post("/:id/cancel", authenticate, cancelOrder);
+
+//cập nhật trạng thái
+router.patch("/:id/status", authenticate, changeOrderStatus);
+
 
 module.exports = router;

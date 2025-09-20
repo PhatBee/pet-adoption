@@ -16,7 +16,11 @@ import HomePage from './pages/HomePage';
 import ProductDetailPage from './pages/ProductDetailPage';
 import Navbar from './components/test/Navbar';
 import CartPage from './pages/CartPage';
+<<<<<<< HEAD
 import OrderListPage from './pages/OrderListPage';
+=======
+import CheckoutPage from './pages/CheckoutPage';
+>>>>>>> a8cbf5a44e80ddb6b69bc29126242c79958c550f
 
 
 
@@ -36,7 +40,11 @@ function App() {
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/products/:slug" element={<ProductDetailPage />} />
             <Route path="/cart" element={<CartPage />} />
+<<<<<<< HEAD
             <Route path="/orders" element={<OrderListPage />} />
+=======
+            <Route path="/checkout" element={<CheckoutPage />} />
+>>>>>>> a8cbf5a44e80ddb6b69bc29126242c79958c550f
           </Routes>
         </BrowserRouter>
         <ToastContainer position="top-right" autoClose={3000} />

@@ -4,6 +4,6 @@ const { authenticate } = require("../middleware/authMiddleware");
 const router = express.Router();
 
 router.get("/", authenticate, getCheckoutCart);
-router.post("/order", authenticate, placeOrder);
+router.post("/orders", authenticate, placeOrder);
 
 module.exports = router;
