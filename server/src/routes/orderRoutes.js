@@ -1,10 +1,10 @@
 const express = require("express");
 const router = express.Router();
 const {authenticate} = require("../middleware/authMiddleware");
-const { getMyOrders, getMyOrder, cancelOrder } = require("../controllers/orderController")
+const { getListMyOrders, getMyOrder, cancelOrder } = require("../controllers/orderController")
 
 // danh sách đơn của user
-router.get("/my", authenticate, getMyOrders);
+router.get("/my", authenticate, getListMyOrders);
 
 // chi tiết đơn
 router.get("/:id", authenticate, getMyOrder);

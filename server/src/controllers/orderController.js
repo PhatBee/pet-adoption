@@ -1,7 +1,7 @@
 const orderService = require("../services/orderService");
 const Order = require("../models/Order");
 
-async function getMyOrders(req, res) {
+async function getListMyOrders(req, res) {
   try {
     const userId = req.user.id;
     const page = req.query.page || 1;
@@ -72,4 +72,4 @@ async function cancelOrder(red, req) {
   }
 }
 
-module.exports = { getMyOrder, getMyOrders, cancelOrder };
+module.exports = { getListMyOrders, getMyOrder, cancelOrder };

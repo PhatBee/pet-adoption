@@ -16,7 +16,7 @@ import HomePage from './pages/HomePage';
 import ProductDetailPage from './pages/ProductDetailPage';
 import Navbar from './components/test/Navbar';
 import CartPage from './pages/CartPage';
-import OrderListPage from './pages/OrderListPage';
+import OrdersPage from './pages/OrdersPage';
 import CheckoutPage from './pages/CheckoutPage';
 import AdminOrderPage from './pages/AdminOrderPage';
 
@@ -38,7 +38,7 @@ function App() {
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/products/:slug" element={<ProductDetailPage />} />
             <Route path="/cart" element={<CartPage />} />
-            <Route path="/orders" element={<OrderListPage />} />
+            <Route path="/orders" element={<OrdersPage />} />
             <Route path="/checkout" element={<CheckoutPage />} />
             <Route path="/admin/orders" element={<AdminOrderPage />} />
           </Routes>
