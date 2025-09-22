@@ -1,28 +1,31 @@
 const orderService = require("../services/orderService");
 const Order = require("../models/Order");
 
-async function getOrders(req, res) {
+async function getMyOrders(req, res) {
   try {
-    const userId = req.user.id; // lấy từ JWT sau khi user đăng nhập
-    const orders = await orderService.getUserOrders(userId);
-    res.json(orders);
+    const userId = req.user.id;
+    const page = req.query.page || 1;
+    const limit = req.query.limit || 10;
+
+    const data = await orderService.fetchUserOrders(userId, page, limit);
+    return res.json(data);
   } catch (err) {
-    res.status(500).json({ message: "Lỗi khi lấy lịch sử mua hàng" });
+    return res.status(500).json({ message: "Lỗi khi lấy lịch sử mua hàng" });
   }
 }
 
 
-async function getOrderDetail(req, res) {
+async function getMyOrder(req, res) {
   try {
     const userId = req.user.id;
     const orderId = req.params.id;
-    const order = await orderService.getOrderDetail(orderId, userId);
+    const order = await orderService.getUserOrderById(userId, orderId);
 
     if (!order) return res.status(404).json({ message: "Không tìm thấy đơn hàng" });
 
-    res.json(order);
+    return res.json({ order });
   } catch (err) {
-    res.status(500).json({ message: "Lỗi khi lấy chi tiết đơn hàng" });
+    return res.status(500).json({ message: "Lỗi khi lấy chi tiết đơn hàng" });
   }
 }
 
@@ -69,4 +72,4 @@ async function cancelOrder(red, req) {
   }
 }
 
-module.exports = { getOrders, getOrderDetail, cancelOrder };
+module.exports = { getMyOrder, getMyOrders, cancelOrder };
