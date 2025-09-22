@@ -132,7 +132,7 @@ const createOrderFromCart = async ({ userId, shippingAddress, paymentMethod }) =
         itemsTotal,
         total,
         status: "pending",
-        orderedAt: new Date(),
+        orderStatusHistory: [{ status: "pending", orderedAt: new Date()}]
       });
 
       await order.save({ session });

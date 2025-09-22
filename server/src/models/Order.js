@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const orderStatusHistorySchema = require("./OrderStatusHistory");
 
 const orderItemSchema = new mongoose.Schema({
   product: { type: mongoose.Schema.Types.ObjectId, ref: "Product", required: true },
@@ -22,7 +23,12 @@ const orderSchema = new mongoose.Schema({
   orderedAt: { type: Date },
   deliveredAt: { type: Date },
   autoConfirmJobId: { type: String, default: null },
-  cancellableUntil: { type: Date }, 
+  orderStatusHistory: [orderStatusHistorySchema],
+  cancellableUntil: { 
+    type: Date, 
+    default: () => new Date(Date.now() + 30 * 60 * 1000) 
+  },
+
 }, { timestamps: true });
 
 module.exports = mongoose.model("Order", orderSchema);

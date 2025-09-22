@@ -184,6 +184,7 @@ const login = async (req, res) => {
       message: "Đăng nhập thành công",
       user: {
         id: user._id,
+        role: user.role,
         email: user.email,
         name: user.name,
         avatarUrl: user.avatarUrl,

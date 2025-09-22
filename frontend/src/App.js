@@ -18,6 +18,7 @@ import Navbar from './components/test/Navbar';
 import CartPage from './pages/CartPage';
 import OrderListPage from './pages/OrderListPage';
 import CheckoutPage from './pages/CheckoutPage';
+import AdminOrderPage from './pages/AdminOrderPage';
 
 
 
@@ -39,6 +40,7 @@ function App() {
             <Route path="/cart" element={<CartPage />} />
             <Route path="/orders" element={<OrderListPage />} />
             <Route path="/checkout" element={<CheckoutPage />} />
+            <Route path="/admin/orders" element={<AdminOrderPage />} />
           </Routes>
         </BrowserRouter>
         <ToastContainer position="top-right" autoClose={3000} />

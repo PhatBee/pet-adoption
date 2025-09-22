@@ -28,6 +28,8 @@ app.use("/api/checkout", checkoutRoutes);
 const orderRoutes = require("../server/src/routes/orderRoutes");
 app.use("/api/orders", orderRoutes);
 app.use('/uploads', express.static(path.join(__dirname, '/uploads'))); // Serve static files
+const adminRoutes = require("../server/src/routes/adminRoutes");
+app.use("/api/admin/orders", adminRoutes);
 
 // Start Server
 const PORT = process.env.PORT || 5000;
