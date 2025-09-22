@@ -30,15 +30,15 @@ const userSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
-  isVerified: {
-    type: Boolean,
-    default: false,
-  },
   avatarUrl: {
     type: String
   },
   role: { type: String, default: "user" },
   phone: { type: String, default: "" },
+  isVerified: {
+    type: Boolean,
+    default: false,
+  },
   addresses: [addressSchema]
 
 }, { timestamps: true });

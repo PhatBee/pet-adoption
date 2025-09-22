@@ -169,8 +169,16 @@ const login = async (req, res) => {
     // });
 
      // Tạo tokens
-    const accessToken = signAccessToken(user);
-    const refreshToken = signRefreshToken(user);
+
+    const userObj = {
+        id: user._id,
+        role: user.role,
+        email: user.email,
+        name: user.name,
+        phone: user.phone,
+    }
+    const accessToken = signAccessToken(userObj);
+    const refreshToken = signRefreshToken(userObj);
     
     // Gửi refresh token bằng HttpOnly cookie
     res.cookie("refreshToken", refreshToken, {
@@ -210,7 +218,8 @@ const refreshToken = async (req, res) => {
     const newAccessToken = signAccessToken({
       id: decoded.id,
       email: decoded.email,
-      name: decoded.name
+      name: decoded.name,
+      role: decoded.role
     });
 
     return res.json({ accessToken: newAccessToken });
