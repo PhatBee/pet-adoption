@@ -1,5 +1,9 @@
 const mongoose = require("mongoose");
-const orderStatusHistorySchema = require("./OrderStatusHistory");
+
+const orderStatusHistorySchema = new mongoose.Schema({
+  status: { type: String, required: true },
+  changedAt: { type: Date, default: Date.now }
+}, { _id: false });
 
 const orderItemSchema = new mongoose.Schema({
   product: { type: mongoose.Schema.Types.ObjectId, ref: "Product", required: true },
