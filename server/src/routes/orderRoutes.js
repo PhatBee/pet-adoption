@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const {authenticate} = require("../middleware/authMiddleware");
 const { getListMyOrders, cancelOrder, getOrderDetail } = require("../controllers/orderController")
+const {createOrUpdateReview} = require("../controllers/reviewController")
 
 // danh sách đơn của user
 router.get("/my", authenticate, getListMyOrders);

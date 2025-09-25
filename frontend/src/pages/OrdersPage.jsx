@@ -22,12 +22,15 @@
 // src/pages/OrdersPage.jsx
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchMyOrders, fetchOrderDetail, resetOrders } from "../store/orderSlice";
+import { fetchMyOrders, resetOrders } from "../store/orderSlice";
+import { fetchOrderDetail } from "../store/orderDetailSlice";
 import OrderCard from "../components/order/OrderCard";
+import { useNavigate } from "react-router-dom";
 // import OrderDetailModal from "../components/OrderDetailModal";
 
 export default function OrdersPage() {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { items, page, limit, total, hasMore, isLoading, currentOrder, detailLoading } = useSelector(s => s.order);
 
   useEffect(() => {
@@ -42,8 +45,14 @@ export default function OrdersPage() {
   };
 
   const handleView = (orderId) => {
-    dispatch(fetchOrderDetail(orderId));
-    // open modal is handled by OrderDetailModal via currentOrder
+    dispatch(fetchOrderDetail(orderId))
+    .unwrap()
+    .then(() => {
+      navigate(`/orders/${orderId}`);
+    })
+    .catch((err) => {
+      console.error("Không lấy được chi tiết đơn:", err);
+    });
   };
 
   return (
@@ -68,7 +77,6 @@ export default function OrdersPage() {
         )}
       </div>
 
-      {/* <OrderDetailModal order={currentOrder} loading={detailLoading} /> */}
     </div>
   );
 }

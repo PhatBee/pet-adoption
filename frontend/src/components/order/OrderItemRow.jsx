@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import ReviewForm from "./ReviewForm";
 import { useDispatch } from "react-redux";
-import { submitReview } from "../features/orderDetail/orderDetailSlice";
+import { submitReview } from "../../store/orderDetailSlice";
 
 export default function OrderItemRow({ item, orderId, existingReview }) {
   const dispatch = useDispatch();

@@ -6,8 +6,10 @@ import { fetchOrderDetail, clearOrder } from "../store/orderDetailSlice";
 import OrderStatusTimeline from "../components/order/OrderStatusTimeline";
 import AddressDisplay from "../components/order/AddressDisplay";
 import OrderItemRow from "../components/order/OrderItemRow";
-import OrderSummary from "../components/checkout/OrderSummary"; // reuse from earlier or implement
+import OrderTotal from "../components/order/OrderTotal"; // reuse from earlier or implement
 import { toast } from "react-toastify";
+import { format } from "date-fns";
+
 
 export default function OrderDetailPage() {
   const { id } = useParams();
@@ -52,13 +54,13 @@ export default function OrderDetailPage() {
             <div>Mã đơn: <span className="font-mono">{order._id}</span></div>
             <div>Trạng thái: {order.status}</div>
             <div>Phương thức: {order.paymentMethod}</div>
-            <div>Ngày đặt: {new Date(order.orderedAt).toLocaleString()}</div>
-            {order.deliveredAt && <div>Ngày giao: {new Date(order.deliveredAt).toLocaleString()}</div>}
+            <div>Ngày đặt: {format(new Date(order.createdAt), "dd/MM/yyyy HH:mm")}</div>
+            {order.deliveredAt && <div>Ngày giao: {format(new Date(order.deliveredAt), "dd/MM/yyyy HH:mm")}</div>}
           </div>
         </div>
 
         <div className="mt-4">
-          <OrderSummary items={order.items} />
+          <OrderTotal items={order.items} itemsTotal={order.itemsTotal} total={order.total} />
         </div>
       </aside>
     </div>
