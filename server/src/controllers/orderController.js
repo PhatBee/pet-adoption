@@ -1,5 +1,6 @@
 const orderService = require("../services/orderService");
 const Order = require("../models/Order");
+const Review = require("../models/Review")
 
 async function getListMyOrders(req, res) {
   try {
@@ -15,19 +16,19 @@ async function getListMyOrders(req, res) {
 }
 
 
-async function getMyOrder(req, res) {
-  try {
-    const userId = req.user.id;
-    const orderId = req.params.id;
-    const order = await orderService.getUserOrderById(userId, orderId);
+// async function getMyOrder(req, res) {
+//   try {
+//     const userId = req.user.id;
+//     const orderId = req.params.id;
+//     const order = await orderService.getUserOrderById(userId, orderId);
 
-    if (!order) return res.status(404).json({ message: "Không tìm thấy đơn hàng" });
+//     if (!order) return res.status(404).json({ message: "Không tìm thấy đơn hàng" });
 
-    return res.json({ order });
-  } catch (err) {
-    return res.status(500).json({ message: "Lỗi khi lấy chi tiết đơn hàng" });
-  }
-}
+//     return res.json({ order });
+//   } catch (err) {
+//     return res.status(500).json({ message: "Lỗi khi lấy chi tiết đơn hàng" });
+//   }
+// }
 
 async function cancelOrder(red, req) {
   try {
@@ -72,4 +73,27 @@ async function cancelOrder(red, req) {
   }
 }
 
-module.exports = { getListMyOrders, getMyOrder, cancelOrder };
+// GET /api/orders/:id  -> chi tiết order (chỉ owner)
+async function getOrderDetail(req, res) {
+  try {
+    const userId = req.user.id;
+    const orderId = req.params.id;
+
+    const order = await Order.findOne({ _id: orderId, user: userId }).lean();
+    if (!order) return res.status(404).json({ message: "Đơn hàng không tồn tại" });
+
+    // Lấy reviews liên quan đến order (nếu có)
+    const reviews = await Review.find({ order: orderId, user: userId }).lean();
+
+    // map reviews theo productId để frontend dễ dùng
+    const reviewMap = {};
+    for (const r of reviews) reviewMap[r.product.toString()] = r;
+
+    return res.json({ order, reviews: reviewMap });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Lỗi khi lấy chi tiết đơn" });
+  }
+}
+
+module.exports = { getListMyOrders, cancelOrder, getOrderDetail };
