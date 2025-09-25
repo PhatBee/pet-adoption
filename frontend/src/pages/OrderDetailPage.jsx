@@ -1,0 +1,66 @@
+// src/pages/OrderDetailPage.jsx
+import React, { useEffect } from "react";
+import { useParams } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchOrderDetail, clearOrder } from "../store/orderDetailSlice";
+import OrderStatusTimeline from "../components/order/OrderStatusTimeline";
+import AddressDisplay from "../components/order/AddressDisplay";
+import OrderItemRow from "../components/order/OrderItemRow";
+import OrderSummary from "../components/checkout/OrderSummary"; // reuse from earlier or implement
+import { toast } from "react-toastify";
+
+export default function OrderDetailPage() {
+  const { id } = useParams();
+  const dispatch = useDispatch();
+  const { order, reviews, isLoading, error } = useSelector(s => s.orderDetail || {});
+
+  useEffect(() => {
+    dispatch(fetchOrderDetail(id));
+    return () => dispatch(clearOrder());
+  }, [dispatch, id]);
+
+  if (isLoading) return <div className="p-6">Đang tải...</div>;
+  if (error) return <div className="p-6 text-red-500">Lỗi: {error}</div>;
+  if (!order) return null;
+
+  return (
+    <div className="container mx-auto p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="lg:col-span-2 space-y-4">
+        <OrderStatusTimeline history={order.orderStatusHistory} />
+
+        <AddressDisplay address={order.shippingAddress} />
+
+        <div className="bg-white p-4 rounded shadow">
+          <h4 className="font-semibold mb-3">Sản phẩm trong đơn</h4>
+          <div className="divide-y">
+            {order.items.map((it, idx) => (
+              <OrderItemRow
+                key={idx}
+                item={it}
+                orderId={order._id}
+                existingReview={reviews && reviews[it.product.toString()] ? reviews[it.product.toString()] : null}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <aside>
+        <div className="bg-white p-4 rounded shadow">
+          <h4 className="font-semibold mb-3">Thông tin đơn hàng</h4>
+          <div className="text-sm text-gray-700">
+            <div>Mã đơn: <span className="font-mono">{order._id}</span></div>
+            <div>Trạng thái: {order.status}</div>
+            <div>Phương thức: {order.paymentMethod}</div>
+            <div>Ngày đặt: {new Date(order.orderedAt).toLocaleString()}</div>
+            {order.deliveredAt && <div>Ngày giao: {new Date(order.deliveredAt).toLocaleString()}</div>}
+          </div>
+        </div>
+
+        <div className="mt-4">
+          <OrderSummary items={order.items} />
+        </div>
+      </aside>
+    </div>
+  );
+}
