@@ -10,6 +10,7 @@ const getUserById = async (id) => {
   }
   return user;
 };
+
 // Lấy thông tin profile user
 const getProfile = async (req, res) => {
   try {

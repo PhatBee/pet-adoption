@@ -27,6 +27,7 @@ import QuantitySelector from "../components/product/QuantitySelector";
 import StockBadge from "../components/product/StockBadge";
 import { toast } from "react-toastify";
 import { addCartItem } from "../store/cartSlice";
+import WishlistButton from "../components/wishlist/WishlistButton";
 // optional: cart action
 // import { addItem as addCartItem } from "../features/cart/cartSlice"; // nếu bạn có cart slice
 
@@ -107,6 +108,11 @@ export default function ProductDetailPage() {
               Thêm vào giỏ
             </button>
           </div>
+
+          <h1 className="text-2xl font-bold flex items-center gap-2">
+            {product.name}
+            <WishlistButton product={product} />
+          </h1>
 
           <div className="mt-6">
             <h3 className="font-semibold">Mô tả</h3>

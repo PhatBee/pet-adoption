@@ -1,8 +1,12 @@
 import { Link } from "react-router-dom";
+import WishlistButton from "../wishlist/WishlistButton";
 
 export default function ProductCard({ product }) {
   return (
-    <div className="bg-white shadow rounded-lg p-4 hover:shadow-lg transition">
+    <div className="relative bg-white shadow rounded-lg p-4 hover:shadow-lg transition">
+      {/* Nút wishlist */}
+      <WishlistButton product={product} />
+
       <Link to={`/products/${product.slug}`}>
         <img
           src={product.thumbnail}

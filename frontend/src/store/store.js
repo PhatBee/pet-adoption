@@ -8,6 +8,7 @@ import cartReducer from './cartSlice';
 import orderReducer from './orderSlice'
 import orderDetailReducer from './orderDetailSlice'
 import snapshotReducer from './orderSnapshotSlice'
+import wishlistReducer from './wishlistSlice'
 
 
 const rootReducer = combineReducers({
@@ -17,7 +18,8 @@ const rootReducer = combineReducers({
   cart: cartReducer,
   order: orderReducer,
   orderDetail: orderDetailReducer,
-  snapshot: snapshotReducer
+  snapshot: snapshotReducer,
+  wishlist: wishlistReducer
 
 });
 
