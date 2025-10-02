@@ -96,4 +96,25 @@ async function getOrderDetail(req, res) {
   }
 }
 
-module.exports = { getListMyOrders, cancelOrder, getOrderDetail };
+async function getProductSnapshot(req, res) {
+   try {
+    const { orderId, productId } = req.params;
+    const order = await Order.findById(orderId);
+
+    if (!order) return res.status(404).json({ message: "Order not found" });
+
+    const item = order.items.find(
+      (i) => i.product.toString() === productId.toString()
+    );
+
+    if (!item) return res.status(404).json({ message: "Product not found in order" });
+
+    // snapshot lưu trong order
+    return res.json({ snapshot: item.productSnapshot, currentProductId: item.product });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Server error" });
+  }
+}
+
+module.exports = { getListMyOrders, cancelOrder, getOrderDetail, getProductSnapshot};
