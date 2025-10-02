@@ -2,13 +2,38 @@ const mongoose = require("mongoose");
 const Order = require("../models/Order");
 const Product = require("../models/Product");
 
-async function getUserOrders(userId) {
-  return await Order.find({ userId }).sort({ createdAt: -1 });
+/**
+ * Lấy danh sách đơn hàng của user theo pagination (page-based)
+ * @param {ObjectId} userId
+ * @param {Number} page
+ * @param {Number} limit
+ * @returns {Object} { items, total, page, limit }
+ */
+async function fetchUserOrders(userId, page = 1, limit = 10) {
+  const p = Math.max(1, parseInt(page, 10) || 1);
+  const l = Math.max(1, Math.min(100, parseInt(limit, 10) || 10));
+
+  const skip = (p - 1) * l;
+
+  // lấy tổng & items song song
+  const [total, items] = await Promise.all([
+    Order.countDocuments({ user: userId }),
+    Order.find({ user: userId })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(l)
+      .lean()
+  ]);
+
+  return { items, total, page: p, limit: l };
+
+  // return await Order.find({ userId }).sort({ createdAt: -1 });
 }
 
-async function getOrderDetail(orderId, userId) {
-  return await Order.findOne({ _id: orderId, userId }).populate("items.productId");
-} 
+async function getUserOrderById(userId, orderId) {
+  const order = await Order.findOne({ _id: orderId, user: userId }).lean();
+  return order;
+}   
 
 async function updateOrderStatus(orderId, newStatus) {
   const order = await Order.findById(orderId);
@@ -44,4 +69,4 @@ async function cancelOrder(orderId, userId) {
   return order;
 }
 
-module.exports = { getUserOrders, getOrderDetail, updateOrderStatus, cancelOrder };
+module.exports = { getUserOrderById, fetchUserOrders, updateOrderStatus, cancelOrder };

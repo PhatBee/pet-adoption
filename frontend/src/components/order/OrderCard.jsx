@@ -1,95 +1,43 @@
 // src/components/OrderCard.jsx
-import { Card, Button, Collapse, Tag } from "antd";
-import { DownOutlined } from "@ant-design/icons";
+import React from "react";
+import { format } from "date-fns";
 
-const { Panel } = Collapse;
+export default function OrderCard({ order, onView }) {
+  // order: { _id, items:[{productSnapshot,quantity}] or items [{product, productSnapshot, quantity}], total, status, createdAt }
+  const total = order.total || order.items.reduce((s, it) => s + ((it.productSnapshot?.price || it.product?.price || 0) * it.quantity), 0);
 
-const OrderCard = ({ order, onReorder, onReview }) => {
-  const firstProduct = order.products[0]; // lấy sản phẩm đầu tiên
-  const otherProducts = order.products.slice(1); // còn lại
+  const shortId = order._id?.toString().slice(-6).toUpperCase();
 
   return (
-    <Card className="mb-4 shadow-md rounded-xl">
-      {/* Header đơn hàng */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <img
-            src={firstProduct.image}
-            alt={firstProduct.name}
-            className="w-16 h-16 object-cover rounded-md"
-          />
-          <div>
-            <h3 className="font-semibold">{firstProduct.name}</h3>
-            <p className="text-sm text-gray-500">
-              {firstProduct.price.toLocaleString()}₫ x {firstProduct.quantity}
-            </p>
-          </div>
+    <div className="p-4 bg-white rounded shadow">
+      <div className="flex justify-between items-start">
+        <div>
+          <div className="text-sm text-gray-500">Mã đơn: <span className="font-mono">{shortId}</span></div>
+          <div className="font-semibold mt-1">Trạng thái: <span className="px-2 py-0.5 rounded bg-gray-100">{order.status}</span></div>
+          <div className="text-sm text-gray-500 mt-1">Ngày: {format(new Date(order.createdAt), "dd/MM/yyyy HH:mm")}</div>
         </div>
 
-        <Tag color="blue" className="uppercase">
-          {order.status}
-        </Tag>
+        <div className="text-right">
+          <div className="text-lg font-bold text-red-600">{total.toLocaleString()}đ</div>
+          <button className="mt-2 text-sm text-blue-600" onClick={() => onView(order._id)}>Xem chi tiết</button>
+        </div>
       </div>
 
-      {/* Nếu có nhiều sản phẩm thì xổ xuống */}
-      {otherProducts.length > 0 && (
-        <Collapse
-          ghost
-          expandIcon={({ isActive }) => (
-            <DownOutlined rotate={isActive ? 180 : 0} />
-          )}
-          className="mt-2"
-        >
-          <Panel header={`Xem thêm ${otherProducts.length} sản phẩm`} key="1">
-            {otherProducts.map((p) => (
-              <div
-                key={p.id}
-                className="flex items-center justify-between border-b py-2"
-              >
-                <div className="flex items-center gap-3">
-                  <img
-                    src={p.image}
-                    alt={p.name}
-                    className="w-12 h-12 object-cover rounded-md"
-                  />
-                  <span>{p.name}</span>
-                </div>
-                <span className="text-gray-600">
-                  {p.price.toLocaleString()}₫ x {p.quantity}
-                </span>
+      <div className="mt-3 border-t pt-3">
+        {order.items.slice(0, 3).map((it, idx) => {
+          const p = it.productSnapshot || it.product || {};
+          return (
+            <div key={idx} className="flex gap-3 items-center mb-2">
+              <img src={p.thumbnail} alt={p.name} className="w-12 h-12 object-cover rounded" />
+              <div className="flex-1">
+                <div className="text-sm font-medium">{p.name}</div>
+                <div className="text-xs text-gray-500">x{it.quantity} • {(p.price || 0).toLocaleString()}đ</div>
               </div>
-            ))}
-          </Panel>
-        </Collapse>
-      )}
-
-      {/* Tổng tiền */}
-      <div className="flex justify-between items-center mt-3 border-t pt-2">
-        <span className="text-gray-600">
-          Tổng số tiền ({order.products.length} sản phẩm):
-        </span>
-        <span className="font-semibold text-lg text-red-500">
-          {order.total.toLocaleString()}₫
-        </span>
+            </div>
+          );
+        })}
+        {order.items.length > 3 && <div className="text-sm text-gray-500">... và {order.items.length - 3} sản phẩm khác</div>}
       </div>
-
-      {/* Action buttons */}
-      <div className="flex justify-end gap-2 mt-3">
-        <Button onClick={() => onReorder(order)} type="default">
-          Mua lại
-        </Button>
-        {order.isReviewed ? (
-          <Button onClick={() => onReview(order)} type="primary">
-            Xem đánh giá
-          </Button>
-        ) : (
-          <Button onClick={() => onReview(order)} type="primary">
-            Đánh giá
-          </Button>
-        )}
-      </div>
-    </Card>
+    </div>
   );
-};
-
-export default OrderCard;
+}

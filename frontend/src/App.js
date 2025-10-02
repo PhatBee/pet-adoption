@@ -16,9 +16,12 @@ import HomePage from './pages/HomePage';
 import ProductDetailPage from './pages/ProductDetailPage';
 import Navbar from './components/test/Navbar';
 import CartPage from './pages/CartPage';
-import OrderListPage from './pages/OrderListPage';
+import OrdersPage from './pages/OrdersPage';
 import CheckoutPage from './pages/CheckoutPage';
 import AdminOrderPage from './pages/AdminOrderPage';
+import OrderDetailPage from './pages/OrderDetailPage';
+import ProductSnapshotDetail from './pages/ProductSnapshotDetailPage';
+
 import WishlistPage from './pages/WishlistPage';
 import { fetchWishlist } from "./store/wishlistSlice"
 import { useDispatch, useSelector } from "react-redux";
@@ -35,28 +38,32 @@ function App() {
     }
   }, [user, dispatch]);
 
-   return (
-      <>
-        <BrowserRouter>
-          <Header />
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
-            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-            <Route path="*" element={<Dashboard />} />
-            {/* <Route path="/dashboard" element={<Dashboard />} /> */}
-            <Route path="/profile" element={<ProfilePage />} />
-            <Route path="/products/:slug" element={<ProductDetailPage />} />
-            <Route path="/cart" element={<CartPage />} />
-            <Route path="/orders" element={<OrderListPage />} />
-            <Route path="/checkout" element={<CheckoutPage />} />
-            <Route path="/admin/orders" element={<AdminOrderPage />} />
+  return (
+    <>
+      <BrowserRouter>
+        <Header />
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="*" element={<Dashboard />} />
+          {/* <Route path="/dashboard" element={<Dashboard />} /> */}
+          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/products/:slug" element={<ProductDetailPage />} />
+          <Route path="/cart" element={<CartPage />} />
+          <Route path="/orders" element={<OrdersPage />} />
+          <Route path="/checkout" element={<CheckoutPage />} />
+          <Route path="/orders/:id" element={<OrderDetailPage />} />
+          <Route path="/orders/:orderId/item/:productId/snapshot" element={<ProductSnapshotDetail />} />
+          <Route path="/admin/orders" element={<AdminOrderPage />} />
             <Route path="/wishlist" element={<WishlistPage />} />
-          </Routes>
-        </BrowserRouter>
-        <ToastContainer position="top-right" autoClose={3000} />
-      </>
+
+
+        </Routes>
+      </BrowserRouter>
+      <ToastContainer position="top-right" autoClose={3000} />
+    </>
   );
 }
 

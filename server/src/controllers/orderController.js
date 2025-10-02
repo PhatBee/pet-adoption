@@ -1,30 +1,34 @@
 const orderService = require("../services/orderService");
 const Order = require("../models/Order");
+const Review = require("../models/Review")
 
-async function getOrders(req, res) {
-  try {
-    const userId = req.user.id; // lấy từ JWT sau khi user đăng nhập
-    const orders = await orderService.getUserOrders(userId);
-    res.json(orders);
-  } catch (err) {
-    res.status(500).json({ message: "Lỗi khi lấy lịch sử mua hàng" });
-  }
-}
-
-
-async function getOrderDetail(req, res) {
+async function getListMyOrders(req, res) {
   try {
     const userId = req.user.id;
-    const orderId = req.params.id;
-    const order = await orderService.getOrderDetail(orderId, userId);
+    const page = req.query.page || 1;
+    const limit = req.query.limit || 10;
 
-    if (!order) return res.status(404).json({ message: "Không tìm thấy đơn hàng" });
-
-    res.json(order);
+    const data = await orderService.fetchUserOrders(userId, page, limit);
+    return res.json(data);
   } catch (err) {
-    res.status(500).json({ message: "Lỗi khi lấy chi tiết đơn hàng" });
+    return res.status(500).json({ message: "Lỗi khi lấy lịch sử mua hàng" });
   }
 }
+
+
+// async function getMyOrder(req, res) {
+//   try {
+//     const userId = req.user.id;
+//     const orderId = req.params.id;
+//     const order = await orderService.getUserOrderById(userId, orderId);
+
+//     if (!order) return res.status(404).json({ message: "Không tìm thấy đơn hàng" });
+
+//     return res.json({ order });
+//   } catch (err) {
+//     return res.status(500).json({ message: "Lỗi khi lấy chi tiết đơn hàng" });
+//   }
+// }
 
 async function cancelOrder(red, req) {
   try {
@@ -69,4 +73,48 @@ async function cancelOrder(red, req) {
   }
 }
 
-module.exports = { getOrders, getOrderDetail, cancelOrder };
+// GET /api/orders/:id  -> chi tiết order (chỉ owner)
+async function getOrderDetail(req, res) {
+  try {
+    const userId = req.user.id;
+    const orderId = req.params.id;
+
+    const order = await Order.findOne({ _id: orderId, user: userId }).lean();
+    if (!order) return res.status(404).json({ message: "Đơn hàng không tồn tại" });
+
+    // Lấy reviews liên quan đến order (nếu có)
+    const reviews = await Review.find({ order: orderId, user: userId }).lean();
+
+    // map reviews theo productId để frontend dễ dùng
+    const reviewMap = {};
+    for (const r of reviews) reviewMap[r.product.toString()] = r;
+
+    return res.json({ order, reviews: reviewMap });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Lỗi khi lấy chi tiết đơn" });
+  }
+}
+
+async function getProductSnapshot(req, res) {
+   try {
+    const { orderId, productId } = req.params;
+    const order = await Order.findById(orderId);
+
+    if (!order) return res.status(404).json({ message: "Order not found" });
+
+    const item = order.items.find(
+      (i) => i.product.toString() === productId.toString()
+    );
+
+    if (!item) return res.status(404).json({ message: "Product not found in order" });
+
+    // snapshot lưu trong order
+    return res.json({ snapshot: item.productSnapshot, currentProductId: item.product });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Server error" });
+  }
+}
+
+module.exports = { getListMyOrders, cancelOrder, getOrderDetail, getProductSnapshot};
