@@ -98,10 +98,13 @@ const cartSlice = createSlice({
             .addCase(addCartItem.fulfilled, (state, action) => {
                 state.isLoading = false;
                 state.items = action.payload.items;
+                console.log(action.payload.items);
                 state.error = null;
             })
             .addCase(addCartItem.rejected, (state, action) => {
                 state.isLoading = false;
+                console.log(action.payload.items);
+
                 state.error = action.payload;
             })
             // Xử lý removeCartItem

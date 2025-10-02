@@ -27,6 +27,7 @@ const wishlistSlice = createSlice({
     builder
       .addCase(fetchWishlist.fulfilled, (state, action) => {
         state.items = action.payload;
+        console.log(action.payload);
       })
       .addCase(addWishlist.fulfilled, (state, action) => {
         console.log(action.payload)
