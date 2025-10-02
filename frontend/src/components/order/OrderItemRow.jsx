@@ -3,6 +3,8 @@ import React, { useState } from "react";
 import ReviewForm from "./ReviewForm";
 import { useDispatch } from "react-redux";
 import { submitReview } from "../../store/orderDetailSlice";
+import { useParams, Link } from "react-router-dom";
+
 
 export default function OrderItemRow({ item, orderId, existingReview }) {
   const dispatch = useDispatch();
@@ -17,9 +19,19 @@ export default function OrderItemRow({ item, orderId, existingReview }) {
 
   return (
     <div className="flex gap-4 p-3 border-b">
-      <img src={p.thumbnail} alt={p.name} className="w-20 h-20 object-cover rounded" />
+      <Link
+          to={`/orders/${orderId}/item/${item.product}/snapshot`}
+          className="w-20 h-20 flex-shrink-0"
+        >
+          <img src={p.thumbnail} alt={p.name} className="w-20 h-20 object-cover rounded" />
+        </Link>
       <div className="flex-1">
-        <div className="font-medium">{p.name}</div>
+        <Link
+          to={`/orders/${orderId}/item/${item.product}/snapshot`}
+          className="w-20 h-20 flex-shrink-0"
+        >
+          <div className="font-medium">{p.name}</div>
+        </Link>
         <div className="text-sm text-gray-500">x{item.quantity} • {p.price?.toLocaleString()}đ</div>
 
         {/* Review area */}
@@ -27,12 +39,12 @@ export default function OrderItemRow({ item, orderId, existingReview }) {
           <div className="mt-2">
             <div className="text-sm">Đánh giá của bạn: <span className="font-medium">{existingReview.rating}★</span></div>
             <div className="text-sm text-gray-700">{existingReview.comment}</div>
-            <button className="text-sm text-blue-600 mt-1" onClick={()=>setEditing(true)}>Chỉnh sửa đánh giá</button>
+            <button className="text-sm text-blue-600 mt-1" onClick={() => setEditing(true)}>Chỉnh sửa đánh giá</button>
             {editing && <ReviewForm initial={existingReview} onSubmit={handleSubmitReview} />}
           </div>
         ) : (
           <div className="mt-2">
-            <button className="text-sm text-blue-600" onClick={()=>setEditing(true)}>Đánh giá sản phẩm</button>
+            <button className="text-sm text-blue-600" onClick={() => setEditing(true)}>Đánh giá sản phẩm</button>
             {editing && <ReviewForm initial={null} onSubmit={handleSubmitReview} />}
           </div>
         )}

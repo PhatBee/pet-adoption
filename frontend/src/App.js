@@ -20,6 +20,7 @@ import OrdersPage from './pages/OrdersPage';
 import CheckoutPage from './pages/CheckoutPage';
 import AdminOrderPage from './pages/AdminOrderPage';
 import OrderDetailPage from './pages/OrderDetailPage';
+import ProductSnapshotDetail from './pages/ProductSnapshotDetailPage';
 
 
 
@@ -42,6 +43,7 @@ function App() {
           <Route path="/orders" element={<OrdersPage />} />
           <Route path="/checkout" element={<CheckoutPage />} />
           <Route path="/orders/:id" element={<OrderDetailPage />} />
+          <Route path="/orders/:orderId/item/:productId/snapshot" element={<ProductSnapshotDetail />} />
           <Route path="/admin/orders" element={<AdminOrderPage />} />
 
 

@@ -7,6 +7,7 @@ import productDetailReducer from "./productDetailSlice";
 import cartReducer from './cartSlice';
 import orderReducer from './orderSlice'
 import orderDetailReducer from './orderDetailSlice'
+import snapshotReducer from './orderSnapshotSlice'
 
 
 const rootReducer = combineReducers({
@@ -15,7 +16,8 @@ const rootReducer = combineReducers({
   productDetail: productDetailReducer,
   cart: cartReducer,
   order: orderReducer,
-  orderDetail: orderDetailReducer
+  orderDetail: orderDetailReducer,
+  snapshot: snapshotReducer
 
 });
 

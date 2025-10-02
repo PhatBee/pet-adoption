@@ -7,6 +7,8 @@ const orderApi = {
 
   getOrderDetail: (orderId) => axiosClient.get(`/orders/${orderId}`), // trả { order, reviews }
   postReview: (orderId, payload) => axiosClient.post(`/orders/${orderId}/reviews`, payload),
+
+  productSnapshot: (orderId, productId) => axiosClient.get(`/orders/${orderId}/item/${productId}/snapshot`)
 };
 
 
