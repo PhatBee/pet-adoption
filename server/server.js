@@ -30,6 +30,8 @@ app.use("/api/orders", orderRoutes);
 app.use('/uploads', express.static(path.join(__dirname, '/uploads'))); // Serve static files
 const adminRoutes = require("../server/src/routes/adminRoutes");
 app.use("/api/admin/orders", adminRoutes);
+const wishlistRoutes = require("../server/src/routes/wishlistRoute");
+app.use("/api/wishlist", wishlistRoutes);
 
 // Start Server
 const PORT = process.env.PORT || 5000;

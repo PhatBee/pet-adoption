@@ -19,10 +19,21 @@ import CartPage from './pages/CartPage';
 import OrderListPage from './pages/OrderListPage';
 import CheckoutPage from './pages/CheckoutPage';
 import AdminOrderPage from './pages/AdminOrderPage';
-
+import WishlistPage from './pages/WishlistPage';
+import { fetchWishlist } from "./store/wishlistSlice"
+import { useDispatch, useSelector } from "react-redux";
+import { useEffect } from "react";
 
 
 function App() {
+  const dispatch = useDispatch();
+  const user = useSelector((state) => state.auth.user);
+
+  useEffect(() => {
+    if (user) {
+      dispatch(fetchWishlist());
+    }
+  }, [user, dispatch]);
 
    return (
       <>
@@ -41,6 +52,7 @@ function App() {
             <Route path="/orders" element={<OrderListPage />} />
             <Route path="/checkout" element={<CheckoutPage />} />
             <Route path="/admin/orders" element={<AdminOrderPage />} />
+            <Route path="/wishlist" element={<WishlistPage />} />
           </Routes>
         </BrowserRouter>
         <ToastContainer position="top-right" autoClose={3000} />
