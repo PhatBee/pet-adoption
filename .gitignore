@@ -1,2 +1,7 @@
 .vscode/launch.json
 server/seedProducts.js
+.idea/.gitignore
+.idea/misc.xml
+.idea/pet-adoption.iml
+.idea/vcs.xml
+.idea/modules.xml

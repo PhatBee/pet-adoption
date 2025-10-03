@@ -20,18 +20,22 @@
 // export default OrderListPage;
 
 // src/pages/OrdersPage.jsx
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchMyOrders, resetOrders } from "../store/orderSlice";
 import { fetchOrderDetail } from "../store/orderDetailSlice";
 import OrderCard from "../components/order/OrderCard";
 import { useNavigate } from "react-router-dom";
+import { List, Card, Button, Spin, Empty, Tabs, Tag } from "antd";
+  
 // import OrderDetailModal from "../components/OrderDetailModal";
 
 export default function OrdersPage() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { items, page, limit, total, hasMore, isLoading, currentOrder, detailLoading } = useSelector(s => s.order);
+
+  const [status, setStatus] = useState("pending");
 
   useEffect(() => {
     // load first page on mount
@@ -55,10 +59,22 @@ export default function OrdersPage() {
     });
   };
 
+    const tabItems = [
+    { key: "pending", label: "Chờ xử lý" },
+    { key: "confirmed", label: "Đã xác nhận" },
+    { key: "shipping", label: "Đang giao" },
+    { key: "completed", label: "Hoàn thành" },
+    { key: "cancelled", label: "Đã hủy" },
+  ];
+
   return (
     <div className="container mx-auto p-6">
       <h2 className="text-2xl font-semibold mb-4">Đơn hàng của tôi</h2>
-
+      <Tabs
+        activeKey={status}
+        onChange={setStatus}
+        items={tabItems.map((t) => ({ key: t.key, label: t.label }))}
+      />
       <div className="grid grid-cols-1 gap-4">
         {items.length === 0 && !isLoading ? (
           <div className="p-6 bg-white rounded text-center">Bạn chưa có đơn hàng nào.</div>

@@ -57,6 +57,15 @@ const LoginForm = ({ onSubmit, isLoading }) => {
           />
         </div>
 
+        <div className="flex justify-end">
+          <a
+            href="/forgot-password"
+            className="text-indigo-600 font-medium hover:underline"
+          >
+            Quên mật khẩu?
+          </a>
+        </div>
+
         {/* Button */}
         <button
           type="submit"
