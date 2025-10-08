@@ -12,9 +12,10 @@ export const fetchCheckoutData = createAsyncThunk("order/fetchCheckoutData", asy
   }
 });
 
-export const placeOrder = createAsyncThunk("order/placeOrder", async ({ shippingAddress, paymentMethod }, { rejectWithValue }) => {
+export const placeOrder = createAsyncThunk("order/placeOrder", async ({ shippingAddress, paymentMethod, items }, { rejectWithValue }) => {
   try {
-    const res = await checkoutApi.placeOrder({ shippingAddress, paymentMethod });
+    // Truyền `items` vào payload của API call
+    const res = await checkoutApi.placeOrder({ shippingAddress, paymentMethod, items });
     return res.data; // { orderId, order } or { redirectUrl }
   } catch (err) {
     return rejectWithValue(err.response?.data?.message || "Đặt hàng thất bại");

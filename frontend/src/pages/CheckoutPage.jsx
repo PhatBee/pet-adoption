@@ -5,18 +5,32 @@ import AddressSelector from "../components/checkout/AddressSelector";
 import PaymentMethod from "../components/checkout/PaymentMethod";
 import OrderSummary from "../components/checkout/OrderSummary";
 import { toast } from "react-toastify";
-import { useNavigate } from "react-router-dom";
+// Thêm import useLocation
+import { useNavigate, useLocation } from "react-router-dom"; 
 
 export default function CheckoutPage() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+
+  // 1. Dùng useLocation để lấy state được truyền qua
+  const location = useLocation();
+  const itemsFromCart = location.state?.itemsToCheckout;
+  
   const { cart, addresses, isLoading, error, lastOrder } = useSelector((s) => s.order || {});
   const [selectedAddress, setSelectedAddress] = useState(null);
   const [paymentMethod, setPaymentMethod] = useState("COD");
 
-  useEffect(() => {
-    dispatch(fetchCheckoutData());
-  }, [dispatch]);
+   // 2. Quyết định xem nên hiển thị sản phẩm nào
+  // Ưu tiên sản phẩm được chọn từ giỏ hàng, nếu không có thì dùng cả giỏ hàng (trường hợp vào thẳng checkout)
+  const itemsToDisplay = itemsFromCart || cart?.items || [];
+
+  // useEffect(() => {
+  //   // Chỉ fetch dữ liệu (địa chỉ, etc.) nếu không có sẵn
+  //   if (!addresses || addresses.length === 0) {
+  //     dispatch(fetchCheckoutData());
+  //   }
+  // }, [dispatch, addresses]);
+
 
   useEffect(() => {
     if (addresses && addresses.length && !selectedAddress) {
@@ -38,13 +52,18 @@ export default function CheckoutPage() {
   }, [lastOrder, navigate]);
 
   const handlePlaceOrder = async () => {
-    if (!cart || !cart.items || cart.items.length === 0) return toast.error("Giỏ hàng trống");
-    const address = selectedAddress;
-    if (!address) return toast.error("Vui lòng chọn địa chỉ giao hàng");
+    if (itemsToDisplay.length === 0) return toast.error("Không có sản phẩm để đặt hàng");
+    if (!selectedAddress) return toast.error("Vui lòng chọn địa chỉ giao hàng");
 
     try {
-      await dispatch(placeOrder({ shippingAddress: address, paymentMethod })).unwrap();
-      // success handled in useEffect above
+      // 3. Truyền `itemsToDisplay` vào action
+      await dispatch(
+        placeOrder({
+          shippingAddress: selectedAddress,
+          paymentMethod,
+          items: itemsToDisplay, // Gửi danh sách sản phẩm đã chọn
+        })
+      ).unwrap();
     } catch (err) {
       toast.error(err || "Đặt hàng thất bại");
     }
@@ -52,23 +71,25 @@ export default function CheckoutPage() {
 
   if (isLoading) return <div className="p-6">Đang tải...</div>;
   if (error) return <div className="p-6 text-red-500">Lỗi: {error}</div>;
-  if (!cart) return <div className="p-6">Giỏ hàng trống</div>;
+  // if (!cart) return <div className="p-6">Giỏ hàng trống</div>;
 
   return (
     <div className="container mx-auto p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <div className="lg:col-span-2 space-y-4">
+      <div className="lg:col-span-2 space-y-6"> {/* Tăng khoảng cách */}
         <AddressSelector addresses={addresses} value={selectedAddress} onChange={setSelectedAddress} />
-        <div className="border rounded p-4 bg-white">
-          <h4 className="font-semibold mb-3">Sản phẩm</h4>
-          <div className="space-y-3">
-            {cart.items.map(it => (
-              <div key={it.product._id} className="flex items-center gap-3">
-                <img src={it.product.thumbnail} className="w-16 h-16 object-cover rounded" alt={it.product.name} />
+
+        {/* Phần hiển thị sản phẩm */}
+        <div className="border rounded-lg p-4 bg-white shadow-sm">
+          <h4 className="font-semibold text-lg mb-4">Sản phẩm</h4>
+          <div className="space-y-4">
+            {itemsToDisplay.map((it) => (
+              <div key={it.product._id} className="flex items-center gap-4">
+                <img src={it.product.thumbnail} className="w-16 h-16 object-cover rounded-md" alt={it.product.name} />
                 <div className="flex-1">
                   <div className="font-medium">{it.product.name}</div>
                   <div className="text-sm text-gray-500">x{it.quantity} • {it.product.price.toLocaleString()}đ</div>
                 </div>
-                <div>{(it.product.price * it.quantity).toLocaleString()}đ</div>
+                <div className="font-semibold">{(it.product.price * it.quantity).toLocaleString()}đ</div>
               </div>
             ))}
           </div>
@@ -78,10 +99,12 @@ export default function CheckoutPage() {
 
       </div>
 
-      <aside>
-        <OrderSummary items={cart.items} />
+       <aside className="sticky top-6"> {/* Làm cho summary cố định khi cuộn */}
+        <OrderSummary items={itemsToDisplay} />
         <div className="mt-4">
-          <button onClick={handlePlaceOrder} className="w-full bg-green-600 text-white py-3 rounded hover:bg-green-700">Đặt hàng</button>
+          <button onClick={handlePlaceOrder} className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-colors font-semibold text-lg">
+            Đặt hàng
+          </button>
         </div>
       </aside>
     </div>

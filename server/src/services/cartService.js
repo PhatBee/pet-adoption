@@ -139,6 +139,8 @@ const createOrderFromCart = async ({ userId, shippingAddress, paymentMethod, ite
       });
 
       await order.save({ session });
+      createdOrder = order;
+
 
       // Cập nhật tồn kho
       for (const item of order.items) {
@@ -157,6 +159,8 @@ const createOrderFromCart = async ({ userId, shippingAddress, paymentMethod, ite
         await userCart.save({ session });
       }
     });
+
+    
 
     return { order: createdOrder };
 
