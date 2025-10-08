@@ -1,14 +1,21 @@
 // src/components/CartItem.jsx
 import React from "react";
 import QuantitySelector from "../product/QuantitySelector"; // reuse
-import { useDispatch } from "react-redux";
-import { updateCartItem, removeCartItem } from "../../store/cartSlice";
+// Cập nhật import: thêm useSelector và action mới
+import { useDispatch, useSelector } from "react-redux";
+import { updateCartItem, removeCartItem, toggleSelectItem } from "../../store/cartSlice";
 import { FiTrash2 } from "react-icons/fi";
 
 export default function CartItem({ item }) {
   // item: { product: {...}, quantity }
   const { product, quantity } = item;
   const dispatch = useDispatch();
+
+  // 1. Lấy mảng ID các sản phẩm đã chọn từ store
+  const { selectedItems } = useSelector((state) => state.cart);
+
+  // 2. Kiểm tra xem sản phẩm này có đang được chọn không
+  const isSelected = selectedItems.includes(product._id);
 
   const onQtyChange = (newQty) => {
     // prevent sending if same
@@ -24,9 +31,24 @@ export default function CartItem({ item }) {
     dispatch(removeCartItem(product._id))
   };
 
+  // 3. Hàm xử lý khi tick/bỏ tick checkbox
+  const handleToggleSelect = () => {
+    dispatch(toggleSelectItem(product._id));
+  };
+
   return (
-    <div className="flex gap-4 p-4 border rounded-md bg-white">
-      <img src={product.thumbnail} alt={product.name} className="w-24 h-24 object-cover rounded" />
+    <div className="flex gap-4 p-4 border rounded-md bg-white items-center">
+      {/* Bọc checkbox và ảnh */}
+      <div className="flex items-center gap-4">
+        {/* 4. Thêm checkbox */}
+        <input 
+            type="checkbox" 
+            className="h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+            checked={isSelected}
+            onChange={handleToggleSelect}
+        />
+        <img src={product.thumbnail} alt={product.name} className="w-24 h-24 object-cover rounded" />
+      </div>
       <div className="flex-1">
         <h3 className="font-semibold">{product.name}</h3>
         <div className="text-sm text-gray-500">Giá: <span className="text-red-600 font-bold">{product.price.toLocaleString()}đ</span></div>

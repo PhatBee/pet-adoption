@@ -72,9 +72,33 @@ const cartSlice = createSlice({
         items: [],
         isLoading: false,
         error: null,
+        // Thêm state để lưu các ID sản phẩm được chọn
+        selectedItems: [], 
     },
+    // Thêm reducers để quản lý việc chọn sản phẩm
     reducers: {
-        // Các reducer khác nếu cần
+        toggleSelectItem: (state, action) => {
+            const productId = action.payload;
+            const index = state.selectedItems.indexOf(productId);
+            if (index > -1) {
+                // Nếu đã có -> bỏ chọn
+                state.selectedItems.splice(index, 1);
+            } else {
+                // Nếu chưa có -> chọn
+                state.selectedItems.push(productId);
+            }
+        },
+
+        selectAllItems: (state) => {
+            state.selectedItems = state.items.map(item => item.product._id);
+        },
+        deselectAllItems: (state) => {
+            state.selectedItems = [];
+        },
+        // Reducer để xóa các item đã chọn sau khi thanh toán thành công
+        clearSelectedItems: (state) => {
+            state.selectedItems = [];
+        }
     },
     extraReducers: (builder) => {
         builder
@@ -82,9 +106,12 @@ const cartSlice = createSlice({
             .addCase(fetchCart.pending, (state) => {
                 state.isLoading = true;
             })
+            // Khi fetch giỏ hàng thành công, mặc định chọn tất cả cho tiện
             .addCase(fetchCart.fulfilled, (state, action) => {
                 state.isLoading = false;
                 state.items = action.payload.items;
+                // Mặc định chọn tất cả sản phẩm khi tải giỏ hàng
+                state.selectedItems = action.payload.items.map(item => item.product._id);
                 state.error = null;
             })
             .addCase(fetchCart.rejected, (state, action) => {
@@ -137,9 +164,11 @@ const cartSlice = createSlice({
             .addCase(clearCart.pending, (state) => {
                 state.isLoading = true;
             })
+            // Khi xóa toàn bộ giỏ hàng, cũng xóa luôn các item đã chọn
             .addCase(clearCart.fulfilled, (state) => {
                 state.isLoading = false;
                 state.items = [];
+                state.selectedItems = []; // Xóa luôn ở đây
                 state.error = null;
             })
             .addCase(clearCart.rejected, (state, action) => {
@@ -149,5 +178,7 @@ const cartSlice = createSlice({
         
     },
 });
+
+export const { toggleSelectItem, selectAllItems, deselectAllItems, clearSelectedItems } = cartSlice.actions;
 
 export default cartSlice.reducer;
