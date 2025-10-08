@@ -79,24 +79,27 @@ const clearCart = async (userId) => {
 };
 
 // Tao đơn hàng từ giỏ hàng
-const createOrderFromCart = async ({ userId, shippingAddress, paymentMethod }) => {
+const createOrderFromCart = async ({ userId, shippingAddress, paymentMethod, items }) => {
   // Bắt đầu phiên giao dịch
   const session = await mongoose.startSession();
 
   try {
-    let result;
-    let savedOrder;
+    let createdOrder;
     await session.withTransaction(async () => {
-      // Lấy giỏ hàng
-      const cart = await Cart.findOne({ user: userId }).populate("items.product").session(session);
-      if (!cart || !cart.items.length)
-        throw new Error("Giỏ hàng trống");
+      // Danh sách ID của các sản phẩm cần đặt hàng
+      const productIdsToOrder = items.map(item => item.product._id);
+
+      // Lấy thông tin mới nhất của các sản phẩm này từ DB để đảm bảo dữ liệu (giá, tồn kho) là chính xác
+      const productsInDb = await Product.find({ '_id': { $in: productIdsToOrder } }).session(session);
+
+      // Tạo một map để dễ dàng truy xuất thông tin sản phẩm
+      const productMap = new Map(productsInDb.map(p => [p._id.toString(), p]));
 
 
       // Kiểm tra tồn kho
       let itemsTotal = 0;
-      const orderItems = cart.items.map((item) => {
-        const product = item.product;
+      const orderItems = items.map((item) => {
+        const product = productMap.get(item.product._id);
         const quantity = item.quantity;
         if (!product) throw new Error("Sản phẩm trong giỏ hàng không tồn tại");
         if (product.stock < quantity) throw new Error(`Sản phẩm ${product.name} không đủ hàng`);
@@ -132,13 +135,13 @@ const createOrderFromCart = async ({ userId, shippingAddress, paymentMethod }) =
         itemsTotal,
         total,
         status: "pending",
-        orderStatusHistory: [{ status: "pending", orderedAt: new Date()}]
+        orderStatusHistory: [{ status: "pending", orderedAt: new Date() }]
       });
 
       await order.save({ session });
 
       // Cập nhật tồn kho
-      for (const item of cart.items) {
+      for (const item of order.items) {
         await Product.updateOne(
           { _id: item.product._id },
           { $inc: { stock: -item.quantity, soldCount: item.quantity } },
@@ -146,34 +149,16 @@ const createOrderFromCart = async ({ userId, shippingAddress, paymentMethod }) =
         );
       }
 
-      // Xóa các item đã đặt khỏi giỏ hàng
-      cart.items = [];
-      await cart.save({ session });
-
-      //   if (savedOrder) {
-      //     const job = await autoConfirmQueue.add(
-      //     { orderId: savedOrder._id },
-      //     {
-      //       delay: 30 * 60 * 1000, // 30 phút
-      //       attempts: 3,
-      //       backoff: { type: "exponential", delay: 60 * 1000 },
-      //       removeOnComplete: true,
-      //       removeOnFail: false,
-      //     }
-      //   );
-
-      //   // Lưu jobId vào order (ngoài transaction)
-      //   savedOrder.autoConfirmJobId = job.id.toString();
-      //   await savedOrder.save();
-      // }
-
-      result = order
-
-
-      
+      const userCart = await Cart.findOne({ user: userId }).session(session);
+      if (userCart) {
+        userCart.items = userCart.items.filter(
+          cartItem => !productIdsToOrder.includes(cartItem.product.toString())
+        );
+        await userCart.save({ session });
+      }
     });
 
-    return { order: result };
+    return { order: createdOrder };
 
   } catch (error) {
 
@@ -182,8 +167,7 @@ const createOrderFromCart = async ({ userId, shippingAddress, paymentMethod }) =
     //   // Fallback: rollback thủ công
     //   return await createOrderFromCartFallback({ userId, shippingAddress, paymentMethod });
     // }
-    console.error("Lỗi trong transaction:", error);
-
+    console.error("Lỗi trong transaction khi tạo đơn hàng:", error);
     throw error;
   } finally {
     // Kết thúc phiên giao dịch

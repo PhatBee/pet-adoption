@@ -105,17 +105,24 @@ const getCheckoutCart = async (req, res) => {
 const placeOrder = async (req, res) => {
     try {
         const userId = req.user.id;
-        const { shippingAddress, paymentMethod } = req.body;
+         // Lấy thêm 'items' từ body
+        const { shippingAddress, paymentMethod, items } = req.body;
 
         if (!shippingAddress || !shippingAddress.fullName || !shippingAddress.phone || !shippingAddress.street || !shippingAddress.city) {
             return res.status(400).json({ message: "Địa chỉ giao hàng không hợp lệ" });
+        }
+
+        // Kiểm tra xem có sản phẩm được gửi lên không
+        if (!items || !Array.isArray(items) || items.length === 0) {
+            return res.status(400).json({ message: "Vui lòng chọn sản phẩm để đặt hàng" });
         }
 
         if (paymentMethod && !["COD", "VNPAY"].includes(paymentMethod)) {
             return res.status(400).json({ message: "Phương thức thanh toán không hợp lệ" });
         }
 
-        const  { order }  = await createOrderFromCart({userId, shippingAddress, paymentMethod});
+        // Truyền `items` vào service
+        const  { order }  = await createOrderFromCart({ userId, shippingAddress, paymentMethod, items });
 
         // Nếu dùng VNPAY -> trả về URL thanh toán
         if (paymentMethod === "VNPAY") {
