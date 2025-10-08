@@ -6,7 +6,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { updateCartItem, removeCartItem, toggleSelectItem } from "../../store/cartSlice";
 import { FiTrash2 } from "react-icons/fi";
 
-export default function CartItem({ item }) {
+// Nhận thêm prop `isLoading`
+export default function CartItem({ item, isLoading }) {
   // item: { product: {...}, quantity }
   const { product, quantity } = item;
   const dispatch = useDispatch();
@@ -54,8 +55,11 @@ export default function CartItem({ item }) {
         <div className="text-sm text-gray-500">Giá: <span className="text-red-600 font-bold">{product.price.toLocaleString()}đ</span></div>
         <div className="text-sm text-gray-500">Kho: {product.stock}</div>
         <div className="mt-2 flex items-center gap-3">
-          <QuantitySelector value={quantity} onChange={onQtyChange} min={1} max={product.stock || 1} />
-          <button className="text-red-500 flex items-center gap-1" onClick={onRemove}>
+          {/* Vô hiệu hóa QuantitySelector khi đang loading */}
+          <QuantitySelector value={quantity} onChange={onQtyChange} min={1} max={product.stock || 1} disabled={isLoading} />
+
+          {/* Vô hiệu hóa nút Xóa khi đang loading */}
+          <button className="text-red-500 flex items-center gap-1 disabled:opacity-50" onClick={onRemove} disabled={isLoading}>
             <FiTrash2 /> <span>Xóa</span>
           </button>
         </div>

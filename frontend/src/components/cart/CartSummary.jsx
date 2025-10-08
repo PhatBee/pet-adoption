@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { clearCart } from "../../store/cartSlice";
 
-export default function CartSummary({ items }) {
+export default function CartSummary({ items, isLoading }) {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -45,17 +45,20 @@ export default function CartSummary({ items }) {
         <span className="text-red-600">{subtotal.toLocaleString()}đ</span>
       </div>
       <div className="mt-4 flex gap-2">
+        {/* Vô hiệu hóa nút Thanh toán */}
         <button
           className="flex-1 bg-blue-600 text-white py-2 rounded hover:bg-blue-700 disabled:bg-gray-400"
           onClick={onCheckout}
           // Vô hiệu hóa nút nếu không có gì được chọn
-          disabled={selectedCartItems.length === 0}
+          disabled={isLoading || selectedCartItems.length === 0}
         >
           Thanh toán
         </button>
+        {/* Vô hiệu hóa nút Xóa giỏ */}
         <button
           className="flex-1 border border-gray-300 text-gray-700 py-2 rounded hover:bg-gray-100"
-          onClick={onClear}>
+          onClick={onClear}
+          disabled={isLoading}>
           Xóa giỏ
         </button>
       </div>
