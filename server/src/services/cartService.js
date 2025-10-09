@@ -3,6 +3,7 @@ const Product = require("../models/Product");
 const mongoose = require("mongoose");
 const Order = require("../models/Order");
 const User = require("../models/User");
+const Coupon = require('../models/Coupon')
 
 // Lấy giỏ hàng của user hiện tại
 const getCartByUser = async (userId) => {
@@ -86,6 +87,10 @@ const createOrderFromCart = async ({ userId, shippingAddress, paymentMethod, ite
   try {
     let createdOrder;
     await session.withTransaction(async () => {
+      // --- Lấy dữ liệu người dùng và sản phẩm ---
+      const user = await User.findById(userId).session(session);
+      if (!user) throw new Error("Người dùng không tồn tại");
+
       // Danh sách ID của các sản phẩm cần đặt hàng
       const productIdsToOrder = items.map(item => item.product._id);
 
@@ -96,7 +101,7 @@ const createOrderFromCart = async ({ userId, shippingAddress, paymentMethod, ite
       const productMap = new Map(productsInDb.map(p => [p._id.toString(), p]));
 
 
-      // Kiểm tra tồn kho
+      // Kiểm tra tồn kho, tính tổng tiền hàng
       let itemsTotal = 0;
       const orderItems = items.map((item) => {
         const product = productMap.get(item.product._id);
@@ -124,15 +129,55 @@ const createOrderFromCart = async ({ userId, shippingAddress, paymentMethod, ite
         return { product: product._id, productSnapshot: productSnapshot, quantity: quantity };
       });
 
-      const total = itemsTotal; // Possible add shipping fee, tax, discount, etc.
+      // --- 2. Xử lý giảm giá ---
+      let couponDiscount = 0;
+      let appliedCoupon = null;
 
-      // Tạo đơn hàng
+      if (couponCode) {
+        const coupon = await Coupon.findOne({ code: couponCode.toUpperCase() }).session(session);
+        // Xác thực lại coupon ngay tại thời điểm đặt hàng
+        if (!coupon || !coupon.isActive || coupon.expiresAt < new Date() || itemsTotal < coupon.minOrderValue) {
+          throw { status: 400, message: 'Mã giảm giá không hợp lệ hoặc đã hết hạn' };
+        }
+        appliedCoupon = coupon; // Lưu lại để tăng usesCount sau
+
+        if (coupon.discountType === 'percentage') {
+          couponDiscount = (itemsTotal * coupon.discountValue) / 100;
+        } else { // fixed_amount
+          couponDiscount = coupon.discountValue;
+        }
+        // Đảm bảo giảm giá không vượt quá tổng tiền hàng
+        couponDiscount = Math.min(couponDiscount, itemsTotal);
+      }
+
+      // --- 3. Xử lý điểm tích lũy (xu) ---
+      let pointsDiscount = 0;
+      const pointsToUseNum = Number(pointsToUse) || 0;
+
+      if (pointsToUseNum > 0) {
+        if (user.loyaltyPoints < pointsToUseNum) {
+          throw { status: 400, message: 'Bạn không đủ điểm tích lũy' };
+        }
+        // Giả sử 1 điểm = 1đ
+        pointsDiscount = pointsToUseNum;
+        // Đảm bảo số điểm sử dụng không vượt quá số tiền còn lại sau khi đã áp dụng coupon
+        pointsDiscount = Math.min(pointsDiscount, itemsTotal - couponDiscount);
+      }
+
+      // --- 4. Tính toán tổng cuối cùng ---
+      const total = itemsTotal - couponDiscount - pointsDiscount;
+
+      // 5. Tạo đơn hàng và lưu thông tin giảm giá
       const order = new Order({
         user: userId,
         items: orderItems,
         shippingAddress,
         paymentMethod,
         itemsTotal,
+        couponCode: couponCode || null,
+        couponDiscount,
+        pointsUsed: pointsToUseNum,
+        pointsDiscount,
         total,
         status: "pending",
         orderStatusHistory: [{ status: "pending", orderedAt: new Date() }]
@@ -141,8 +186,8 @@ const createOrderFromCart = async ({ userId, shippingAddress, paymentMethod, ite
       await order.save({ session });
       createdOrder = order;
 
-
-      // Cập nhật tồn kho
+      // 6. Cập nhật dữ liệu database
+      // Cập nhật tồn kho sản phẩm
       for (const item of order.items) {
         await Product.updateOne(
           { _id: item.product._id },
@@ -150,7 +195,19 @@ const createOrderFromCart = async ({ userId, shippingAddress, paymentMethod, ite
           { session }
         );
       }
-
+      // Cập nhật số xu của người dùng
+      if (pointsToUseNum > 0) {
+        user.loyaltyPoints -= pointsToUseNum;
+      }
+      // Thưởng điểm cho đơn hàng này (ví dụ: 1% giá trị đơn hàng)
+      user.loyaltyPoints += Math.floor(itemsTotal / 100);
+      await user.save({ session });
+      // Tăng số lần sử dụng của coupon
+      if (appliedCoupon) {
+        appliedCoupon.usesCount += 1;
+        await appliedCoupon.save({ session });
+      }
+      // Xóa sản phẩm đã mua khỏi giỏ hàng      
       const userCart = await Cart.findOne({ user: userId }).session(session);
       if (userCart) {
         userCart.items = userCart.items.filter(
@@ -160,7 +217,7 @@ const createOrderFromCart = async ({ userId, shippingAddress, paymentMethod, ite
       }
     });
 
-    
+
 
     return { order: createdOrder };
 

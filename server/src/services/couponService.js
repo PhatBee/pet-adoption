@@ -1,4 +1,4 @@
-import Coupon from '../models/Coupon';
+const Coupon = require("../models/Coupon");
 
 const validateCoupon = async (code, itemsTotal) => {
     const coupon = await Coupon.findOne({ code: code.toUpperCase() });

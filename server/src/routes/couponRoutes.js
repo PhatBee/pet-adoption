@@ -1,6 +1,6 @@
-import express from 'express';
-import { validateCoupon } from '../controllers/couponController';
-import { authenticate } from '../middleware/authMiddleware';
+const express = require("express");
+const { validateCoupon } = require("../controllers/couponController");
+const { authenticate } = require("../middleware/authMiddleware");
 
 const router = express.Router();
 

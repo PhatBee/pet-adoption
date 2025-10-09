@@ -1,4 +1,4 @@
-const couponService = require('../services/couponService');
+const couponService = require("../services/couponService");
 
 const validateCoupon = async (req, res) => {
     try {
@@ -12,7 +12,7 @@ const validateCoupon = async (req, res) => {
             return res.status(400).json({ message: 'Tổng tiền không hợp lệ' });
         }
 
-        const coupon = await couponService.validateCoupon(code, itemsTotal);
+        const coupon = await validateCoupon(code, itemsTotal);
          // Trả về thông tin coupon hợp lệ
         res.json({ message: 'Áp dụng mã giảm giá thành công!', coupon });
 
@@ -22,4 +22,4 @@ const validateCoupon = async (req, res) => {
     }
 }
 
-module.exports = { validateCoupon };
+module.exports = {validateCoupon};
