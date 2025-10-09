@@ -5,6 +5,16 @@ const connectDB = require("../server/src/config/db");
 const cors = require('cors'); // Install with: npm install cors
 const path = require("path");
 
+const authRoutes = require("../server/src/routes/authRoutes");
+const userRoutes = require("../server/src/routes/userRoutes");
+const productRoutes = require("../server/src/routes/productRoutes");
+const cartRoutes = require("../server/src/routes/cartRoutes");
+const checkoutRoutes = require("../server/src/routes/checkoutRoutes");
+const orderRoutes = require("../server/src/routes/orderRoutes");
+const adminRoutes = require("../server/src/routes/adminRoutes");
+const wishlistRoutes = require("../server/src/routes/wishlistRoute");
+const couponRoutes = require('./src/routes/couponRoutes');
+
 const app = express();
 app.use(cors({
     origin: 'http://localhost:3000',
@@ -15,23 +25,16 @@ app.use(express.json());
 app.use(cookieParser());
 
 // Routes
-const authRoutes = require("../server/src/routes/authRoutes");
 app.use("/api/auth", authRoutes);
-const userRoutes = require("../server/src/routes/userRoutes");
 app.use("/api/users", userRoutes);
-const productRoutes = require("../server/src/routes/productRoutes");
 app.use("/api/products", productRoutes);
-const cartRoutes = require("../server/src/routes/cartRoutes");
 app.use("/api/cart", cartRoutes);
-const checkoutRoutes = require("../server/src/routes/checkoutRoutes");
 app.use("/api/checkout", checkoutRoutes);
-const orderRoutes = require("../server/src/routes/orderRoutes");
 app.use("/api/orders", orderRoutes);
 app.use('/uploads', express.static(path.join(__dirname, '/uploads'))); // Serve static files
-const adminRoutes = require("../server/src/routes/adminRoutes");
 app.use("/api/admin/orders", adminRoutes);
-const wishlistRoutes = require("../server/src/routes/wishlistRoute");
 app.use("/api/wishlist", wishlistRoutes);
+app.use('/api/coupons', couponRoutes);
 
 // Start Server
 const PORT = process.env.PORT || 5000;
