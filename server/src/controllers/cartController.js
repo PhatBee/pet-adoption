@@ -122,7 +122,7 @@ const placeOrder = async (req, res) => {
         }
 
         // Truyền `items` vào service
-        const  { order }  = await createOrderFromCart({ userId, shippingAddress, paymentMethod, items });
+        const  { order }  = await createOrderFromCart({ userId, shippingAddress, paymentMethod, items, couponCode, pointsToUse });
 
         // Nếu dùng VNPAY -> trả về URL thanh toán
         if (paymentMethod === "VNPAY") {

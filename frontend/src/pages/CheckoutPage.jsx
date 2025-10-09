@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchCheckoutData, placeOrder } from "../store/orderSlice";
+import { selectUser } from "../store/authSlice";
 import AddressSelector from "../components/checkout/AddressSelector";
 import PaymentMethod from "../components/checkout/PaymentMethod";
 import OrderSummary from "../components/checkout/OrderSummary";
+import DiscountSection from "../components/checkout/DiscountSection";
 import { toast } from "react-toastify";
 // Thêm import useLocation
-import { useNavigate, useLocation } from "react-router-dom"; 
+import { useNavigate, useLocation } from "react-router-dom";
 
 export default function CheckoutPage() {
   const dispatch = useDispatch();
@@ -15,14 +17,30 @@ export default function CheckoutPage() {
   // 1. Dùng useLocation để lấy state được truyền qua
   const location = useLocation();
   const itemsFromCart = location.state?.itemsToCheckout;
-  
-  const { cart, addresses, isLoading, error, lastOrder } = useSelector((s) => s.order || {});
+
+  const { cart, addresses, isLoading, error, lastOrder, appliedCoupon, pointsToUse } = useSelector((s) => s.order || {});
+  const user = useSelector(selectUser);
   const [selectedAddress, setSelectedAddress] = useState(null);
   const [paymentMethod, setPaymentMethod] = useState("COD");
 
-   // 2. Quyết định xem nên hiển thị sản phẩm nào
+  // 2. Quyết định xem nên hiển thị sản phẩm nào
   // Ưu tiên sản phẩm được chọn từ giỏ hàng, nếu không có thì dùng cả giỏ hàng (trường hợp vào thẳng checkout)
   const itemsToDisplay = itemsFromCart || cart?.items || [];
+  const itemsTotal = itemsToDisplay.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
+
+  // --- TÍNH TOÁN SỐ TIỀN GIẢM GIÁ ---
+  let couponDiscount = 0;
+  if (appliedCoupon) {
+    if (appliedCoupon.discountType === 'percentage') {
+      couponDiscount = (itemsTotal * appliedCoupon.discountValue) / 100;
+    } else { // fixed_amount
+      couponDiscount = appliedCoupon.discountValue;
+    }
+    couponDiscount = Math.min(couponDiscount, itemsTotal); // Đảm bảo giảm giá không lớn hơn tổng tiền
+  }
+
+  // Giả sử 1 xu = 1đ
+  let pointsDiscount = Math.min(pointsToUse, itemsTotal - couponDiscount);
 
   // useEffect(() => {
   //   // Chỉ fetch dữ liệu (địa chỉ, etc.) nếu không có sẵn
@@ -34,7 +52,7 @@ export default function CheckoutPage() {
 
   useEffect(() => {
     if (addresses && addresses.length && !selectedAddress) {
-      const d = addresses.find(a=> a.isDefault) || addresses[0];
+      const d = addresses.find(a => a.isDefault) || addresses[0];
       setSelectedAddress(d);
     }
   }, [addresses, selectedAddress]);
@@ -62,6 +80,8 @@ export default function CheckoutPage() {
           shippingAddress: selectedAddress,
           paymentMethod,
           items: itemsToDisplay, // Gửi danh sách sản phẩm đã chọn
+          couponCode: appliedCoupon?.code, // Gửi mã code
+          pointsToUse: pointsToUse,       // Gửi số điểm sử dụng
         })
       ).unwrap();
     } catch (err) {
@@ -95,12 +115,21 @@ export default function CheckoutPage() {
           </div>
         </div>
 
-        <PaymentMethod value={paymentMethod} onChange={setPaymentMethod} />
+        {/* <-- 3. ĐẶT DISCOUNT --> */}
+        <DiscountSection
+          itemsTotal={itemsTotal}
+          userLoyaltyPoints={user?.loyaltyPoints}
+        />
 
+        <PaymentMethod value={paymentMethod} onChange={setPaymentMethod} />
       </div>
 
-       <aside className="sticky top-6"> {/* Làm cho summary cố định khi cuộn */}
-        <OrderSummary items={itemsToDisplay} />
+      <aside className="sticky top-6"> {/* Làm cho summary cố định khi cuộn */}
+        <OrderSummary
+          items={itemsToDisplay}
+          couponDiscount={couponDiscount}
+          pointsDiscount={pointsDiscount}
+        />
         <div className="mt-4">
           <button onClick={handlePlaceOrder} className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-colors font-semibold text-lg">
             Đặt hàng

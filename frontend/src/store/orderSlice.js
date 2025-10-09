@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import checkoutApi from "../api/checkoutApi";
 import orderApi from "../api/orderApi";
+import couponApi from "../api/couponApi";
 import { toast } from "react-toastify";
 
 export const fetchCheckoutData = createAsyncThunk("order/fetchCheckoutData", async (_, { rejectWithValue }) => {
@@ -12,10 +13,25 @@ export const fetchCheckoutData = createAsyncThunk("order/fetchCheckoutData", asy
   }
 });
 
-export const placeOrder = createAsyncThunk("order/placeOrder", async ({ shippingAddress, paymentMethod, items }, { rejectWithValue }) => {
+export const applyCoupon = createAsyncThunk(
+  "order/applyCoupon",
+  async ({ code, itemsTotal }, { rejectWithValue }) => {
+    try {
+      const res = await couponApi.validate({ code, itemsTotal });
+      toast.success(res.data.message);
+      return res.data.coupon; // Trả về object coupon nếu thành công
+    } catch (err) {
+      const errorMsg = err.response?.data?.message || "Áp dụng mã thất bại";
+      toast.error(errorMsg);
+      return rejectWithValue(errorMsg);
+    }
+  }
+);
+
+export const placeOrder = createAsyncThunk("order/placeOrder", async ({ shippingAddress, paymentMethod, items, couponCode, pointsToUse }, { rejectWithValue }) => {
   try {
     // Truyền `items` vào payload của API call
-    const res = await checkoutApi.placeOrder({ shippingAddress, paymentMethod, items });
+    const res = await checkoutApi.placeOrder({ shippingAddress, paymentMethod, items, couponCode, pointsToUse });
     return res.data; // { orderId, order } or { redirectUrl }
   } catch (err) {
     return rejectWithValue(err.response?.data?.message || "Đặt hàng thất bại");
@@ -50,7 +66,8 @@ export const fetchOrderDetail = createAsyncThunk(
 
 const slice = createSlice({
   name: "order",
-  initialState: { cart: null, addresses: [], isLoading: false, error: null, lastOrder: null,
+  initialState: {
+    cart: null, addresses: [], isLoading: false, error: null, lastOrder: null,
     items: [], // array of orders (concatenated pages)
     page: 0,
     limit: 10,
@@ -58,10 +75,25 @@ const slice = createSlice({
     hasMore: true,
     currentOrder: null,
     detailLoading: false,
-   },
+
+    appliedCoupon: null, // Lưu trữ coupon object nếu hợp lệ
+    pointsToUse: 0,
+    couponValidationStatus: 'idle', // 'idle' | 'loading' | 'succeeded' | 'failed'
+    couponError: null,
+  },
   reducers: {
-     resetOrders: (s) => {
+    resetOrders: (s) => {
       s.items = []; s.page = 0; s.total = 0; s.hasMore = true; s.error = null;
+    },
+
+    setPointsToUse: (state, action) => {
+      // Có thể thêm logic kiểm tra số điểm không được vượt quá điểm user có
+      state.pointsToUse = action.payload;
+    },
+    removeCoupon: (state) => {
+      state.appliedCoupon = null;
+      state.couponError = null;
+      state.couponValidationStatus = 'idle';
     }
   },
   extraReducers: (builder) => {
@@ -93,10 +125,24 @@ const slice = createSlice({
 
       .addCase(fetchOrderDetail.pending, (s) => { s.detailLoading = true; s.currentOrder = null; })
       .addCase(fetchOrderDetail.fulfilled, (s, a) => { s.detailLoading = false; s.currentOrder = a.payload; })
-      .addCase(fetchOrderDetail.rejected, (s, a) => { s.detailLoading = false; s.currentOrder = null; toast.error(a.payload); });
- 
+      .addCase(fetchOrderDetail.rejected, (s, a) => { s.detailLoading = false; s.currentOrder = null; toast.error(a.payload); })
+
+      .addCase(applyCoupon.pending, (state) => {
+        state.couponValidationStatus = 'loading';
+        state.couponError = null;
+      })
+      .addCase(applyCoupon.fulfilled, (state, action) => {
+        state.couponValidationStatus = 'succeeded';
+        state.appliedCoupon = action.payload;
+      })
+      .addCase(applyCoupon.rejected, (state, action) => {
+        state.couponValidationStatus = 'failed';
+        state.appliedCoupon = null;
+        state.couponError = action.payload;
+      });
+
   }
 });
 
-export const { resetOrders } = slice.actions;
+export const { resetOrders, setPointsToUse, removeCoupon } = slice.actions;
 export default slice.reducer;

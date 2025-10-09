@@ -80,7 +80,7 @@ const clearCart = async (userId) => {
 };
 
 // Tao đơn hàng từ giỏ hàng
-const createOrderFromCart = async ({ userId, shippingAddress, paymentMethod, items }) => {
+const createOrderFromCart = async ({ userId, shippingAddress, paymentMethod, items, couponCode, pointsToUse }) => {
   // Bắt đầu phiên giao dịch
   const session = await mongoose.startSession();
 

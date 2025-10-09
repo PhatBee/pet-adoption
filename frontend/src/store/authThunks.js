@@ -15,7 +15,9 @@ export const loginThunk = createAsyncThunk(
           email: response.data.user.email,
           avatarUrl: response.data.user.avatarUrl || null,
           phone: response.data.user.phone || null,
-          role: response.data.user.role || null
+          role: response.data.user.role || null,
+          addresses: response.data.user.addresses,
+          loyaltyPoints: response.data.user.loyaltyPoints || 0
         },
         accessToken: response.data.accessToken
       };

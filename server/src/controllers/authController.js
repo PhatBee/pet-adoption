@@ -197,6 +197,8 @@ const login = async (req, res) => {
         name: user.name,
         avatarUrl: user.avatarUrl,
         phone: user.phone,
+        addresses: user.addresses,
+        loyaltyPoints: user.loyaltyPoints
       },
       refreshToken,
       accessToken,
