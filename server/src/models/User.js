@@ -39,7 +39,15 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
-  addresses: [addressSchema]
+  addresses: [addressSchema],
+
+  // -- THÊM TRƯỜNG XU --
+  loyaltyPoints: { // "xu" tích lũy
+    type: Number,
+    default: 0,
+    min: 0,
+  }
+  // -------------------------
 
 }, { timestamps: true });
 

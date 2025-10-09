@@ -22,6 +22,14 @@ const orderSchema = new mongoose.Schema({
   shippingAddress: addressSchema,
   paymentMethod: { type: String, enum: ["COD", "VNPAY"], default: "COD" },
   itemsTotal: { type: Number, required: true },
+
+  // -- THÊM CÁC TRƯỜNG KHUYẾN MÃI VÀ ĐIỂM TÍCH LŨY Ở ĐÂY --
+  couponCode: { type: String },
+  couponDiscount: { type: Number, default: 0 },
+  pointsUsed: { type: Number, default: 0 },
+  pointsDiscount: { type: Number, default: 0 }, // Giả sử 1 điểm = 1đ
+  // ---------------------------------
+
   total: { type: Number, required: true },
   status: { type: String, default: "pending", enum: ["pending","confirmed", "preparing","shipping", "delivered","cancelled","cancel_requested"] },
   orderedAt: { type: Date },
