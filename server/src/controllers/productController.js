@@ -1,6 +1,6 @@
 // controllers/productController.js (ví dụ)
 const mongoose = require("mongoose");
-const Product = require("../models/Product");
+const {Product} = require("../models/Product");
 
 const getBySlug = async (req, res) => {
   const { slug } = req.params;

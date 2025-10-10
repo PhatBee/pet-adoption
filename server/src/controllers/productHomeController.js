@@ -61,9 +61,21 @@ const bestSellers = async (req, res) => {
 const homeSections = async (req, res) => {
   try {
     // Tìm ID của các loại thú cưng chính
-    const dog = await Pet.findOne({ name: 'Dogs' }).lean(); // .lean() để tăng tốc độ
-    const cat = await Pet.findOne({ name: 'Cats' }).lean();
-    const bird = await Pet.findOne({ name: 'Birds' }).lean();
+    const [
+      dog,
+      cat,
+      bird,
+      bestSellers,
+      mostViewed,
+      topDiscounts
+    ] = await Promise.all([
+      Pet.findOne({ name: 'Dogs' }).lean(),
+      Pet.findOne({ name: 'Cats' }).lean(),
+      Pet.findOne({ name: 'Birds' }).lean(),
+      getBestSellers(8),
+      getMostViewedProducts(8),
+      getTopDiscountProducts(4),
+    ]);
 
 
     // Lấy sản phẩm mới cho từng loại (nếu chúng tồn tại)
@@ -95,6 +107,25 @@ const homeSections = async (req, res) => {
         title: "Sản phẩm mới cho Chim",
         pet: bird,
         products: newestForBird,
+      });
+    }
+
+    if (bestSellers.length > 0) {
+      sections.push({
+        title: "Sản phẩm bán chạy nhất",
+        products: bestSellers,
+      });
+    }
+    if (mostViewed.length > 0) {
+      sections.push({
+        title: "Sản phẩm xem nhiều nhất",
+        products: mostViewed,
+      });
+    }
+    if (topDiscounts.length > 0) {
+      sections.push({
+        title: "Sản phẩm khuyến mãi hot",
+        products: topDiscounts,
       });
     }
 
