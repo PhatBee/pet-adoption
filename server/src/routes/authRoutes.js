@@ -1,6 +1,6 @@
 const express = require("express");
 const { register, verifyOtp, resendOtp } = require("../controllers/authController");
-const { login, refreshToken, logout } = require("../controllers/authController");
+const { login, refreshToken, logout, getMe } = require("../controllers/authController");
 const { authenticate } = require("../middleware/authMiddleware");
 const { loginLimiter } = require("../middleware/rateLimit");
 const { requestPasswordResetOtp, resetPasswordWithOtp } = require("../controllers/authController");
@@ -18,10 +18,6 @@ router.post("/logout", logout);
 router.post("/forgot-password", requestPasswordResetOtp); // API: Forgot Password (request)
 router.post("/reset-password", resetPasswordWithOtp); // API: Forgot Password (reset)
 
-// demo test
-router.get("/me", authenticate, (req, res) => {
-  return res.json({ message: "Protected route", user: req.user });
-});
-
+router.get("/me", authenticate, getMe);
 
 module.exports = router;

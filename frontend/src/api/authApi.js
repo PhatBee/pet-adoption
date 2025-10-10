@@ -29,3 +29,6 @@ export const requestResetOtpApi = (email) =>
 // Đặt lại mật khẩu bằng OTP
 export const resetPasswordApi = ({ email, otp, newPassword }) =>
   axiosClient.post(`${BASE}/reset-password`, { email, otp, newPassword });
+
+export const refreshTokenApi = () => axiosClient.get(`${BASE}/refresh`);
+// server sẽ trả accessToken mới và set cookie refreshToken mới

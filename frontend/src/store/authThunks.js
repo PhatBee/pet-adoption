@@ -1,5 +1,6 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
-import { loginApi, logoutApi } from '../api/authApi';
+import { loginApi, logoutApi, refreshTokenApi, meApi } from '../api/authApi';
+import { setCredentials } from './authSlice';
 
 export const loginThunk = createAsyncThunk(
   'auth/login',
@@ -39,6 +40,31 @@ export const logoutThunk = createAsyncThunk(
       return rejectWithValue(
         error.response?.data?.message || 'Logout failed'
       );
+    }
+  }
+);
+
+export const refreshSessionThunk = createAsyncThunk(
+  'auth/refreshSession',
+  async (_, { dispatch, rejectWithValue }) => {
+    try {
+      // Gọi API để lấy accessToken mới
+      const refreshResponse = await refreshTokenApi();
+      const { accessToken } = refreshResponse.data;
+
+      // Khi có accessToken, chúng ta cần lấy lại thông tin user
+      // Giả sử bạn có một meApi để lấy thông tin user đã đăng nhập
+      // Nếu chưa có, bạn cần tạo nó ở backend (trả về req.user)
+      const meResponse = await meApi(); 
+
+      // Dispatch action để cập nhật cả user và accessToken vào state
+      dispatch(setCredentials({ user: meResponse.data.user, accessToken }));
+      return { user: meResponse.data.user, accessToken };
+
+    } catch (error) {
+      // Nếu có lỗi (ví dụ: refresh token hết hạn), không cần làm gì cả
+      // Người dùng sẽ ở trạng thái đăng xuất một cách tự nhiên
+      return rejectWithValue('Không thể làm mới phiên đăng nhập');
     }
   }
 );

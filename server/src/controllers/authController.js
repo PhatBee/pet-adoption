@@ -148,26 +148,6 @@ const login = async (req, res) => {
       return res.status(400).json({ message: "Email hoặc Mật khẩu không đúng" });
     }
 
-    // // 3. Tạo và gửi token
-    // const payload = { sub: user._id.toString(), email: user.email, name: user.name };
-    // const accessToken = signAccessToken(payload);
-    // const refreshToken = signRefreshToken({ sub: user._id.toString() });
-
-    // // Lưu refresh token vào database (để có thể revoke)
-    // const expiresAt = getExpiryDateFromJwt(refreshToken);
-    // await RefreshToken.create({ userId: user._id, token: refreshToken, expiresAt });
-
-    // return res.status(200).json({
-    //   message: "Đăng nhập thành công",
-    //   user: {
-    //     id: user._id,
-    //     email: user.email,
-    //     name: user.name
-    //   },
-    //   accessToken,
-    //   refreshToken
-    // });
-
      // Tạo tokens
 
     const userObj = {
@@ -175,19 +155,29 @@ const login = async (req, res) => {
         role: user.role,
         email: user.email,
         name: user.name,
-        phone: user.phone,
     }
     const accessToken = signAccessToken(userObj);
     const refreshToken = signRefreshToken(userObj);
+
+    // 1. Lưu refresh token vào database
+    const expiresAt = getExpiryDateFromJwt(refreshToken);
+    // Xóa các token cũ của user này trước khi tạo mới để đảm bảo mỗi user chỉ có 1 refresh token
+    await RefreshToken.deleteMany({ userId: user._id }); 
+    await RefreshToken.create({
+      userId: user._id,
+      token: refreshToken,
+      expiresAt: expiresAt,
+    });
     
-    // Gửi refresh token bằng HttpOnly cookie
+    //2. Gửi refresh token bằng HttpOnly cookie
     res.cookie("refreshToken", refreshToken, {
-      httpOnly: true,    // không cho JS đọc
-      secure: false,     // true nếu dùng HTTPS
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production', // Chỉ true khi deploy
       sameSite: "strict", 
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 ngày
     });
 
+    // 3. Trả về thông tin cho client (giữ nguyên)
     return res.json({
       message: "Đăng nhập thành công",
       user: {
@@ -200,7 +190,6 @@ const login = async (req, res) => {
         addresses: user.addresses,
         loyaltyPoints: user.loyaltyPoints
       },
-      refreshToken,
       accessToken,
     });
   } catch (error) {
@@ -214,6 +203,14 @@ const refreshToken = async (req, res) => {
   try {
     const token = req.cookies.refreshToken;
     if (!token) return res.status(401).json({ message: "Không có refresh token" });
+
+    // --- THÊM BƯỚC KIỂM TRA TRONG DB ---
+    const dbToken = await RefreshToken.findOne({ token: token });
+    if (!dbToken) {
+      // Nếu token không có trong DB (có thể đã bị logout), xóa cookie để đề phòng
+      res.clearCookie('refreshToken');
+      return res.status(403).json({ message: "Refresh token không hợp lệ" });
+    }
 
     const decoded = verifyRefreshToken(token);
      // Tạo access token mới
@@ -246,11 +243,9 @@ const logout = async (req, res) => {
       return res.status(200).json({ message: "Đăng xuất thành công" });
     }
 
-    try {
-      // Thử xóa token từ database nếu có
+    if (token) {
+      // Xóa token khỏi DB để vô hiệu hóa nó hoàn toàn
       await RefreshToken.deleteOne({ token });
-    } catch (error) {
-      console.error("Error deleting refresh token:", error);
     }
 
     return res.status(200).json({ message: "Đăng xuất thành công" });
@@ -319,6 +314,20 @@ const resetPasswordWithOtp = async (req, res) => {
   }
 };
 
+const getMe = async (req, res) => {
+  try {
+    // Middleware 'authenticate' đã xác thực và gắn req.user
+    const user = await User.findById(req.user.id).select("-password"); // .select("-password") để không gửi mật khẩu về
+    if (!user) {
+      return res.status(404).json({ message: "Không tìm thấy người dùng" });
+    }
+    res.json({ user });
+  } catch (error) {
+    res.status(500).json({ message: "Lỗi server" });
+  }
+};
+
+
 
 module.exports = {
     register,
@@ -328,5 +337,6 @@ module.exports = {
     refreshToken,
     logout,
     requestPasswordResetOtp,
-    resetPasswordWithOtp
+    resetPasswordWithOtp,
+    getMe
 };

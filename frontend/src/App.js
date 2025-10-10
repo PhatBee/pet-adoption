@@ -26,10 +26,17 @@ import WishlistPage from './pages/WishlistPage';
 import { fetchWishlist } from "./store/wishlistSlice"
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect } from "react";
+import { refreshSessionThunk } from './store/authThunks';
 
 
 function App() {
   const dispatch = useDispatch();
+
+  useEffect(() => {
+    // Gọi thunk để kiểm tra phiên đăng nhập khi App được render lần đầu
+    dispatch(refreshSessionThunk());
+  }, [dispatch]);
+  
   const user = useSelector((state) => state.auth.user);
 
   useEffect(() => {
@@ -37,6 +44,8 @@ function App() {
       dispatch(fetchWishlist());
     }
   }, [user, dispatch]);
+
+
 
   return (
     <>
