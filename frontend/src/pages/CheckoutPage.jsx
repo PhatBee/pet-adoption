@@ -6,6 +6,7 @@ import AddressSelector from "../components/checkout/AddressSelector";
 import PaymentMethod from "../components/checkout/PaymentMethod";
 import OrderSummary from "../components/checkout/OrderSummary";
 import DiscountSection from "../components/checkout/DiscountSection";
+import ErrorPage from "./ErrorPage"; // 1. Import trang lỗi
 import { toast } from "react-toastify";
 // Thêm import useLocation
 import { useNavigate, useLocation } from "react-router-dom";
@@ -90,7 +91,7 @@ export default function CheckoutPage() {
   };
 
   if (isLoading) return <div className="p-6">Đang tải...</div>;
-  if (error) return <div className="p-6 text-red-500">Lỗi: {error}</div>;
+  if (error) return <ErrorPage statusCode="500" title="Lỗi máy chủ" message={error} />; 
   // if (!cart) return <div className="p-6">Giỏ hàng trống</div>;
 
   return (

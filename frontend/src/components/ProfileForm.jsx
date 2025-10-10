@@ -1,18 +1,16 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
 import { getProfileApi, updateProfileApi } from "../api/userApi";
 import AvatarUploader from "./AvatarUploader";
 import { toast } from "react-toastify";
 import { selectUser, updateUser } from "../store/authSlice";
-import { SERVER_BASE } from "../config"; 
+import { SERVER_BASE } from "../config";
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const phoneRegex = /^\+?[0-9]{7,15}$/;
-  
+
 export default function ProfileForm() {
   const dispatch = useDispatch();
-  const navigate = useNavigate();
   const reduxUser = useSelector(selectUser);
   // const [form, setForm] = useState({ ...reduxUser });
 
@@ -115,92 +113,61 @@ export default function ProfileForm() {
 
   if (loading) return <p className="text-center">Đang tải profile...</p>;
 
-return (
-  <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
-    <div className="bg-white shadow-xl rounded-2xl p-8 w-full max-w-md">
-      <h1 className="text-2xl font-bold mb-4 text-center">Thông tin cá nhân</h1>
+  return (
+    <div className="bg-white shadow-md rounded-xl p-6 border border-gray-200">
+      <h2 className="text-xl font-bold mb-6 text-gray-800">Thông tin cá nhân</h2>
 
-      {/* Avatar */}
-      <div className="flex flex-col items-center mb-6">
-        <AvatarUploader
-          src={avatarUrl}
-          onFileSelect={handleFileSelect}
-          onRemove={handleRemoveAvatar}
-        />
-      </div>
+      <form onSubmit={handleSubmit} className="space-y-5">
+        <div className="flex flex-col items-center">
+          <AvatarUploader
+            src={avatarUrl}
+            onFileSelect={handleFileSelect}
+            onRemove={handleRemoveAvatar}
+          />
+        </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium mb-1">Họ tên</label>
+          <label className="block text-sm font-medium mb-1 text-gray-600">Họ tên</label>
           <input
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1">Email</label>
+          <label className="block text-sm font-medium mb-1 text-gray-600">Email</label>
           <input
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
           />
-          <p className="text-xs text-gray-500 mt-1">
-            Thay đổi email có thể yêu cầu xác nhận lại theo cấu hình server.
-          </p>
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1">Số điện thoại</label>
+          <label className="block text-sm font-medium mb-1 text-gray-600">Số điện thoại</label>
           <input
             type="text"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
 
-        <div className="flex gap-3 pt-4">
+        <div className="pt-4">
           <button
             type="submit"
             disabled={submitting}
-            className="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-xl shadow-md transition disabled:opacity-50"
+            className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-md transition disabled:opacity-50"
           >
             {submitting ? "Đang lưu..." : "Lưu thay đổi"}
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              const u = reduxUser;
-              if (u) {
-                setName(u.name || "");
-                setEmail(u.email || "");
-                setPhone(u.phone || "");
-                setAvatarFile(null);
-                setAvatarUrl(
-                  u.avatarUrl
-                    ? u.avatarUrl.startsWith("http")
-                      ? u.avatarUrl
-                      : SERVER_BASE + u.avatarUrl
-                    : null
-                );
-                setRemoveAvatar(false);
-              }
-              navigate(-1);
-            }}
-            
-            className="flex-1 py-2.5 bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium rounded-xl shadow-sm transition"
-            >
-            Hủy
           </button>
         </div>
       </form>
     </div>
-  </div>
-);
+  );
 };

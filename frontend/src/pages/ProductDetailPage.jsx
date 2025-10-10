@@ -11,6 +11,7 @@ import WishlistButton from "../components/wishlist/WishlistButton";
 import Rating from "../components/product/Rating";
 import ReviewList from "../components/product/ReviewList";
 import ProductSpecs from "../components/product/ProductSpecs";
+import ErrorPage from "./ErrorPage"; // 1. Import trang lỗi
 
 export default function ProductDetailPage() {
   const { slug } = useParams();
@@ -68,7 +69,7 @@ export default function ProductDetailPage() {
   };
 
   if (isLoading) return <div className="p-6">Đang tải...</div>;
-  if (error) return <div className="p-6 text-red-500">Lỗi: {error}</div>;
+  if (error) return <ErrorPage statusCode="500" title="Lỗi máy chủ" message={error} />; 
   if (!product) return null;
 
   const discountPercent = product.compareAtPrice > product.price

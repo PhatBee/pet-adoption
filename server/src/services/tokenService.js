@@ -2,7 +2,7 @@ const jwt = require("jsonwebtoken");
 
 const signAccessToken = (payload) => {
   const role = payload.role.toString();
-  return jwt.sign({ id: payload.id, email: payload.email, name: payload.name, role: payload.role || "user" }, process.env.JWT_ACCESS_SECRET, { expiresIn: process.env.JWT_ACCESS_EXPIRES || '2h' });
+  return jwt.sign({ id: payload.id, email: payload.email, name: payload.name, role: payload.role || "user" }, process.env.JWT_ACCESS_SECRET, { expiresIn: process.env.JWT_ACCESS_EXPIRES || '1d' });
 };
 
 const signRefreshToken = (payload) => {

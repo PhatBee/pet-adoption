@@ -7,6 +7,7 @@ import OrderStatusTimeline from "../components/order/OrderStatusTimeline";
 import AddressDisplay from "../components/order/AddressDisplay";
 import OrderItemRow from "../components/order/OrderItemRow";
 import OrderTotal from "../components/order/OrderTotal"; // reuse from earlier or implement
+import ErrorPage from "./ErrorPage"; // 1. Import trang lỗi
 import { toast } from "react-toastify";
 import { format } from "date-fns";
 
@@ -22,7 +23,7 @@ export default function OrderDetailPage() {
   }, [dispatch, id]);
 
   if (isLoading) return <div className="p-6">Đang tải...</div>;
-  if (error) return <div className="p-6 text-red-500">Lỗi: {error}</div>;
+  if (error) return <ErrorPage statusCode="500" title="Lỗi máy chủ" message={error} />; 
   if (!order) return null;
 
   return (

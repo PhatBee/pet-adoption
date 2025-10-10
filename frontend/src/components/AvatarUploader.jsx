@@ -28,17 +28,22 @@ export default function AvatarUploader({ src, onFileSelect, onRemove }) {
   const hiddenInputId = "avatar-input-" + Math.random().toString(36).slice(2, 8);
 
   return (
-    <div className="d-flex align-items-center">
-      <div style={{ width: 96, height: 96, borderRadius: 8, overflow: "hidden", border: "1px solid #ddd" }}>
+    <div className="flex items-center gap-4">
+      {/* Avatar Preview */}
+      <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-gray-300">
         <img
           src={preview || PLACEHOLDER}
           alt="avatar"
-          style={{ width: "100%", height: "100%", objectFit: "cover" }}
+          className="w-full h-full object-cover"
         />
       </div>
 
-      <div className="ms-3">
-        <label className="btn btn-outline-primary btn-sm me-2" htmlFor={hiddenInputId} style={{ cursor: "pointer" }}>
+      {/* Buttons */}
+      <div className="flex flex-col gap-2">
+        <label
+          htmlFor={hiddenInputId}
+          className="cursor-pointer bg-blue-500 text-white px-4 py-2 text-sm rounded-md hover:bg-blue-600 transition text-center"
+        >
           Chọn ảnh
         </label>
         <input
@@ -46,9 +51,13 @@ export default function AvatarUploader({ src, onFileSelect, onRemove }) {
           type="file"
           accept="image/*"
           onChange={handleFileChange}
-          style={{ display: "none" }}
+          className="hidden"
         />
-        <button type="button" className="btn btn-outline-danger btn-sm" onClick={onRemove}>
+        <button
+          type="button"
+          className="bg-red-500 text-white px-4 py-2 text-sm rounded-md hover:bg-red-600 transition"
+          onClick={onRemove}
+        >
           Xóa
         </button>
       </div>
