@@ -1,5 +1,5 @@
 // services/productService.js
-const Product = require("../models/Product");
+const {Product} = require("../models/Product");
 const Order = require("../models/Order"); // nếu dùng aggregation
 
 // Chỉ chọn các field an toàn cần cho trang chủ
@@ -20,9 +20,17 @@ function toLeanQuery(q) {
 }
 
 // 1) Mới nhất
-async function getNewestProducts(limit = 8) {
+async function getNewestProducts(limit = 8, petId = null) {
+  // Xây dựng điều kiện query cơ bản
+  const queryConditions = { isActive: true };
+
+  // Nếu có petId, thêm điều kiện lọc theo pet
+  if (petId) {
+    queryConditions.pet = petId;
+  }
+
   return toLeanQuery(
-    Product.find({ isActive: true }).sort({ createdAt: -1 }).limit(limit)
+    Product.find(queryConditions).sort({ createdAt: -1 }).limit(limit)
   );
 }
 

@@ -18,10 +18,11 @@ export const fetchProducts = createAsyncThunk(
 const productSlice = createSlice({
   name: "products",
   initialState: {
-    newest: [],
-    bestSellers: [],
-    mostViewed: [],
-    topDiscounts: [],
+    // newest: [],
+    // bestSellers: [],
+    // mostViewed: [],
+    // topDiscounts: [],
+    sections: [],
     isLoading: false,
   },
   reducers: {},
@@ -32,10 +33,12 @@ const productSlice = createSlice({
       })
       .addCase(fetchProducts.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.newest = action.payload.newest || [];
-        state.bestSellers = action.payload.bestSellers || [];
-        state.mostViewed = action.payload.mostViewed || [];
-        state.topDiscounts = action.payload.topDiscounts || [];
+        // state.newest = action.payload.newest || [];
+        // state.bestSellers = action.payload.bestSellers || [];
+        // state.mostViewed = action.payload.mostViewed || [];
+        // state.topDiscounts = action.payload.topDiscounts || [];
+        state.sections = action.payload.sections || []; 
+
       })
       .addCase(fetchProducts.rejected, (state) => {
         state.isLoading = false;

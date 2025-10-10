@@ -1,5 +1,5 @@
 const User = require("../models/User.js");
-const Product = require("../models/Product.js");
+const {Product} = require("../models/Product.js");
 const Wishlist = require("../models/Wishlist");
 
 // Thêm sản phẩm vào wishlist

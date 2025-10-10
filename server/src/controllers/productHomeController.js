@@ -1,43 +1,12 @@
-// const Product = require("../models/Product");
-
-// // 08 sản phẩm mới nhất
-// exports.getLatestProducts = async (req, res) => {
-//   const products = await Product.find().sort({ createdAt: -1 }).limit(8);
-//   res.json(products);
-// };
-
-// // 06 sản phẩm bán chạy
-// exports.getBestSellers = async (req, res) => {
-//   const products = await Product.find().sort({ sold: -1 }).limit(6);
-//   res.json(products);
-// };
-
-// // 08 sản phẩm xem nhiều
-// exports.getMostViewed = async (req, res) => {
-//   const products = await Product.find().sort({ views: -1 }).limit(8);
-//   res.json(products);
-// };
-
-// // 04 sản phẩm khuyến mãi cao nhất
-// exports.getTopDiscount = async (req, res) => {
-//   const products = await Product.find().sort({ discount: -1 }).limit(4);
-//   res.json(products);
-// };
-
-// // Chi tiết sản phẩm
-// exports.getProductById = async (req, res) => {
-//   const product = await Product.findById(req.params.id);
-//   if (!product) return res.status(404).json({ message: "Product not found" });
-//   res.json(product);
-// };
-
-// controllers/productHomeController.js
 const {
   getNewestProducts,
   getMostViewedProducts,
   getTopDiscountProducts,
   getBestSellers,
 } = require("../services/productService");
+
+const { Pet } = require('../models/Product');
+
 
 function toLimit(q, def, max) {
   const n = parseInt(q?.limit, 10);
@@ -91,28 +60,70 @@ const bestSellers = async (req, res) => {
 // 2) endpoint tổng hợp cho trang chủ (gọi song song)
 const homeSections = async (req, res) => {
   try {
-    const [newest, best, viewed, discounts] = await Promise.all([
-      getNewestProducts(8),
-      getBestSellers(6, "auto"),
-      getMostViewedProducts(8),
-      getTopDiscountProducts(4),
+    // Tìm ID của các loại thú cưng chính
+    const dog = await Pet.findOne({ name: 'Dogs' }).lean(); // .lean() để tăng tốc độ
+    const cat = await Pet.findOne({ name: 'Cats' }).lean();
+    const bird = await Pet.findOne({ name: 'Birds' }).lean();
+
+
+    // Lấy sản phẩm mới cho từng loại (nếu chúng tồn tại)
+    const [newestForDog, newestForCat, newestForBird] = await Promise.all([
+      dog ? getNewestProducts(8, dog._id) : Promise.resolve([]),
+      cat ? getNewestProducts(8, cat._id) : Promise.resolve([]),
+      bird ? getNewestProducts(8, bird._id) : Promise.resolve([]),
     ]);
 
-    res.json({
-      newest,        // 08
-      bestSellers: best,   // 06
-      mostViewed: viewed,  // 08
-      topDiscounts: discounts, // 04
-    });
+
+    // 3. Tạo cấu trúc dữ liệu mới để trả về
+    const sections = [];
+    if (dog && newestForDog.length > 0) {
+      sections.push({
+        title: "Sản phẩm mới cho Chó",
+        pet: dog,
+        products: newestForDog,
+      });
+    }
+    if (cat && newestForCat.length > 0) {
+      sections.push({
+        title: "Sản phẩm mới cho Mèo",
+        pet: cat,
+        products: newestForCat,
+      });
+    }
+    if (bird && newestForBird.length > 0) {
+      sections.push({
+        title: "Sản phẩm mới cho Chim",
+        pet: bird,
+        products: newestForBird,
+      });
+    }
+
+     res.json({ sections });
+
+
+    // const [newest, best, viewed, discounts] = await Promise.all([
+    //   getNewestProducts(8),
+    //   getBestSellers(6, "auto"),
+    //   getMostViewedProducts(8),
+    //   getTopDiscountProducts(4),
+    // ]);
+
+    // res.json({
+    //   newest,        // 08
+    //   bestSellers: best,   // 06
+    //   mostViewed: viewed,  // 08
+    //   topDiscounts: discounts, // 04
+    // });
   } catch (e) {
-    res.status(500).json({ message: "Lỗi lấy dữ liệu trang chủ" });
+    console.error("Lỗi lấy dữ liệu trang chủ:", e);
+    res.status(500).json({ message: "Lỗi lấy dữ liệu trang chủ" })
   }
 };
 
 module.exports = {
-  newest,
-  mostViewed,
-  topDiscounts,
-  bestSellers,
+  // newest,
+  // mostViewed,
+  // topDiscounts,
+  // bestSellers,
   homeSections,
 };

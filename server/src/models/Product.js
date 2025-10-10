@@ -88,12 +88,14 @@ const productSchema = new mongoose.Schema({
   isActive: { type: Boolean, default: true },
 }, { timestamps: true });
 
-const Product = mongoose.model("Product", productSchema);
 
 productSchema.index({ createdAt: -1 });
 productSchema.index({ viewCount: -1 });
 productSchema.index({ soldCount: -1 });
 productSchema.index({ isActive: 1 });
 productSchema.index({ pet: 1 }); // Index cho pet
+
+const Product = mongoose.model("Product", productSchema);
+
 
 module.exports = { Product, Pet, Category };

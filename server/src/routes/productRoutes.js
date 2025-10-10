@@ -28,10 +28,10 @@ const router = express.Router();
 router.get("/home", ctrl.homeSections);
 
 // Endpoint tách riêng (nếu UI muốn gọi riêng)
-router.get("/newest", ctrl.newest);
-router.get("/best-sellers", ctrl.bestSellers);
-router.get("/most-viewed", ctrl.mostViewed);
-router.get("/top-discounts", ctrl.topDiscounts);
+// router.get("/newest", ctrl.newest);
+// router.get("/best-sellers", ctrl.bestSellers);
+// router.get("/most-viewed", ctrl.mostViewed);
+// router.get("/top-discounts", ctrl.topDiscounts);
 
 // Chi tiết sản phẩm theo slug
 router.get("/:slug", ctrldetail.getBySlug);
