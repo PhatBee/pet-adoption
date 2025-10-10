@@ -21,6 +21,7 @@ import CheckoutPage from './pages/CheckoutPage';
 import AdminOrderPage from './pages/AdminOrderPage';
 import OrderDetailPage from './pages/OrderDetailPage';
 import ProductSnapshotDetail from './pages/ProductSnapshotDetailPage';
+import ErrorPage from './pages/ErrorPage'; // 1. Import trang lỗi
 
 import WishlistPage from './pages/WishlistPage';
 import { fetchWishlist } from "./store/wishlistSlice"
@@ -56,8 +57,7 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-          <Route path="*" element={<Dashboard />} />
-          {/* <Route path="/dashboard" element={<Dashboard />} /> */}
+          {/* <Route path="*" element={<Dashboard />} /> */}
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/products/:slug" element={<ProductDetailPage />} />
           <Route path="/cart" element={<CartPage />} />
@@ -66,9 +66,9 @@ function App() {
           <Route path="/orders/:id" element={<OrderDetailPage />} />
           <Route path="/orders/:orderId/item/:productId/snapshot" element={<ProductSnapshotDetail />} />
           <Route path="/admin/orders" element={<AdminOrderPage />} />
-            <Route path="/wishlist" element={<WishlistPage />} />
+          <Route path="/wishlist" element={<WishlistPage />} />
 
-
+          <Route path="*" element={<ErrorPage />} />
         </Routes>
       </BrowserRouter>
       <ToastContainer position="top-right" autoClose={3000} />

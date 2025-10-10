@@ -14,6 +14,7 @@ const orderRoutes = require("../server/src/routes/orderRoutes");
 const adminRoutes = require("../server/src/routes/adminRoutes");
 const wishlistRoutes = require("../server/src/routes/wishlistRoute");
 const couponRoutes = require('./src/routes/couponRoutes');
+const errorHandlerMiddleware = require("./src/middleware/errorHandlerMiddleware");
 
 const app = express();
 app.use(cors({
@@ -35,6 +36,10 @@ app.use('/uploads', express.static(path.join(__dirname, '/uploads'))); // Serve 
 app.use("/api/admin/orders", adminRoutes);
 app.use("/api/wishlist", wishlistRoutes);
 app.use('/api/coupons', couponRoutes);
+
+// --- 2. ĐẶT MIDDLEWARE XỬ LÝ LỖI Ở CUỐI CÙNG ---
+// Nó phải là app.use() cuối cùng!
+app.use(errorHandlerMiddleware);
 
 // Start Server
 const PORT = process.env.PORT || 5000;
