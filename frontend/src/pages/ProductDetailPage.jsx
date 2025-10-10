@@ -10,12 +10,14 @@ import { addCartItem } from "../store/cartSlice";
 import WishlistButton from "../components/wishlist/WishlistButton";
 import Rating from "../components/product/Rating";
 import ReviewList from "../components/product/ReviewList";
+import ProductSpecs from "../components/product/ProductSpecs";
 
 export default function ProductDetailPage() {
   const { slug } = useParams();
   const dispatch = useDispatch();
   const { product, reviews, reviewStats, isLoading, error } = useSelector((s) => s.productDetail || {});
   const [qty, setQty] = useState(1);
+  const [activeTab, setActiveTab] = useState('description');
 
   useEffect(() => {
     if (slug) {
@@ -53,21 +55,17 @@ export default function ProductDetailPage() {
 
   return (
     <div className="container mx-auto px-4 py-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Left: images */}
+      {/* --- Phần thông tin chính --- */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <ImageCarousel images={(product.images && product.images.length) ? product.images : [product.thumbnail]} />
         <div>
-          <ImageCarousel images={(product.images && product.images.length) ? product.images : (product.thumbnail ? [product.thumbnail] : [])} />
-        </div>
-
-        {/* Right: info */}
-        <div>
-          <h1 className="text-2xl font-bold">{product.name}</h1>
-
-          {/* --- 3. HIỂN THỊ RATING TRUNG BÌNH --- */}
+          <h1 className="text-3xl font-bold flex items-center gap-3">
+            {product.name}
+            <WishlistButton product={product} />
+          </h1>
           <div className="mt-3">
             <Rating value={reviewStats.average} text={`(${reviewStats.count} đánh giá)`} />
           </div>
-
           <div className="flex items-center gap-3 mt-4">
             <div className="text-3xl text-red-600 font-semibold">{product.price.toLocaleString()}đ</div>
             {discountPercent > 0 && (
@@ -79,18 +77,16 @@ export default function ProductDetailPage() {
           </div>
 
           <div className="mt-4 text-sm text-gray-600">
-            {/* --- 4. CẬP NHẬT HIỂN THỊ PET VÀ CATEGORY --- */}
             <p>Dành cho: <Link to={`/pets/${product.pet?.name}`} className="font-semibold text-blue-600 hover:underline">{product.pet?.name}</Link></p>
             <p>Danh mục: <Link to={`/categories/${product.category?.name}`} className="font-semibold text-blue-600 hover:underline">{product.category?.name}</Link></p>
           </div>
-
+          <p className="mt-4 text-gray-700">{product.shortDescription}</p>
           <div className="mt-6 border-t pt-6">
             <div className="flex items-center gap-4">
               <span className="font-semibold">Số lượng:</span>
               <QuantitySelector value={qty} onChange={setQty} min={1} max={product.stock || 1} />
               <StockBadge stock={product.stock} />
             </div>
-
             <button
               onClick={handleAddToCart}
               className="mt-4 w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 disabled:opacity-50 font-semibold text-lg transition-colors"
@@ -99,31 +95,32 @@ export default function ProductDetailPage() {
               Thêm vào giỏ hàng
             </button>
           </div>
-
-          <div className="mt-6 text-sm text-gray-500">
-            <div>Đã bán: {product.soldCount || 0}</div>
-            <div>Lượt xem: {product.viewCount || 0}</div>
-            <div className="mt-2">
-              <Link to="/" className="text-blue-500">Quay về trang chủ</Link>
-            </div>
-          </div>
         </div>
       </div>
 
-      <h1 className="text-2xl font-bold flex items-center gap-2">
-        {product.name}
-        <WishlistButton product={product} />
-      </h1>
-
-      <div className="mt-6">
-        <h3 className="font-semibold text-lg">Mô tả sản phẩm</h3>
-        <p className="text-gray-700 mt-2 whitespace-pre-line">{product.description}</p>
+      {/* --- 2. Phần Tabs thông tin chi tiết --- */}
+      <div className="mt-12">
+        <div className="border-b">
+          <nav className="flex gap-4">
+            <button onClick={() => setActiveTab('description')} className={`py-2 px-4 font-semibold ${activeTab === 'description' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-500'}`}>Mô tả</button>
+            <button onClick={() => setActiveTab('specs')} className={`py-2 px-4 font-semibold ${activeTab === 'specs' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-500'}`}>Thông số</button>
+            <button onClick={() => setActiveTab('reviews')} className={`py-2 px-4 font-semibold ${activeTab === 'reviews' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-500'}`}>Đánh giá ({reviewStats.count})</button>
+          </nav>
+        </div>
+        <div className="mt-6">
+          {activeTab === 'description' && (
+            <div className="prose max-w-none">
+                <p className="text-gray-700 mt-2 whitespace-pre-line">{product.description || "Chưa có mô tả chi tiết cho sản phẩm này."}</p>
+            </div>
+          )}
+          {activeTab === 'specs' && (
+            <ProductSpecs product={product} />
+          )}
+          {activeTab === 'reviews' && (
+            <ReviewList reviews={reviews} />
+          )}
+        </div>
       </div>
-
-      {/* --- 5. HIỂN THỊ DANH SÁCH REVIEW --- */}
-      <div className="mt-10 border-t pt-10">
-        <ReviewList reviews={reviews} />
-      </div>      
     </div>
   );
 }
