@@ -15,4 +15,16 @@ async function getReviewsByOrder(orderId) {
   return Review.find({ order: orderId }).lean();
 }
 
-module.exports = { upsertReview, getReviewsByOrder };
+async function getReviewsByProduct(productId) {
+  if (!productId) return [];
+  
+  // Tìm tất cả review của sản phẩm
+  // .populate('user', 'name avatarUrl') để lấy tên và avatar của người đánh giá
+  // .sort({ createdAt: -1 }) để hiển thị review mới nhất lên đầu
+  return Review.find({ product: productId })
+    .populate("user", "name avatarUrl") 
+    .sort({ createdAt: -1 })
+    .lean();
+}
+
+module.exports = { upsertReview, getReviewsByOrder, getReviewsByProduct };
