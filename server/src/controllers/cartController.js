@@ -106,7 +106,7 @@ const placeOrder = async (req, res) => {
     try {
         const userId = req.user.id;
          // Lấy thêm 'items' từ body
-        const { shippingAddress, paymentMethod, items } = req.body;
+        const { shippingAddress, paymentMethod, items, couponCode, pointsToUse } = req.body;
 
         if (!shippingAddress || !shippingAddress.fullName || !shippingAddress.phone || !shippingAddress.street || !shippingAddress.city) {
             return res.status(400).json({ message: "Địa chỉ giao hàng không hợp lệ" });

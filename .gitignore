@@ -5,3 +5,5 @@ server/seedProducts.js
 .idea/pet-adoption.iml
 .idea/vcs.xml
 .idea/modules.xml
+server/sample_data.js
+server/PetApply.xlsx
