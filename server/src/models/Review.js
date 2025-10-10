@@ -6,6 +6,7 @@ const reviewSchema = new mongoose.Schema({
   order: { type: mongoose.Schema.Types.ObjectId, ref: "Order", required: true },
   rating: { type: Number, required: true, min: 1, max: 5 },
   comment: { type: String, default: "" },
+  createdAt: { type: Date, default: Date.now },
 }, { timestamps: true });
 
 // đảm bảo 1 review duy nhất cho tổ hợp user-product-order
