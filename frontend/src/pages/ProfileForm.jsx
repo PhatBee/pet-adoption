@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { getProfileApi, updateProfileApi } from "../api/userApi";
-import AvatarUploader from "./AvatarUploader";
+import AvatarUploader from "../components/AvatarUploader";
 import { toast } from "react-toastify";
 import { selectUser, updateUser } from "../store/authSlice";
 import { SERVER_BASE } from "../config";

@@ -1,5 +1,5 @@
-import ProfileForm from "../components/ProfileForm";
-import AddressManagementLink from "../components/AddressManagementLink";
+import ProfileForm from "../../pages/ProfileForm";
+import AddressManagementLink from "./AddressManagementLink";
 
 export default function ProfilePage() {
   return (

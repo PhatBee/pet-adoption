@@ -10,7 +10,7 @@ import RegisterPage from "./pages/RegisterPage";
 import LoginPage from "./pages/LoginPage";
 import Dashboard from "./pages/Dashboard";
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
-import ProfilePage from "./pages/ProfilePage";
+import ProfilePage from "./components/test/ProfilePage";
 import Header from './components/layout/header';
 import HomePage from './pages/HomePage';
 import ProductDetailPage from './pages/ProductDetailPage';
@@ -22,6 +22,10 @@ import AdminOrderPage from './pages/AdminOrderPage';
 import OrderDetailPage from './pages/OrderDetailPage';
 import ProductSnapshotDetail from './pages/ProductSnapshotDetailPage';
 import ErrorPage from './pages/ErrorPage'; // 1. Import trang lỗi
+
+import ProfileLayout from './pages/ProfileLayout';
+import ProfileForm from './pages/ProfileForm'; // Component này giờ sẽ là một route con
+import AddressListPage from './pages/AddressListPage';
 
 import WishlistPage from './pages/WishlistPage';
 import { fetchWishlist } from "./store/wishlistSlice"
@@ -37,7 +41,7 @@ function App() {
     // Gọi thunk để kiểm tra phiên đăng nhập khi App được render lần đầu
     dispatch(refreshSessionThunk());
   }, [dispatch]);
-  
+
   const user = useSelector((state) => state.auth.user);
 
   useEffect(() => {
@@ -58,19 +62,30 @@ function App() {
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           {/* <Route path="*" element={<Dashboard />} /> */}
-          <Route path="/profile" element={<ProfilePage />} />
-          <Route path="/products/:slug" element={<ProductDetailPage />} />
-          <Route path="/cart" element={<CartPage />} />
-          <Route path="/orders" element={<OrdersPage />} />
-          <Route path="/checkout" element={<CheckoutPage />} />
-          <Route path="/orders/:id" element={<OrderDetailPage />} />
-          <Route path="/orders/:orderId/item/:productId/snapshot" element={<ProductSnapshotDetail />} />
-          <Route path="/admin/orders" element={<AdminOrderPage />} />
-          <Route path="/wishlist" element={<WishlistPage />} />
 
-          <Route path="*" element={<ErrorPage />} />
-        </Routes>
-      </BrowserRouter>
+          {/* 2. Thay thế route profile cũ bằng cấu trúc lồng nhau này */}
+          <Route path="/profile" element={<ProfileLayout />}>
+            {/* Route con cho trang thông tin cá nhân (hiển thị mặc định) */}
+            <Route index element={<ProfileForm />} />
+
+            {/* Route con cho trang sổ địa chỉ */}
+            <Route path="addresses" element={<AddressListPage />} />
+
+            {/* Bạn có thể thêm các route con khác ở đây, ví dụ: path="change-password" */}
+          </Route>
+
+        <Route path="/products/:slug" element={<ProductDetailPage />} />
+        <Route path="/cart" element={<CartPage />} />
+        <Route path="/orders" element={<OrdersPage />} />
+        <Route path="/checkout" element={<CheckoutPage />} />
+        <Route path="/orders/:id" element={<OrderDetailPage />} />
+        <Route path="/orders/:orderId/item/:productId/snapshot" element={<ProductSnapshotDetail />} />
+        <Route path="/admin/orders" element={<AdminOrderPage />} />
+        <Route path="/wishlist" element={<WishlistPage />} />
+
+        <Route path="*" element={<ErrorPage />} />
+      </Routes>
+    </BrowserRouter >
       <ToastContainer position="top-right" autoClose={3000} />
     </>
   );
