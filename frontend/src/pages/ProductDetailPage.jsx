@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchProductBySlug, clearProduct } from "../store/productDetailSlice";
 import ImageCarousel from "../components/product/ImageCarousel";
@@ -15,6 +15,7 @@ import ProductSpecs from "../components/product/ProductSpecs";
 export default function ProductDetailPage() {
   const { slug } = useParams();
   const dispatch = useDispatch();
+  const navigate = useNavigate(); // 2. Khởi tạo hook useNavigate
   const { product, reviews, reviewStats, isLoading, error } = useSelector((s) => s.productDetail || {});
   const [qty, setQty] = useState(1);
   const [activeTab, setActiveTab] = useState('description');
@@ -43,6 +44,27 @@ export default function ProductDetailPage() {
       .unwrap()
       .then(() => toast.success("Đã thêm vào giỏ hàng"))
       .catch((err) => toast.error(err));
+  };
+  
+  // --- 3. TẠO HÀM MỚI handleBuyNow ---
+  const handleBuyNow = () => {
+    if (!product) return;
+    if (product.stock <= 0) {
+      toast.error("Sản phẩm đã hết hàng");
+      return;
+    }
+
+    // Tạo một mảng chứa duy nhất sản phẩm hiện tại,
+    // với cấu trúc giống hệt như khi truyền từ trang giỏ hàng.
+    const itemToCheckout = [
+      {
+        product: product,
+        quantity: qty,
+      },
+    ];
+
+    // Dùng navigate để chuyển trang và đính kèm dữ liệu
+    navigate('/checkout', { state: { itemsToCheckout: itemToCheckout } });
   };
 
   if (isLoading) return <div className="p-6">Đang tải...</div>;
@@ -87,13 +109,24 @@ export default function ProductDetailPage() {
               <QuantitySelector value={qty} onChange={setQty} min={1} max={product.stock || 1} />
               <StockBadge stock={product.stock} />
             </div>
-            <button
-              onClick={handleAddToCart}
-              className="mt-4 w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 disabled:opacity-50 font-semibold text-lg transition-colors"
-              disabled={product.stock <= 0}
-            >
-              Thêm vào giỏ hàng
-            </button>
+
+            {/* --- 4. THÊM NÚT MUA NGAY --- */}
+            <div className="mt-4 grid grid-cols-2 gap-3">
+              <button
+                onClick={handleAddToCart}
+                className="w-full bg-blue-100 text-blue-800 py-3 rounded-lg hover:bg-blue-200 disabled:opacity-50 font-semibold text-lg transition-colors border border-blue-600"
+                disabled={product.stock <= 0}
+              >
+                Thêm vào giỏ
+              </button>
+              <button
+                onClick={handleBuyNow}
+                className="w-full bg-red-600 text-white py-3 rounded-lg hover:bg-red-700 disabled:opacity-50 font-semibold text-lg transition-colors"
+                disabled={product.stock <= 0}
+              >
+                Mua ngay
+              </button>
+            </div>
           </div>
         </div>
       </div>
