@@ -64,4 +64,61 @@ const updateProfile = async (req, res) => {
   }
 };
 
-module.exports = { getProfile, updateProfile };
+// POST /api/users/addresses
+const addAddress = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const addressData = req.body; // Dữ liệu địa chỉ mới từ client
+
+    // Gọi service để thêm địa chỉ (chúng ta sẽ tạo hàm này ở bước sau)
+    const updatedUser = await userService.addAddress(userId, addressData);
+    
+    // Trả về toàn bộ danh sách địa chỉ đã được cập nhật
+    res.status(201).json({ 
+      message: "Thêm địa chỉ thành công", 
+      addresses: updatedUser.addresses 
+    });
+  } catch (err) {
+    const code = err.status || 400; // Mặc định là lỗi 400 Bad Request
+    return res.status(code).json({ message: err.message || "Lỗi khi thêm địa chỉ" });
+  }
+};
+
+// PUT /api/users/addresses/:addressId
+const updateAddress = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { addressId } = req.params; // Get the specific address ID from the URL
+    const addressData = req.body; // Get the new address data from the request body
+
+    const updatedUser = await userService.updateAddress(userId, addressId, addressData);
+
+    res.json({
+      message: "Cập nhật địa chỉ thành công",
+      addresses: updatedUser.addresses
+    });
+  } catch (err) {
+    const code = err.status || 400;
+    return res.status(code).json({ message: err.message || "Lỗi khi cập nhật địa chỉ" });
+  }
+};
+
+// DELETE /api/users/addresses/:addressId
+const deleteAddress = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { addressId } = req.params; // Get the address ID from the URL
+
+    const updatedUser = await userService.deleteAddress(userId, addressId);
+
+    res.json({
+      message: "Xóa địa chỉ thành công",
+      addresses: updatedUser.addresses
+    });
+  } catch (err) {
+    const code = err.status || 400;
+    return res.status(code).json({ message: err.message || "Lỗi khi xóa địa chỉ" });
+  }
+};
+
+module.exports = { getProfile, updateProfile, addAddress, updateAddress, deleteAddress };

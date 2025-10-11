@@ -90,4 +90,68 @@ const clearAvatar = async (userId) => {
   return user.toObject();
 }
 
-module.exports = { getUserById, getProfile, updateProfile, removeFileIfExists, updateAvatar, clearAvatar };
+// Add a new address to a user's address book
+const addAddress = async (userId, addressData) => {
+  // 1. Find the user by their ID
+  const user = await User.findById(userId);
+  if (!user) {
+    throw { status: 404, message: "Người dùng không tồn tại" };
+  }
+
+  // Optional: If you want to limit the number of addresses
+  if (user.addresses.length >= 5) {
+      throw { status: 400, message: "Bạn đã đạt đến số lượng địa chỉ tối đa." };
+  }
+
+  // 2. Add the new address to the array
+  user.addresses.push(addressData);
+
+  // 3. Save the updated user document
+  await user.save();
+  return user.toObject(); // Return the updated user
+};
+
+// Cập nhật một địa chỉ cụ thể
+const updateAddress = async (userId, addressId, addressData) => {
+  const user = await User.findById(userId);
+  if (!user) {
+    throw { status: 404, message: "Người dùng không tồn tại" };
+  }
+
+  // Tìm địa chỉ con (subdocument) trong mảng addresses
+  const address = user.addresses.id(addressId);
+  if (!address) {
+    throw { status: 404, message: "Không tìm thấy địa chỉ" };
+  }
+  
+  // Nếu địa chỉ mới được set là mặc định, hãy bỏ mặc định ở các địa chỉ khác
+  if (addressData.isDefault) {
+    user.addresses.forEach(addr => {
+      if (addr._id.toString() !== addressId) {
+        addr.isDefault = false;
+      }
+    });
+  }
+
+  // Cập nhật các trường cho địa chỉ đó
+  address.set(addressData);
+  
+  await user.save();
+  return user.toObject();
+};
+
+// Xóa một địa chỉ cụ thể
+const deleteAddress = async (userId, addressId) => {
+  const user = await User.findById(userId);
+  if (!user) {
+    throw { status: 404, message: "Người dùng không tồn tại" };
+  }
+  
+  // Tìm và xóa địa chỉ con khỏi mảng
+  user.addresses.pull({ _id: addressId });
+
+  await user.save();
+  return user.toObject();
+};
+
+module.exports = { getUserById, getProfile, updateProfile, removeFileIfExists, updateAvatar, clearAvatar, addAddress, updateAddress, deleteAddress };
