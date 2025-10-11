@@ -13,6 +13,7 @@ import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ProfilePage from "./components/test/ProfilePage";
 import Header from './components/layout/header';
 import HomePage from './pages/HomePage';
+import ProductListPage from './pages/ProductListPage';
 import ProductDetailPage from './pages/ProductDetailPage';
 import Navbar from './components/test/Navbar';
 import CartPage from './pages/CartPage';
@@ -73,7 +74,7 @@ function App() {
 
             {/* Bạn có thể thêm các route con khác ở đây, ví dụ: path="change-password" */}
           </Route>
-
+        <Route path="/products" element={<ProductListPage />} />
         <Route path="/products/:slug" element={<ProductDetailPage />} />
         <Route path="/cart" element={<CartPage />} />
         <Route path="/orders" element={<OrdersPage />} />

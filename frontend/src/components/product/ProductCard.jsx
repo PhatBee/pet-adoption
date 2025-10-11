@@ -9,13 +9,13 @@ export default function ProductCard({ product }) {
 
   return (
     <div className="relative group bg-white border rounded-lg shadow-sm overflow-hidden hover:shadow-lg transition-shadow duration-300">
-      <div className="absolute top-2 left-2 z-10">
+      <div className="absolute top-2 right-2 z-10">
         <WishlistButton product={product} />
       </div>
 
       {/* Huy hiệu giảm giá */}
       {discountPercent > 0 && (
-        <div className="absolute top-2 right-2 z-10 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+        <div className="absolute top-2 left-2 z-10 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
           -{discountPercent}%
         </div>
       )}

@@ -2,6 +2,7 @@
 const mongoose = require("mongoose");
 const {Product} = require("../models/Product");
 const reviewService = require('../services/reviewService');
+const productService = require("../services/productService");
 
 const getBySlug = async (req, res) => {
   try {
