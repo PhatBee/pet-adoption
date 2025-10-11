@@ -5,7 +5,7 @@ import { selectUser, updateUser } from '../store/authSlice';
 import AddressCard from '../components/user/AddressCard';
 import AddressModal from '../components/user/AddressModal';
 import AddressForm from '../components/user/AddressForm';
-import { addAddressApi, updateAddressApi } from '../api/userApi';
+import { addAddressApi, updateAddressApi, deleteAddressApi } from '../api/userApi';
 import { toast } from 'react-toastify';
 
 export default function AddressListPage() {
@@ -56,14 +56,32 @@ export default function AddressListPage() {
     }
   };
 
-  const handleDelete = (addressId) => {
-    // TODO
-    toast.warning(`Xóa địa chỉ ID: ${addressId}`);
+  const handleDelete = async (addressId) => {
+    // Thêm bước xác nhận trước khi xóa
+    if (window.confirm("Bạn có chắc chắn muốn xóa địa chỉ này không?")) {
+      try {
+        const response = await deleteAddressApi(addressId);
+        dispatch(updateUser({ addresses: response.data.addresses }));
+        toast.success("Xóa địa chỉ thành công!");
+      } catch (error) {
+        toast.error(error.response?.data?.message || "Lỗi khi xóa địa chỉ.");
+      }
+    }
   };
 
-  const handleSetDefault = (addressId) => {
-    // TODO
-    toast.success(`Đặt làm mặc định ID: ${addressId}`);
+  const handleSetDefault = async (addressId) => {
+    try {
+      // Tìm địa chỉ hiện tại để không ghi đè các thông tin khác
+      const addressToUpdate = addresses.find(addr => addr._id === addressId);
+      if (!addressToUpdate) return;
+
+      // Gọi API cập nhật với isDefault = true
+      const response = await updateAddressApi(addressId, { ...addressToUpdate, isDefault: true });
+      dispatch(updateUser({ addresses: response.data.addresses }));
+      toast.success("Đặt làm địa chỉ mặc định thành công!");
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Đã có lỗi xảy ra.");
+    }
   };
 
   return (

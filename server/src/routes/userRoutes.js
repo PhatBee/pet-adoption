@@ -1,5 +1,5 @@
 const express = require("express");
-const { getProfile, updateProfile } = require("../controllers/userController");
+const { getProfile, updateProfile, addAddress, deleteAddress, updateAddress } = require("../controllers/userController");
 const { authenticate } = require("../middleware/authMiddleware");
 const upload = require("../middleware/uploadAvatar"); // multer
 
