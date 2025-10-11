@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchCheckoutData, placeOrder } from "../store/orderSlice";
-import { selectUser } from "../store/authSlice";
+import { selectUser, updateUser } from "../store/authSlice";
+import { addAddressApi } from "../api/userApi"; // API để thêm địa chỉ
 import AddressSelector from "../components/checkout/AddressSelector";
 import PaymentMethod from "../components/checkout/PaymentMethod";
 import OrderSummary from "../components/checkout/OrderSummary";
@@ -10,6 +11,8 @@ import ErrorPage from "./ErrorPage"; // 1. Import trang lỗi
 import { toast } from "react-toastify";
 // Thêm import useLocation
 import { useNavigate, useLocation } from "react-router-dom";
+import AddressModal from "../components/user/AddressModal";
+import AddressForm from "../components/user/AddressForm";
 
 export default function CheckoutPage() {
   const dispatch = useDispatch();
@@ -24,10 +27,18 @@ export default function CheckoutPage() {
   const [selectedAddress, setSelectedAddress] = useState(null);
   const [paymentMethod, setPaymentMethod] = useState("COD");
 
+  // --- THÊM STATE ĐỂ QUẢN LÝ MODAL ĐỊA CHỈ ---
+  const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
+
   // 2. Quyết định xem nên hiển thị sản phẩm nào
   // Ưu tiên sản phẩm được chọn từ giỏ hàng, nếu không có thì dùng cả giỏ hàng (trường hợp vào thẳng checkout)
   const itemsToDisplay = itemsFromCart || cart?.items || [];
   const itemsTotal = itemsToDisplay.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
+
+    useEffect(() => {
+    // Vẫn gọi để lấy thông tin giỏ hàng, nhưng phần địa chỉ sẽ dùng từ authSlice
+    dispatch(fetchCheckoutData());
+  }, [dispatch]);
 
   // --- TÍNH TOÁN SỐ TIỀN GIẢM GIÁ ---
   let couponDiscount = 0;
@@ -43,21 +54,6 @@ export default function CheckoutPage() {
   // Giả sử 1 xu = 1đ
   let pointsDiscount = Math.min(pointsToUse, itemsTotal - couponDiscount);
 
-  // useEffect(() => {
-  //   // Chỉ fetch dữ liệu (địa chỉ, etc.) nếu không có sẵn
-  //   if (!addresses || addresses.length === 0) {
-  //     dispatch(fetchCheckoutData());
-  //   }
-  // }, [dispatch, addresses]);
-
-
-  useEffect(() => {
-    if (addresses && addresses.length && !selectedAddress) {
-      const d = addresses.find(a => a.isDefault) || addresses[0];
-      setSelectedAddress(d);
-    }
-  }, [addresses, selectedAddress]);
-
   useEffect(() => {
     if (lastOrder) {
       // If redirectUrl present (VNPAY)
@@ -69,6 +65,27 @@ export default function CheckoutPage() {
       navigate(`/orders/${lastOrder.orderId || lastOrder.order?._id || ""}`);
     }
   }, [lastOrder, navigate]);
+
+  // TẠO CÁC HÀM XỬ LÝ CHO MODAL VÀ FORM 
+  const handleOpenAddressModal = () => setIsAddressModalOpen(true);
+  const handleCloseAddressModal = () => setIsAddressModalOpen(false);
+
+  const handleAddressFormSubmit = async (formData) => {
+    try {
+      const response = await addAddressApi(formData);
+      // Cập nhật lại danh sách địa chỉ trong Redux auth state
+      dispatch(updateUser({ addresses: response.data.addresses }));
+      
+      // Tự động chọn địa chỉ vừa thêm
+      const newAddress = response.data.addresses[response.data.addresses.length - 1];
+      setSelectedAddress(newAddress);
+      
+      toast.success("Thêm địa chỉ mới thành công!");
+      handleCloseAddressModal();
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Lỗi khi thêm địa chỉ.");
+    }
+  };
 
   const handlePlaceOrder = async () => {
     if (itemsToDisplay.length === 0) return toast.error("Không có sản phẩm để đặt hàng");
@@ -95,9 +112,17 @@ export default function CheckoutPage() {
   // if (!cart) return <div className="p-6">Giỏ hàng trống</div>;
 
   return (
+    // Dùng Fragment <> để bọc trang và modal
+    <>
     <div className="container mx-auto p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <div className="lg:col-span-2 space-y-6"> {/* Tăng khoảng cách */}
-        <AddressSelector addresses={addresses} value={selectedAddress} onChange={setSelectedAddress} />
+        <div className="lg:col-span-2 space-y-6">
+          {/* --- 4. CẬP NHẬT PROPS CHO AddressSelector --- */}
+          <AddressSelector 
+            addresses={user?.addresses || []} // Dùng địa chỉ từ authSlice
+            value={selectedAddress} 
+            onChange={setSelectedAddress}
+            onAddNew={handleOpenAddressModal} // Kết nối nút "Thêm mới"
+          />
 
         {/* Phần hiển thị sản phẩm */}
         <div className="border rounded-lg p-4 bg-white shadow-sm">
@@ -138,5 +163,19 @@ export default function CheckoutPage() {
         </div>
       </aside>
     </div>
+
+    {/* --- 5. RENDER MODAL Ở DƯỚI CÙNG --- */}
+      <AddressModal
+        isOpen={isAddressModalOpen}
+        onClose={handleCloseAddressModal}
+        title="Thêm địa chỉ giao hàng mới"
+      >
+        <AddressForm
+          onSubmit={handleAddressFormSubmit}
+          onCancel={handleCloseAddressModal}
+        />
+      </AddressModal>
+    </>
+
   );
 }
