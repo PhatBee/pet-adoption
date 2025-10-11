@@ -58,4 +58,18 @@ const getProductById = async (req, res) => {
   res.json(product);
 };
 
-module.exports = { getBySlug, getProductById };
+const getAllPaginated = async (req, res) => {
+  try {
+    // Lấy page và limit từ query params, với giá trị mặc định
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 12;
+
+    const result = await productService.getAllProducts({ page, limit });
+    res.json(result);
+  } catch (error) {
+    console.error("Lỗi khi lấy sản phẩm phân trang:", error);
+    res.status(500).json({ message: "Lỗi server" });
+  }
+};
+
+module.exports = { getBySlug, getProductById, getAllPaginated };
