@@ -27,6 +27,9 @@ const router = express.Router();
 // Endpoint tổng hợp cho trang chủ
 router.get("/home", ctrl.homeSections);
 
+// --- ADD THIS NEW ROUTE FOR ALL PRODUCTS ---
+router.get("/", ctrldetail.getAllPaginated);
+
 // Endpoint tách riêng (nếu UI muốn gọi riêng)
 // router.get("/newest", ctrl.newest);
 // router.get("/best-sellers", ctrl.bestSellers);

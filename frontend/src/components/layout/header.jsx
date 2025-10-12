@@ -11,10 +11,22 @@ export default function Header() {
     <header className="border-b bg-white">
       <div className="container mx-auto flex items-center justify-between py-3 px-4">
         <Link to="/" className="text-indigo-600 font-bold text-lg no-underline">
-          🐾 Pet Adoption
+          🐾 Pet Store
         </Link>
 
         <nav className="flex items-center gap-5">
+          <Link
+            to="/wishlist"
+            className="text-gray-700 hover:text-indigo-600 no-underline"
+          >
+            Yêu thích
+          </Link>
+          <Link
+            to="/products"
+            className="text-gray-700 hover:text-indigo-600 no-underline"
+          >
+            Sản phẩm
+          </Link>
           <Link
             to="/pets"
             className="text-gray-700 hover:text-indigo-600 no-underline"

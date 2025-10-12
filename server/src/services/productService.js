@@ -151,10 +151,36 @@ async function getBestSellers(limit = 6, mode = "auto") {
   }
 }
 
+// Lấy tất cả sản phẩm có phân trang
+async function getAllProducts({ page = 1, limit = 12 }) {
+  const skipAmount = (page - 1) * limit;
+
+  // Chạy 2 câu lệnh truy vấn song song để tăng hiệu suất
+  const [products, totalCount] = await Promise.all([
+    // 1. Lấy sản phẩm cho trang hiện tại
+    Product.find({ isActive: true })
+      .sort({ createdAt: -1 })
+      .skip(skipAmount)
+      .limit(limit)
+      .select(PUBLIC_FIELDS) // Tái sử dụng PUBLIC_FIELDS
+      .lean(),
+      
+    // 2. Đếm tổng số sản phẩm (không phân trang)
+    Product.countDocuments({ isActive: true })
+  ]);
+
+  return {
+    products,
+    total: totalCount,
+    page,
+    pages: Math.ceil(totalCount / limit), // Tính tổng số trang
+  };
+}
+
 module.exports = {
   getNewestProducts,
   getMostViewedProducts,
   getTopDiscountProducts,
   getBestSellers,
-  
+  getAllProducts
 };

@@ -1,25 +1,63 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 
 export default function QuantitySelector({ value, onChange, min = 1, max = 999 }) {
-  const dec = () => onChange(Math.max(min, value - 1));
-  const inc = () => onChange(Math.min(max, value + 1));
+  const [localValue, setLocalValue] = useState(value);
+
+  useEffect(() => {
+    setLocalValue(value);
+  }, [value]);
+
+  const handleChange = (newValue) => {
+    if (newValue < min) newValue = min;
+    if (newValue > max) newValue = max;
+    setLocalValue(newValue);
+    onChange(newValue);
+  };
+
+  const dec = () => handleChange(localValue - 1);
+  const inc = () => handleChange(localValue + 1);
+
   return (
-    <div className="inline-flex items-center border rounded overflow-hidden">
-      <button onClick={dec} className="px-3 py-1 bg-gray-100 hover:bg-gray-200">-</button>
+    <div className="inline-flex items-center">
+      <button 
+        onClick={dec}
+        disabled={localValue <= min}
+        className={`w-10 h-10 rounded-l border flex items-center justify-center transition-all duration-200
+          ${localValue <= min 
+            ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+            : 'bg-white hover:bg-gray-50 active:bg-gray-100 text-gray-600'
+          }`}
+      >
+        <span className="text-xl font-medium">−</span>
+      </button>
+      
       <input
-        type="number"
-        value={value}
+        type="text"
+        inputMode="numeric"
+        pattern="[0-9]*"
         min={min}
         max={max}
+        value={localValue}
         onChange={(e) => {
-          const v = Number(e.target.value) || min;
-          if (v < min) onChange(min);
-          else if (v > max) onChange(max);
-          else onChange(v);
+          const val = parseInt(e.target.value, 10);
+          if (!isNaN(val)) {
+            handleChange(val);
+          }
         }}
-        className="w-16 text-center outline-none p-1"
+        className="w-16 h-10 border-t border-b text-center text-gray-700 text-lg font-medium focus:outline-none"
       />
-      <button onClick={inc} className="px-3 py-1 bg-gray-100 hover:bg-gray-200">+</button>
+      
+      <button 
+        onClick={inc}
+        disabled={localValue >= max}
+        className={`w-10 h-10 rounded-r border flex items-center justify-center transition-all duration-200
+          ${localValue >= max 
+            ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+            : 'bg-white hover:bg-gray-50 active:bg-gray-100 text-gray-600'
+          }`}
+      >
+        <span className="text-xl font-medium">+</span>
+      </button>
     </div>
   );
 }

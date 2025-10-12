@@ -8,6 +8,12 @@ async function getAll() {
   return res.data;
 }
 
+// Lấy sản phẩm theo trang
+const getAllPaginated = ({ page = 1, limit = 12 }) => {
+  // Gửi page và limit làm query params
+  return axiosClient.get(BASE, { params: { page, limit } });
+};
+
 const productApi = {
   getBySlug: (slug) => axiosClient.get(`/products/${encodeURIComponent(slug)}`),
 };
@@ -15,4 +21,5 @@ const productApi = {
 export default {
   getAll,
   ...productApi,
+  getAllPaginated,
 };
