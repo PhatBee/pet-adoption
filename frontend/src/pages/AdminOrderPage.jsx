@@ -43,12 +43,12 @@ export default function AdminOrderPage() {
         <input type="text" placeholder="Tìm tên hoặc SĐT khách hàng..." onChange={(e) => setSearchValue(e.target.value)} className="px-3 py-2 border rounded-md" />
         <select onChange={(e) => onFilterStatus(e.target.value)} value={filters.status} className="px-3 py-2 border rounded-md">
           <option value="">Tất cả trạng thái</option>
-          <option value="pending">PENDING</option>
-          <option value="confirmed">CONFIRMED</option>
-          <option value="shipping">SHIPPING</option>
-          <option value="completed">COMPLETED</option>
-          <option value="cancelled">CANCELLED</option>
-          <option value="refunded">REFUNDED</option>
+          <option value="pending">Chờ xử lý</option>
+          <option value="confirmed">Xác nhận</option>
+          <option value="shipping">Đang giao</option>
+          <option value="delivered">Đã giao</option>
+          <option value="cancelled">Đã hủy</option>
+          <option value="refunded">Hoàn tiền</option>
         </select>
       </div>
 

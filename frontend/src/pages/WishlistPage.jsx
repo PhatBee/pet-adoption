@@ -22,22 +22,13 @@ export default function WishlistPage() {
   }, [dispatch]);
 
   const handleRemove = async (productId) => {
-    confirm({
-    title: "Bạn có chắc muốn xóa sản phẩm này?",
-    content: "Sản phẩm sẽ bị gỡ khỏi danh sách yêu thích.",
-    okText: "Xóa",
-    okType: "danger",
-    cancelText: "Hủy",
-    async onOk() {
-      try {
-        await dispatch(removeWishlist(productId)).unwrap();
-        toast.success("Đã xóa khỏi wishlist");
-      } catch (err) {
-        toast.error(err?.message || "Xóa thất bại");
-      }
+    try {
+      await dispatch(removeWishlist(productId)).unwrap();
+      toast.success("Đã xóa khỏi wishlist");
+    } catch (err) {
+      toast.error(err?.message || "Xóa thất bại");
     }
-  });
-};
+  };
 
   const handleAddToCart = async (product) => {
     try {
@@ -124,7 +115,7 @@ export default function WishlistPage() {
                       </button>
 
                       <button
-                        onClick={() => handleRemove(p._id)}
+                        onClick={() => handleRemove(p.product._id)}
                         className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-gray-200 text-sm text-gray-700 hover:bg-gray-50 transition"
                         title="Xóa khỏi danh sách yêu thích"
                       >
