@@ -73,8 +73,11 @@ export default function ProductListPage() {
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-6">Tất cả sản phẩm</h1>
       
-      {/* 5. Đặt component bộ lọc ở đây */}
-      <ProductFilters onFilterChange={handleFilterChange} />
+      {/* Cập nhật ở đây: truyền initialFilters vào */}
+      <ProductFilters 
+        initialFilters={filters} 
+        onFilterChange={handleFilterChange} 
+      />
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {products.map((p) => (
