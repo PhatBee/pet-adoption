@@ -9,6 +9,7 @@ import orderReducer from './orderSlice'
 import orderDetailReducer from './orderDetailSlice'
 import snapshotReducer from './orderSnapshotSlice'
 import wishlistReducer from './wishlistSlice'
+import adminOrderReducer from './admin/adminOrderSlice';
 
 
 const rootReducer = combineReducers({
@@ -19,7 +20,8 @@ const rootReducer = combineReducers({
   order: orderReducer,
   orderDetail: orderDetailReducer,
   snapshot: snapshotReducer,
-  wishlist: wishlistReducer
+  wishlist: wishlistReducer,
+  adminOrders: adminOrderReducer,
 
 });
 

@@ -84,7 +84,6 @@ export default function ProductDetailPage() {
         <div>
           <h1 className="text-3xl font-bold flex items-center gap-3">
             {product.name}
-            <WishlistButton product={product} />
           </h1>
           <div className="mt-3">
             <Rating value={reviewStats.average} text={`(${reviewStats.count} đánh giá)`} />
@@ -97,6 +96,9 @@ export default function ProductDetailPage() {
                 <div className="px-2 py-0.5 bg-red-100 text-red-800 rounded-full font-medium text-sm">-{discountPercent}%</div>
               </>
             )}
+            <div className="ml-auto">
+              <WishlistButton product={product} />
+            </div>
           </div>
 
           <div className="mt-4 text-sm text-gray-600">

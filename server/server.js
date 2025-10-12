@@ -20,7 +20,7 @@ const app = express();
 app.use(cors({
     origin: 'http://localhost:3000',
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
 }));
 app.use(express.json());
 app.use(cookieParser());
@@ -33,7 +33,7 @@ app.use("/api/cart", cartRoutes);
 app.use("/api/checkout", checkoutRoutes);
 app.use("/api/orders", orderRoutes);
 app.use('/uploads', express.static(path.join(__dirname, '/uploads'))); // Serve static files
-app.use("/api/admin/orders", adminRoutes);
+app.use("/api/admin", adminRoutes);
 app.use("/api/wishlist", wishlistRoutes);
 app.use('/api/coupons', couponRoutes);
 

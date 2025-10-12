@@ -1,71 +1,63 @@
+// src/pages/admin/OrderManagementPage.jsx
 import React, { useEffect, useState } from "react";
-import toast from "react-hot-toast";
-import axiosClient from "../api/axiosClient";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchOrders, fetchOrderById, setFilters, clearSelectedOrder } from "../store/admin/adminOrderSlice";
+import OrderList from "../components/admin/OrderList";
+import OrderDetailModal from "../components/admin/OrderDetailModal";
 
-const STATUS_OPTIONS = ["pending","confirmed","preparing","shipping","delivered","cancel_requested","cancelled"];
+export default function AdminOrderPage() {
+  const dispatch = useDispatch();
+  const { orders, loading, error, filters, page, total, limit } = useSelector(s => s.adminOrders);
+  
+  const [selectedId, setSelectedId] = useState(null);
+  const [searchValue, setSearchValue] = useState(filters.q || "");
 
-export default function AdminOrdersPage() {
-  const [orders, setOrders] = useState([]);
-  const [loading, setLoading] = useState(false);
+  useEffect(() => {
+    dispatch(fetchOrders({ page: 1, limit, ...filters }));
+  }, [dispatch, filters, limit]);
 
-  const fetchOrders = async () => {
-    setLoading(true);
-    try {
-      const res = await axiosClient.get("/admin/orders");
-      setOrders(res.data.data || []);
-    } catch (err) {
-      console.error(err);
-      toast.error("Lấy danh sách đơn thất bại");
-    } finally {
-      setLoading(false);
-    }
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      dispatch(setFilters({ q: searchValue }));
+    }, 400);
+    return () => clearTimeout(timeout);
+  }, [searchValue]);
+
+  const onFilterStatus = (status) => dispatch(setFilters({ status }));
+
+  const openDetail = (order) => {
+    setSelectedId(order._id);
+    dispatch(fetchOrderById(order._id));
   };
 
-  useEffect(() => { fetchOrders(); }, []);
-
-  const handleChangeStatus = async (orderId, newStatus) => {
-    const reason = window.prompt("Lý do (tuỳ chọn):", "");
-    try {
-      await axiosClient.patch(`/admin/orders/${orderId}/status`, { status: newStatus, reason });
-      toast.success("Cập nhật trạng thái thành công");
-      fetchOrders();
-    } catch (err) {
-      toast.error(err.response?.data?.message || "Lỗi cập nhật");
-    }
+  const closeModal = () => {
+    setSelectedId(null);
+    dispatch(clearSelectedOrder());
   };
 
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-4">Quản lý đơn hàng</h1>
-      {loading ? <p>Loading...</p> : (
-        <table className="w-full table-auto border">
-          <thead>
-            <tr className="bg-gray-100">
-              <th className="p-2">Mã</th>
-              <th className="p-2">Khách</th>
-              <th className="p-2">Tổng</th>
-              <th className="p-2">Trạng thái</th>
-              <th className="p-2">Hành động</th>
-            </tr>
-          </thead>
-          <tbody>
-            {orders.map(o => (
-              <tr key={o._id} className="border-t">
-                <td className="p-2">{o._id.slice(-6)}</td>
-                <td className="p-2">{o.user ? o.user.email || o.user.name : "—"}</td>
-                <td className="p-2">{o.total}</td>
-                <td className="p-2"><span className="px-2 py-1 rounded bg-indigo-100 text-indigo-700">{o.status}</span></td>
-                <td className="p-2">
-                  <select defaultValue={o.status} onChange={(e) => handleChangeStatus(o._id, e.target.value)}>
-                    <option value="">— Chọn —</option>
-                    {STATUS_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}
-                  </select>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
+
+      <div className="flex gap-3 mb-4">
+        <input type="text" placeholder="Tìm tên hoặc SĐT khách hàng..." onChange={(e) => setSearchValue(e.target.value)} className="px-3 py-2 border rounded-md" />
+        <select onChange={(e) => onFilterStatus(e.target.value)} value={filters.status} className="px-3 py-2 border rounded-md">
+          <option value="">Tất cả trạng thái</option>
+          <option value="pending">PENDING</option>
+          <option value="confirmed">CONFIRMED</option>
+          <option value="shipping">SHIPPING</option>
+          <option value="completed">COMPLETED</option>
+          <option value="cancelled">CANCELLED</option>
+          <option value="refunded">REFUNDED</option>
+        </select>
+      </div>
+
+      {loading && <p>Đang tải...</p>}
+      {error && <p className="text-red-500">{error}</p>}
+
+      <OrderList orders={orders} onViewDetail={openDetail} />
+
+      {selectedId && <OrderDetailModal orderId={selectedId} onClose={closeModal} />}
     </div>
   );
 }

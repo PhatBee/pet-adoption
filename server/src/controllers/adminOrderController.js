@@ -8,9 +8,28 @@ async function listOrders(req, res) {
     const limit = Math.min(100, parseInt(req.query.limit || "20", 10));
     const skip = (page - 1) * limit;
 
+    const { q, status } = req.query;
+
+    const filter = {};
+
+    if (status) {
+      filter.status = status;
+    }
+
+    if (q) {
+      filter.$or = [
+        { "shippingAddress.fullName": { $regex: q, $options: "i" } },
+        { "shippingAddress.phone": { $regex: q, $options: "i" } }
+      ];
+    }
+
     const [orders, total] = await Promise.all([
-      Order.find().sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
-      Order.countDocuments()
+      Order.find(filter)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+      Order.countDocuments(filter)
     ]);
 
     res.json({ success: true, data: orders, meta: { page, limit, total } });
@@ -31,22 +50,44 @@ async function getOrder(req, res) {
 
 // PATCH /api/admin/orders/:id/status  { status: "preparing", reason: "..." }
 async function updateOrderStatus(req, res) {
+  console.log("📦 PATCH /api/admin/orders/:id/status called with:", req.params.id, req.body);
   try {
-    const adminId = req.user._id;
-    const toStatus = req.body.status;
-    const reason = req.body.reason || "";
+    const { id } = req.params;
+    const { status } = req.body;
+    
+    const allowedStatuses = {
+      pending: ["confirmed", "cancelled"],
+      confirmed: ["shipping", "cancelled"],
+      shipping: ["delivered", "cancelled"],
+      delivered: ["refunded"],
+      cancelled: [],
+      refunded: []
+    };
 
-    const updated = await changeOrderStatus(req.params.id, toStatus, adminId, "admin", reason);
+    const order = await Order.findById(id);
+    const currentStatus = order.status;
+    const nextAllowed = allowedStatuses[currentStatus] || [];
 
-    // optional: emit socket event to inform user/shop
-    if (req.app.get("io") && updated.user) {
-      req.app.get("io").to(`user:${updated.user.toString()}`).emit("order:update", { orderId: updated._id, status: updated.status });
+    if (!nextAllowed.includes(status)) {
+      return res.status(400).json({ success: false, message: `Không thể chuyển từ ${currentStatus} sang ${status}` });
     }
+    if (!order) return res.status(404).json({ success: false, message: "Không tìm thấy đơn hàng" });
 
-    res.json({ success: true, data: updated });
+    order.status = status;
+    order.orderStatusHistory.push({
+      status,
+      changedAt: new Date()
+    });
+
+    if (status === "delivered") {
+      order.deliveredAt = new Date();
+    }
+    await order.save();
+
+    res.json({ success: true, order });
   } catch (err) {
-    const statusCode = err.status || 500;
-    res.status(statusCode).json({ success: false, message: err.message || err });
+    console.error("updateOrderStatus error:", err);
+    res.status(500).json({ success: false, message: err.message || "Lỗi server" });
   }
 }
 

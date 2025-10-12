@@ -7,8 +7,8 @@ const { listOrders, getOrder, updateOrderStatus } = require("../controllers/admi
 // router.use(isAdmin);
 
 //Quản lý đơn hàng
-router.get("/", authenticate, isAdmin, listOrders);
-router.get("/:id", authenticate, isAdmin, getOrder);
-router.patch("/:id/status", authenticate, isAdmin, updateOrderStatus); 
+router.get("/orders", authenticate, isAdmin, listOrders);
+router.get("/orders/:id", authenticate, isAdmin, getOrder);
+router.patch("/orders/:id/status", authenticate, isAdmin, updateOrderStatus);
 
 module.exports = router;

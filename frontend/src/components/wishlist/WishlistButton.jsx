@@ -19,7 +19,7 @@ export default function WishlistButton({ product }) {
   return (
     <button
       onClick={toggleWishlist}
-      className="absolute top-2 right-2 flex items-center justify-center rounded-full border border-sky-500 bg-white p-2 shadow hover:bg-sky-50 transition"
+      className="p-2 rounded-full border border-gray-300 hover:bg-red-100 hover:text-red-600 transition-colors"
     >
       {isWishlist ? (
         <HeartFilled className="text-sky-500 text-lg" />

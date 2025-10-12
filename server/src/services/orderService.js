@@ -33,7 +33,7 @@ async function fetchUserOrders(userId, page = 1, limit = 10) {
 async function getUserOrderById(userId, orderId) {
   const order = await Order.findOne({ _id: orderId, user: userId }).lean();
   return order;
-}   
+}
 
 async function updateOrderStatus(orderId, newStatus) {
   const order = await Order.findById(orderId);

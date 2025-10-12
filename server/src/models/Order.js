@@ -31,7 +31,7 @@ const orderSchema = new mongoose.Schema({
   // ---------------------------------
 
   total: { type: Number, required: true },
-  status: { type: String, default: "pending", enum: ["pending","confirmed", "preparing","shipping", "delivered","cancelled","cancel_requested"] },
+  status: { type: String, default: "pending", enum: ["pending","confirmed","shipping", "delivered","cancelled","cancel_requested","refunded"] },
   orderedAt: { type: Date },
   deliveredAt: { type: Date },
   autoConfirmJobId: { type: String, default: null },
