@@ -26,6 +26,7 @@ export default function OrderCard({ order, onView }) {
         <div>
           <div className="text-sm text-gray-500">Mã đơn: <span className="font-mono font-semibold text-gray-700">{shortId}</span></div>
           <div className="text-sm text-gray-500 mt-1">Ngày: {format(new Date(order.createdAt), "dd/MM/yyyy HH:mm")}</div>
+          <button className="mt-2 text-sm text-blue-600" onClick={() => onView(order._id)}>Xem chi tiết</button>
         </div>
 
         <div className="text-right">
