@@ -7,8 +7,9 @@ async function getListMyOrders(req, res) {
     const userId = req.user.id;
     const page = req.query.page || 1;
     const limit = req.query.limit || 10;
+    const status = req.query.status || null; // Lấy status từ query params
 
-    const data = await orderService.fetchUserOrders(userId, page, limit);
+    const data = await orderService.fetchUserOrders(userId, page, limit, status);
     return res.json(data);
   } catch (err) {
     return res.status(500).json({ message: "Lỗi khi lấy lịch sử mua hàng" });
