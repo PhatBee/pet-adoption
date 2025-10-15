@@ -2,24 +2,38 @@
 import React from "react";
 import { format } from "date-fns";
 
+// 1. Tạo một đối tượng để "phiên dịch" trạng thái và màu sắc
+const statusMap = {
+  pending: { text: "Chờ xử lý", color: "bg-yellow-100 text-yellow-800" },
+  confirmed: { text: "Đã xác nhận", color: "bg-blue-100 text-blue-800" },
+  shipping: { text: "Đang giao", color: "bg-indigo-100 text-indigo-800" },
+  delivered: { text: "Hoàn thành", color: "bg-green-100 text-green-800" },
+  cancelled: { text: "Đã hủy", color: "bg-red-100 text-red-800" },
+  cancel_requested: { text: "Yêu cầu hủy", color: "bg-orange-100 text-orange-800" },
+  refunded: { text: "Đã hoàn tiền", color: "bg-gray-100 text-gray-800" },
+};
+
 export default function OrderCard({ order, onView }) {
   // order: { _id, items:[{productSnapshot,quantity}] or items [{product, productSnapshot, quantity}], total, status, createdAt }
   const total = order.total || order.items.reduce((s, it) => s + ((it.productSnapshot?.price || it.product?.price || 0) * it.quantity), 0);
-
   const shortId = order._id?.toString().slice(-6).toUpperCase();
+
+  const displayStatus = statusMap[order.status] || { text: order.status, color: "bg-gray-100 text-gray-800" };
 
   return (
     <div className="p-4 bg-white rounded shadow">
       <div className="flex justify-between items-start">
         <div>
-          <div className="text-sm text-gray-500">Mã đơn: <span className="font-mono">{shortId}</span></div>
-          <div className="font-semibold mt-1">Trạng thái: <span className="px-2 py-0.5 rounded bg-gray-100">{order.status}</span></div>
+          <div className="text-sm text-gray-500">Mã đơn: <span className="font-mono font-semibold text-gray-700">{shortId}</span></div>
           <div className="text-sm text-gray-500 mt-1">Ngày: {format(new Date(order.createdAt), "dd/MM/yyyy HH:mm")}</div>
         </div>
 
         <div className="text-right">
           <div className="text-lg font-bold text-red-600">{total.toLocaleString()}đ</div>
-          <button className="mt-2 text-sm text-blue-600" onClick={() => onView(order._id)}>Xem chi tiết</button>
+          {/* 3. Sử dụng thông tin trạng thái để hiển thị huy hiệu màu */}
+          <span className={`px-2 py-1 text-xs font-semibold rounded-full mt-1 inline-block ${displayStatus.color}`}>
+            {displayStatus.text}
+          </span>
         </div>
       </div>
 
