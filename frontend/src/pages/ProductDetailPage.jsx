@@ -120,8 +120,8 @@ export default function ProductDetailPage() {
                 {product.category?.name}
               </Link>
             </p>
-          </div>
-          <p className="mt-4 text-gray-700">{product.shortDescription}</p>
+            </div>
+          <p className="mt-4 text-gray-700 text-justify">{product.shortDescription}</p>
           <div className="mt-6 border-t pt-6">
             <div className="flex items-center gap-4">
               <span className="font-semibold">Số lượng:</span>
@@ -162,7 +162,7 @@ export default function ProductDetailPage() {
         <div className="mt-6">
           {activeTab === 'description' && (
             <div className="prose max-w-none">
-                <p className="text-gray-700 mt-2 whitespace-pre-line">{product.description || "Chưa có mô tả chi tiết cho sản phẩm này."}</p>
+                <p className="text-gray-700 mt-2 whitespace-pre-line text-justify">{product.description || "Chưa có mô tả chi tiết cho sản phẩm này."}</p>
             </div>
           )}
           {activeTab === 'specs' && (

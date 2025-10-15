@@ -1,4 +1,6 @@
 const User = require("../models/User");
+const RefreshToken = require("../models/RefreshToken"); // 1. Import RefreshToken model
+const { comparePassword, hashPassword } = require("./passwordService"); // 2. Import password helpers
 const fs = require("fs").promises;
 const path = require("path");
 
@@ -154,4 +156,34 @@ const deleteAddress = async (userId, addressId) => {
   return user.toObject();
 };
 
-module.exports = { getUserById, getProfile, updateProfile, removeFileIfExists, updateAvatar, clearAvatar, addAddress, updateAddress, deleteAddress };
+// Thay đổi mật khẩu của người dùng
+const changePassword = async (userId, oldPassword, newPassword) => {
+  // 3. Tìm người dùng trong DB
+  const user = await User.findById(userId);
+  if (!user) {
+    throw { status: 404, message: "Không tìm thấy người dùng." };
+  }
+
+  // 4. Xác thực mật khẩu cũ
+  const isMatch = await comparePassword(oldPassword, user.password);
+  if (!isMatch) {
+    throw { status: 400, message: "Mật khẩu cũ không chính xác." };
+  }
+
+  // Kiểm tra mật khẩu mới không được trùng mật khẩu cũ
+  if (oldPassword === newPassword) {
+    throw { status: 400, message: "Mật khẩu mới không được trùng với mật khẩu cũ." };
+  }
+
+  // 5. Băm và lưu mật khẩu mới
+  user.password = await hashPassword(newPassword);
+  await user.save();
+
+  // 6. Vô hiệu hóa tất cả các phiên đăng nhập cũ (Rất quan trọng!)
+  // Bằng cách xóa tất cả các refresh token của người dùng này
+  await RefreshToken.deleteMany({ userId: user._id });
+
+  return; // Không cần trả về gì cả
+};
+
+module.exports = { getUserById, getProfile, updateProfile, removeFileIfExists, updateAvatar, clearAvatar, addAddress, updateAddress, deleteAddress, changePassword };

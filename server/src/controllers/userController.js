@@ -121,4 +121,25 @@ const deleteAddress = async (req, res) => {
   }
 };
 
-module.exports = { getProfile, updateProfile, addAddress, updateAddress, deleteAddress };
+// PUT /api/users/password
+const changePassword = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { oldPassword, newPassword } = req.body;
+
+    // Kiểm tra dữ liệu đầu vào
+    if (!oldPassword || !newPassword) {
+      return res.status(400).json({ message: "Vui lòng cung cấp mật khẩu cũ và mới." });
+    }
+
+    // Gọi service để xử lý logic
+    await userService.changePassword(userId, oldPassword, newPassword);
+
+    res.json({ message: "Đổi mật khẩu thành công!" });
+  } catch (err) {
+    const code = err.status || 400; // Mặc định là lỗi 400
+    return res.status(code).json({ message: err.message || "Lỗi khi đổi mật khẩu" });
+  }
+};
+
+module.exports = { getProfile, updateProfile, addAddress, updateAddress, deleteAddress, changePassword };

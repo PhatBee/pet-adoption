@@ -1,5 +1,5 @@
 const express = require("express");
-const { getProfile, updateProfile, addAddress, deleteAddress, updateAddress } = require("../controllers/userController");
+const { getProfile, updateProfile, addAddress, deleteAddress, updateAddress, changePassword } = require("../controllers/userController");
 const { authenticate } = require("../middleware/authMiddleware");
 const upload = require("../middleware/uploadAvatar"); // multer
 
@@ -16,5 +16,8 @@ router.put("/addresses/:addressId", authenticate, updateAddress);
 
 // Xóa một địa chỉ cụ thể
 router.delete("/addresses/:addressId", authenticate, deleteAddress);
+
+// Đổi mật khẩu
+router.put("/password", authenticate, changePassword);
 
 module.exports = router;
