@@ -23,7 +23,7 @@ export default function OrderDetailPage() {
   }, [dispatch, id]);
 
   if (isLoading) return <div className="p-6">Đang tải...</div>;
-  if (error) return <ErrorPage statusCode="500" title="Lỗi máy chủ" message={error} />; 
+  if (error) return <ErrorPage statusCode="500" title="Lỗi máy chủ" message={error} />;
   if (!order) return null;
 
   return (
@@ -42,6 +42,8 @@ export default function OrderDetailPage() {
                 item={it}
                 orderId={order._id}
                 existingReview={reviews && reviews[it.product.toString()] ? reviews[it.product.toString()] : null}
+
+                orderStatus={order.status}
               />
             ))}
           </div>
@@ -61,7 +63,7 @@ export default function OrderDetailPage() {
         </div>
 
         <div className="mt-4">
-          <OrderTotal items={order.items} itemsTotal={order.itemsTotal} total={order.total} />
+          <OrderTotal order={order} />
         </div>
       </aside>
     </div>

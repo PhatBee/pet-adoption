@@ -61,11 +61,30 @@ const getProductById = async (req, res) => {
 
 const getAllPaginated = async (req, res) => {
   try {
-    // Lấy page và limit từ query params, với giá trị mặc định
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 12;
 
-    const result = await productService.getAllProducts({ page, limit });
+    const { 
+      page, 
+      limit, 
+      searchTerm, 
+      category, 
+      pet, 
+      minPrice, 
+      maxPrice, 
+      sortBy 
+    } = req.query;
+
+    // 2. Gọi service và truyền vào một object chứa tất cả các tham số
+    const result = await productService.getAllProducts({
+      page: parseInt(page) || 1,
+      limit: parseInt(limit) || 12,
+      searchTerm,
+      category,
+      pet,
+      minPrice,
+      maxPrice,
+      sortBy,
+    });
+    
     res.json(result);
   } catch (error) {
     console.error("Lỗi khi lấy sản phẩm phân trang:", error);

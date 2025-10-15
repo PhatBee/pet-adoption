@@ -4,9 +4,9 @@ import productApi from '../api/productApi';
 // Thunk để gọi API lấy sản phẩm theo trang
 export const fetchProductList = createAsyncThunk(
   'productList/fetchList',
-  async ({ page, limit }, { rejectWithValue }) => {
+  async ({ page, limit, searchTerm, category, pet, minPrice, maxPrice, sortBy }, { rejectWithValue }) => {
     try {
-      const response = await productApi.getAllPaginated({ page, limit });
+      const response = await productApi.getAllPaginated({ page, limit, searchTerm, category, pet, minPrice, maxPrice, sortBy });
       return response.data; // Trả về { products, total, page, pages }
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Lỗi khi tải danh sách sản phẩm');

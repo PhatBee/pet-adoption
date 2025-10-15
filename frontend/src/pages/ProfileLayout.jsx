@@ -1,7 +1,7 @@
 import React from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
 // 1. Import icons from react-icons
-import { FaUserCircle, FaMapMarkerAlt } from 'react-icons/fa';
+import { FaUserCircle, FaMapMarkerAlt, FaShieldAlt } from 'react-icons/fa';
 
 export default function ProfileLayout() {
   const getNavLinkClass = ({ isActive }) => {
@@ -31,6 +31,11 @@ export default function ProfileLayout() {
                 <NavLink to="/profile/addresses" className={getNavLinkClass}>
                   <FaMapMarkerAlt size={20} />
                   <span>Sổ địa chỉ</span>
+                </NavLink>
+                {/* 2. Thêm NavLink mới cho trang bảo mật */}
+                <NavLink to="/profile/security" className={getNavLinkClass}>
+                  <FaShieldAlt size={20} />
+                  <span>Bảo mật</span>
                 </NavLink>
               </nav>
             </div>

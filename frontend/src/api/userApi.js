@@ -27,3 +27,12 @@ export const deleteAddressApi = (addressId) => {
   return axiosClient.delete(`${BASE}/addresses/${addressId}`);
 };
 
+export const changePasswordApi = (passwords) => {
+  // passwords sẽ là object { oldPassword, newPassword }
+  return axiosClient.put(`${BASE}/password`, passwords);
+};
+
+export const deleteAccountApi = () => {
+  return axiosClient.delete(`${BASE}/profile`);
+};
+

@@ -9,16 +9,22 @@ const Product = require("../models/Product");
  * @param {Number} limit
  * @returns {Object} { items, total, page, limit }
  */
-async function fetchUserOrders(userId, page = 1, limit = 10) {
+async function fetchUserOrders(userId, page = 1, limit = 10, status = null) {
   const p = Math.max(1, parseInt(page, 10) || 1);
   const l = Math.max(1, Math.min(100, parseInt(limit, 10) || 10));
-
   const skip = (p - 1) * l;
 
-  // lấy tổng & items song song
+  // 1. Tạo đối tượng điều kiện truy vấn
+  const queryConditions = { user: userId };
+  // Nếu có status được truyền vào, thêm nó vào điều kiện
+  if (status) {
+    queryConditions.status = status;
+  }
+
+  // 2. Lấy tổng & items song song với điều kiện đã lọc
   const [total, items] = await Promise.all([
-    Order.countDocuments({ user: userId }),
-    Order.find({ user: userId })
+    Order.countDocuments(queryConditions), // Dùng queryConditions ở đây
+    Order.find(queryConditions) // Dùng queryConditions ở đây
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(l)

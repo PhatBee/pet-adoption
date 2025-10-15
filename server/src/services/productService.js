@@ -1,5 +1,5 @@
 // services/productService.js
-const {Product} = require("../models/Product");
+const { Product, Pet, Category } = require("../models/Product");
 const Order = require("../models/Order"); // nếu dùng aggregation
 
 // Chỉ chọn các field an toàn cần cho trang chủ
@@ -152,21 +152,75 @@ async function getBestSellers(limit = 6, mode = "auto") {
 }
 
 // Lấy tất cả sản phẩm có phân trang
-async function getAllProducts({ page = 1, limit = 12 }) {
+async function getAllProducts({ 
+  page = 1, 
+  limit = 12,
+  searchTerm,
+  category,
+  pet,
+  minPrice,
+  maxPrice,
+  sortBy 
+}) {
   const skipAmount = (page - 1) * limit;
 
-  // Chạy 2 câu lệnh truy vấn song song để tăng hiệu suất
+  // 1. Xây dựng đối tượng điều kiện truy vấn (query) động
+  const queryConditions = { isActive: true };
+
+   if (searchTerm) {
+    // Tìm kiếm không phân biệt chữ hoa/thường trong tên sản phẩm
+    queryConditions.name = { $regex: searchTerm, $options: 'i' };
+  }
+
+  if (category) {
+    // Nếu category được gửi lên, nó phải là ID
+    queryConditions.category = category;
+  }
+  if (pet) {
+    // Tương tự cho pet
+    queryConditions.pet = pet;
+  }
+  if (minPrice || maxPrice) {
+    queryConditions.price = {};
+    if (minPrice) {
+      queryConditions.price.$gte = Number(minPrice);
+    }
+    if (maxPrice) {
+      queryConditions.price.$lte = Number(maxPrice);
+    }
+  }
+
+  // 2. Xây dựng đối tượng sắp xếp (sort) động
+  let sortOptions = { createdAt: -1 }; // Mặc định: mới nhất
+  if (sortBy) {
+    switch (sortBy) {
+      case 'price-asc':
+        sortOptions = { price: 1 };
+        break;
+      case 'price-desc':
+        sortOptions = { price: -1 };
+        break;
+      case 'name-asc':
+        sortOptions = { name: 1 };
+        break;
+      case 'name-desc':
+        sortOptions = { name: -1 };
+        break;
+    }
+  }
+
+  // 3. Chạy truy vấn song song để lấy sản phẩm và tổng số lượng
   const [products, totalCount] = await Promise.all([
-    // 1. Lấy sản phẩm cho trang hiện tại
-    Product.find({ isActive: true })
-      .sort({ createdAt: -1 })
+    Product.find(queryConditions)
+      .sort(sortOptions)
       .skip(skipAmount)
       .limit(limit)
-      .select(PUBLIC_FIELDS) // Tái sử dụng PUBLIC_FIELDS
+      .populate('pet', 'name') // Lấy thêm thông tin để hiển thị nếu cần
+      .populate('category', 'name')
       .lean(),
       
-    // 2. Đếm tổng số sản phẩm (không phân trang)
-    Product.countDocuments({ isActive: true })
+    // Đếm tổng số sản phẩm không phân trang  
+    Product.countDocuments(queryConditions)
   ]);
 
   return {

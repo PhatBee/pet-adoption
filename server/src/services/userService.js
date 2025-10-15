@@ -1,4 +1,9 @@
 const User = require("../models/User");
+const Cart = require("../models/Cart");
+const Wishlist = require("../models/Wishlist");
+const Review = require("../models/Review");
+const RefreshToken = require("../models/RefreshToken"); // 1. Import RefreshToken model
+const { comparePassword, hashPassword } = require("./passwordService"); // 2. Import password helpers
 const fs = require("fs").promises;
 const path = require("path");
 
@@ -154,4 +159,71 @@ const deleteAddress = async (userId, addressId) => {
   return user.toObject();
 };
 
-module.exports = { getUserById, getProfile, updateProfile, removeFileIfExists, updateAvatar, clearAvatar, addAddress, updateAddress, deleteAddress };
+// Thay đổi mật khẩu của người dùng
+const changePassword = async (userId, oldPassword, newPassword) => {
+  // 3. Tìm người dùng trong DB
+  const user = await User.findById(userId);
+  if (!user) {
+    throw { status: 404, message: "Không tìm thấy người dùng." };
+  }
+
+  // 4. Xác thực mật khẩu cũ
+  const isMatch = await comparePassword(oldPassword, user.password);
+  if (!isMatch) {
+    throw { status: 400, message: "Mật khẩu cũ không chính xác." };
+  }
+
+  // Kiểm tra mật khẩu mới không được trùng mật khẩu cũ
+  if (oldPassword === newPassword) {
+    throw { status: 400, message: "Mật khẩu mới không được trùng với mật khẩu cũ." };
+  }
+
+  // 5. Băm và lưu mật khẩu mới
+  user.password = await hashPassword(newPassword);
+  await user.save();
+
+  // 6. Vô hiệu hóa tất cả các phiên đăng nhập cũ (Rất quan trọng!)
+  // Bằng cách xóa tất cả các refresh token của người dùng này
+  await RefreshToken.deleteMany({ userId: user._id });
+
+  return; // Không cần trả về gì cả
+};
+
+const deleteAccount = async (userId) => {
+  // Bắt đầu một transaction để đảm bảo tất cả các thao tác đều thành công hoặc thất bại cùng nhau
+  const session = await User.startSession();
+  session.startTransaction();
+
+  try {
+    // 1. Xóa tất cả các refresh tokens của người dùng
+    await RefreshToken.deleteMany({ userId: userId }, { session });
+
+    // 2. Xóa giỏ hàng của người dùng
+    await Cart.deleteOne({ user: userId }, { session });
+
+    // 3. Xóa danh sách yêu thích của người dùng
+    await Wishlist.deleteMany({ user: userId }, { session });
+    
+    // 4. Xóa tất cả các bài đánh giá của người dùng
+    await Review.deleteMany({ user: userId }, { session });
+
+    // 5. Cuối cùng, xóa chính người dùng đó
+    const deletionResult = await User.deleteOne({ _id: userId }, { session });
+
+    if (deletionResult.deletedCount === 0) {
+      throw { status: 404, message: "Không tìm thấy người dùng để xóa." };
+    }
+
+    // Nếu tất cả thành công, commit transaction
+    await session.commitTransaction();
+  } catch (error) {
+    // Nếu có bất kỳ lỗi nào, hủy bỏ tất cả các thay đổi
+    await session.abortTransaction();
+    throw error; // Ném lỗi ra để controller có thể bắt
+  } finally {
+    // Luôn luôn kết thúc session
+    session.endSession();
+  }
+};
+
+module.exports = { getUserById, getProfile, updateProfile, removeFileIfExists, updateAvatar, clearAvatar, addAddress, updateAddress, deleteAddress, changePassword, deleteAccount };

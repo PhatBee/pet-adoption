@@ -23,7 +23,6 @@ const rootReducer = combineReducers({
   snapshot: snapshotReducer,
   wishlist: wishlistReducer,
   productList: productListReducer,
-  wishlist: wishlistReducer,
   adminOrders: adminOrderReducer,
 
 });

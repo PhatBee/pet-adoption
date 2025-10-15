@@ -41,11 +41,11 @@ export const placeOrder = createAsyncThunk("order/placeOrder", async ({ shipping
 // fetch page (lazy loading)
 export const fetchMyOrders = createAsyncThunk(
   "orders/fetchMyOrders",
-  async ({ page = 1, limit = 10 } = {}, { rejectWithValue }) => {
+  async ({ page = 1, limit = 10, status = null } = {}, { rejectWithValue }) => {
     try {
-      const res = await orderApi.fetchMyOrders({ page, limit });
+      const res = await orderApi.fetchMyOrders({ page, limit, status });
       console.log("test fetch order: ", res.data);
-      return { ...res.data, page }; // { items, total, limit, page }
+      return { ...res.data, page, status }; // { items, total, limit, page }
     } catch (err) {
       return rejectWithValue(err.response?.data?.message || "Lỗi khi tải đơn");
     }
@@ -72,10 +72,10 @@ const slice = createSlice({
     page: 0,
     limit: 10,
     total: 0,
+    status: null,
     hasMore: true,
     currentOrder: null,
     detailLoading: false,
-
     appliedCoupon: null, // Lưu trữ coupon object nếu hợp lệ
     pointsToUse: 0,
     couponValidationStatus: 'idle', // 'idle' | 'loading' | 'succeeded' | 'failed'
@@ -113,12 +113,17 @@ const slice = createSlice({
       .addCase(fetchMyOrders.pending, (s) => { s.isLoading = true; s.error = null; })
       .addCase(fetchMyOrders.fulfilled, (s, { payload }) => {
         s.isLoading = false;
-        const { items = [], total = 0, page = 1, limit = 10 } = payload;
-        if (page === 1) s.items = items;
-        else s.items = s.items.concat(items);
+        const { items = [], total = 0, page = 1, limit = 10, status } = payload;
+        // Nếu đây là trang đầu tiên hoặc filter thay đổi, hãy reset danh sách
+        if (page === 1 || status !== s.status) {
+          s.items = items;
+        } else { // Nếu không thì nối vào danh sách cũ (load more)
+          s.items = s.items.concat(items);
+        }
         s.page = page;
         s.limit = limit;
         s.total = total;
+        s.status = status; // Lưu lại trạng thái vừa lọc
         s.hasMore = (s.items.length < total);
       })
       .addCase(fetchMyOrders.rejected, (s, a) => { s.isLoading = false; s.error = a.payload; toast.error(a.payload); })
