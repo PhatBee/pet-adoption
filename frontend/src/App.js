@@ -27,6 +27,7 @@ import ErrorPage from './pages/ErrorPage'; // 1. Import trang lỗi
 import ProfileLayout from './pages/ProfileLayout';
 import ProfileForm from './pages/ProfileForm'; // Component này giờ sẽ là một route con
 import AddressListPage from './pages/AddressListPage';
+import SecurityPage from './pages/SecurityPage';
 
 import WishlistPage from './pages/WishlistPage';
 import { fetchWishlist } from "./store/wishlistSlice"
@@ -72,7 +73,9 @@ function App() {
             {/* Route con cho trang sổ địa chỉ */}
             <Route path="addresses" element={<AddressListPage />} />
 
-            {/* Bạn có thể thêm các route con khác ở đây, ví dụ: path="change-password" */}
+             {/* 2. Thêm route con mới cho trang bảo mật */}
+            <Route path="security" element={<SecurityPage />} />
+
           </Route>
         <Route path="/products" element={<ProductListPage />} />
         <Route path="/products/:slug" element={<ProductDetailPage />} />
