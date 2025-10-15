@@ -32,3 +32,7 @@ export const changePasswordApi = (passwords) => {
   return axiosClient.put(`${BASE}/password`, passwords);
 };
 
+export const deleteAccountApi = () => {
+  return axiosClient.delete(`${BASE}/profile`);
+};
+
