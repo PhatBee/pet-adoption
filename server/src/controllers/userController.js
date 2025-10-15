@@ -142,4 +142,22 @@ const changePassword = async (req, res) => {
   }
 };
 
-module.exports = { getProfile, updateProfile, addAddress, updateAddress, deleteAddress, changePassword };
+// DELETE /api/users/profile
+const deleteAccount = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    // Gọi service để xử lý logic xóa tài khoản
+    await userService.deleteAccount(userId);
+
+    // Xóa cookie refreshToken phía client
+    res.clearCookie('refreshToken');
+
+    res.json({ message: "Tài khoản của bạn đã được xóa thành công." });
+  } catch (err) {
+    const code = err.status || 500; // Mặc định là lỗi server
+    return res.status(code).json({ message: err.message || "Lỗi khi xóa tài khoản" });
+  }
+};
+
+module.exports = { getProfile, updateProfile, addAddress, updateAddress, deleteAddress, changePassword, deleteAccount };

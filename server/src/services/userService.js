@@ -1,4 +1,7 @@
 const User = require("../models/User");
+const Cart = require("../models/Cart");
+const Wishlist = require("../models/Wishlist");
+const Review = require("../models/Review");
 const RefreshToken = require("../models/RefreshToken"); // 1. Import RefreshToken model
 const { comparePassword, hashPassword } = require("./passwordService"); // 2. Import password helpers
 const fs = require("fs").promises;
@@ -186,4 +189,41 @@ const changePassword = async (userId, oldPassword, newPassword) => {
   return; // Không cần trả về gì cả
 };
 
-module.exports = { getUserById, getProfile, updateProfile, removeFileIfExists, updateAvatar, clearAvatar, addAddress, updateAddress, deleteAddress, changePassword };
+const deleteAccount = async (userId) => {
+  // Bắt đầu một transaction để đảm bảo tất cả các thao tác đều thành công hoặc thất bại cùng nhau
+  const session = await User.startSession();
+  session.startTransaction();
+
+  try {
+    // 1. Xóa tất cả các refresh tokens của người dùng
+    await RefreshToken.deleteMany({ userId: userId }, { session });
+
+    // 2. Xóa giỏ hàng của người dùng
+    await Cart.deleteOne({ user: userId }, { session });
+
+    // 3. Xóa danh sách yêu thích của người dùng
+    await Wishlist.deleteMany({ user: userId }, { session });
+    
+    // 4. Xóa tất cả các bài đánh giá của người dùng
+    await Review.deleteMany({ user: userId }, { session });
+
+    // 5. Cuối cùng, xóa chính người dùng đó
+    const deletionResult = await User.deleteOne({ _id: userId }, { session });
+
+    if (deletionResult.deletedCount === 0) {
+      throw { status: 404, message: "Không tìm thấy người dùng để xóa." };
+    }
+
+    // Nếu tất cả thành công, commit transaction
+    await session.commitTransaction();
+  } catch (error) {
+    // Nếu có bất kỳ lỗi nào, hủy bỏ tất cả các thay đổi
+    await session.abortTransaction();
+    throw error; // Ném lỗi ra để controller có thể bắt
+  } finally {
+    // Luôn luôn kết thúc session
+    session.endSession();
+  }
+};
+
+module.exports = { getUserById, getProfile, updateProfile, removeFileIfExists, updateAvatar, clearAvatar, addAddress, updateAddress, deleteAddress, changePassword, deleteAccount };
