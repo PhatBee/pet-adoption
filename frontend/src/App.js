@@ -23,6 +23,7 @@ import AdminOrderPage from './pages/AdminOrderPage';
 import OrderDetailPage from './pages/OrderDetailPage';
 import ProductSnapshotDetail from './pages/ProductSnapshotDetailPage';
 import ErrorPage from './pages/ErrorPage'; // 1. Import trang lỗi
+import AdminRoute from './components/admin/AdminRoute';
 
 import ProfileLayout from './pages/ProfileLayout';
 import ProfileForm from './pages/ProfileForm'; // Component này giờ sẽ là một route con
@@ -84,9 +85,18 @@ function App() {
         <Route path="/checkout" element={<CheckoutPage />} />
         <Route path="/orders/:id" element={<OrderDetailPage />} />
         <Route path="/orders/:orderId/item/:productId/snapshot" element={<ProductSnapshotDetail />} />
-        <Route path="/admin/orders" element={<AdminOrderPage />} />
         <Route path="/wishlist" element={<WishlistPage />} />
         <Route path="/dashboard" element={<Dashboard />} />
+
+        {/* 2. Bọc route admin bằng AdminRoute */}
+          <Route 
+            path="/admin/orders" 
+            element={
+              <AdminRoute>
+                <AdminOrderPage />
+              </AdminRoute>
+            } 
+          />
 
         <Route path="*" element={<ErrorPage />} />
       </Routes>
