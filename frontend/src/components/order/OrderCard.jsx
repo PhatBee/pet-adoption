@@ -1,6 +1,7 @@
 // src/components/OrderCard.jsx
 import React from "react";
 import { format } from "date-fns";
+import CancelOrderButton from "./CancelOrderButton";
 
 // 1. Tạo một đối tượng để "phiên dịch" trạng thái và màu sắc
 const statusMap = {
@@ -53,6 +54,7 @@ export default function OrderCard({ order, onView }) {
         })}
         {order.items.length > 3 && <div className="text-sm text-gray-500">... và {order.items.length - 3} sản phẩm khác</div>}
       </div>
+      <CancelOrderButton order={order} />
     </div>
   );
 }

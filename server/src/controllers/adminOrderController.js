@@ -50,7 +50,6 @@ async function getOrder(req, res) {
 
 // PATCH /api/admin/orders/:id/status  { status: "preparing", reason: "..." }
 async function updateOrderStatus(req, res) {
-  console.log("📦 PATCH /api/admin/orders/:id/status called with:", req.params.id, req.body);
   try {
     const { id } = req.params;
     const { status } = req.body;
@@ -58,10 +57,12 @@ async function updateOrderStatus(req, res) {
     const allowedStatuses = {
       pending: ["confirmed", "cancelled"],
       confirmed: ["shipping", "cancelled"],
+      preparing: ["shipping", "cancelled"],
       shipping: ["delivered", "cancelled"],
       delivered: ["refunded"],
+      cancel_requested: ["cancelled", "preparing"],
       cancelled: [],
-      refunded: []
+      refunded: [],
     };
 
     const order = await Order.findById(id);
@@ -91,4 +92,32 @@ async function updateOrderStatus(req, res) {
   }
 }
 
-module.exports = { listOrders, getOrder, updateOrderStatus };
+async function approveCancelRequest (req, res) {
+  try {
+    const order = await changeOrderStatus(
+      req.params.id,
+      "cancelled",
+      req.user._id,
+      "admin"
+    );
+    res.json(order);
+  } catch (err) {
+    res.status(err.status || 500).json({ message: err.message });
+  }
+};
+
+async function rejectCancelRequest (req, res) {
+  try {
+    const order = await changeOrderStatus(
+      req.params.id,
+      "confirmed",
+      req.user._id,
+      "admin"
+    );
+    res.json(order);
+  } catch (err) {
+    res.status(err.status || 500).json({ message: err.message });
+  }
+};
+
+module.exports = { listOrders, getOrder, updateOrderStatus , approveCancelRequest, rejectCancelRequest };

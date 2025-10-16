@@ -1,11 +1,11 @@
 const ALLOWED = {
-  pending: ["confirmed", "cancelled"],
-  confirmed: ["preparing", "cancel_requested", "cancelled"],
-  preparing: ["shipping", "cancel_requested"],
-  shipping: ["delivered"],
-  cancel_requested: ["cancelled", "preparing", "confirmed"], //cancelled hoặc từ chối -> trở về preparing
+  pending: ["confirmed", "cancel_requested"],
+  confirmed: ["shipping", "cancel_requested"],
+  shipping: ["delivered", "refunded"],
+  delivered: ["refunded"],
+  cancel_requested: ["cancelled", "confirmed"],
   cancelled: [],
-  delivered: []
+  refunded: []
 };
 
 function isAllowedTransition(from, to) {

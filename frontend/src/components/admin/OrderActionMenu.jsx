@@ -7,10 +7,12 @@ import { toast } from "react-toastify";
 const statusFlow = {
   pending: ["confirmed", "cancelled"],
   confirmed: ["shipping", "cancelled"],
+  preparing: ["shipping", "cancelled"],
   shipping: ["delivered", "cancelled"],
   delivered: ["refunded"],
+  cancel_requested: ["cancelled", "preparing"],
   cancelled: [],
-  refunded: []
+  refunded: [],
 };
 
 export default function OrderActionMenu({ order, onUpdateStatus }) {
@@ -21,9 +23,6 @@ export default function OrderActionMenu({ order, onUpdateStatus }) {
   const handleChange = async (e) => {
     const newStatus = e.target.value;
     if (!newStatus) return;
-    const ok = window.confirm(`Chắc chắn đổi trạng thái đơn #${order._id.slice(-8)} sang "${newStatus}"?`);
-    if (!ok) return;
-
     try {
       await dispatch(updateOrderStatus({ id: order._id, status: newStatus })).unwrap();
       toast.success("Cập nhật trạng thái thành công");

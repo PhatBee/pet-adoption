@@ -3,6 +3,7 @@ import checkoutApi from "../api/checkoutApi";
 import orderApi from "../api/orderApi";
 import couponApi from "../api/couponApi";
 import { toast } from "react-toastify";
+import axiosClient from "../api/axiosClient";
 
 export const fetchCheckoutData = createAsyncThunk("order/fetchCheckoutData", async (_, { rejectWithValue }) => {
   try {
@@ -60,6 +61,18 @@ export const fetchOrderDetail = createAsyncThunk(
       return res.data.order;
     } catch (err) {
       return rejectWithValue(err.response?.data?.message || "Lỗi khi lấy chi tiết đơn");
+    }
+  }
+);
+
+export const requestCancelOrder = createAsyncThunk(
+  "orders/requestCancelOrder",
+  async (orderId, { rejectWithValue }) => {
+    try {
+      const res = await orderApi.requestCancelOrder(orderId);
+      return res.data;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || "Úi chà chà, lỗi rồi!");
     }
   }
 );
@@ -144,6 +157,10 @@ const slice = createSlice({
         state.couponValidationStatus = 'failed';
         state.appliedCoupon = null;
         state.couponError = action.payload;
+      })
+      .addCase(requestCancelOrder.fulfilled, (state, action) => {
+      const idx = state.items.findIndex(o => o._id === action.payload._id);
+      if (idx >= 0) state.items[idx] = action.payload;
       });
 
   }

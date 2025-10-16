@@ -15,7 +15,7 @@ router.get("/:id", authenticate, getOrderDetail);
 router.post("/:orderId/reviews", authenticate, createOrUpdateReview);
 
 //Hủy đơn
-router.put("/:orderId/cancel", authenticate, cancelOrder);
+router.patch("/:orderId/cancel-request", authenticate, cancelOrder);
 
 // Snapshot
 router.get("/:orderId/item/:productId/snapshot", authenticate, getProductSnapshot);

@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchMyOrders, resetOrders } from "../store/orderSlice";
 import { fetchOrderDetail } from "../store/orderDetailSlice";
 import OrderCard from "../components/order/OrderCard";
+import CancelOrderButton from "../components/order/CancelOrderButton";
 import { useNavigate } from "react-router-dom";
 import { List, Card, Button, Spin, Empty, Tabs, Tag } from "antd";
   
@@ -74,16 +75,6 @@ export default function OrdersPage() {
           <div className="p-6 bg-white rounded text-center">Bạn chưa có đơn hàng nào.</div>
         ) : (
           items.map(o => <OrderCard key={o._id} order={o} onView={handleView} />)
-        )}
-      </div>
-
-      <div className="mt-6 text-center">
-        {isLoading ? (
-          <button className="px-4 py-2 bg-gray-200 rounded">Đang tải...</button>
-        ) : hasMore ? (
-          <button onClick={loadMore} className="px-4 py-2 bg-blue-600 text-white rounded">Xem thêm</button>
-        ) : (
-          <div className="text-sm text-gray-500">Không còn đơn hàng</div>
         )}
       </div>
 

@@ -58,18 +58,36 @@ async function updateOrderStatus(orderId, newStatus) {
 
 async function cancelOrder(orderId, userId) {
   const order = await Order.findOne({ _id: orderId, user: userId });
-  if (!order) throw { status: 404, message: "Order not found" };
+  if (!order) throw { status: 404, message: "Đơn hàng không tồn tại" };
 
-  // chỉ cho phép hủy trong vòng 30 phút và khi đang pending/confirmed
-  if (order.cancellableUntil && new Date() > order.cancellableUntil) {
-    throw { status: 400, message: "Order can no longer be cancelled" };
-  }
-  if (!["pending", "confirmed"].includes(order.status)) {
-    throw { status: 400, message: "Order cannot be cancelled in current status" };
+  if (["cancelled", "refunded"].includes(order.status)) {
+    throw { status: 400, message: "Đơn hàng này đã bị hủy" };
   }
 
-  order.status = "cancelled";
-  order.orderStatusHistory.push({ status: "cancelled", changedAt: new Date(), actorRole: "user" });
+  const now = new Date();
+  if (order.cancellableUntil && now > order.cancellableUntil) {
+    throw { status: 400, message: "Bạn chỉ có thể hủy đơn trong 30 phút đầu sau khi đặt." };
+  }
+  
+  if (now <= order.cancellableUntil && (order.status === "pending" || order.status === "confirmed")) {
+    order.status = "cancelled";
+    order.orderStatusHistory.push({
+      status: "cancelled",
+      changedAt: now,
+      actorRole: "user"
+    });
+  } 
+  else if (["preparing"].includes(order.status)) {
+    order.status = "cancel_requested";
+    order.orderStatusHistory.push({
+      status: "cancel_requested",
+      changedAt: now,
+      actorRole: "user"
+    });
+  }
+  else {
+    throw { status: 400, message: "Không thể hủy đơn ở trạng thái hiện tại." };
+  }
 
   await order.save();
   return order;

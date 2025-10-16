@@ -49,6 +49,7 @@ export default function AdminOrderPage() {
           <option value="delivered">Đã giao</option>
           <option value="cancelled">Đã hủy</option>
           <option value="refunded">Hoàn tiền</option>
+          <option value="cancel_requested">Yêu cầu hủy</option>
         </select>
       </div>
 

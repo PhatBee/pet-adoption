@@ -7,6 +7,7 @@ import OrderStatusTimeline from "../components/order/OrderStatusTimeline";
 import AddressDisplay from "../components/order/AddressDisplay";
 import OrderItemRow from "../components/order/OrderItemRow";
 import OrderTotal from "../components/order/OrderTotal"; // reuse from earlier or implement
+import CancelOrderButton from "../components/order/CancelOrderButton";
 import ErrorPage from "./ErrorPage"; // 1. Import trang lỗi
 import { toast } from "react-toastify";
 import { format } from "date-fns";
@@ -47,6 +48,7 @@ export default function OrderDetailPage() {
               />
             ))}
           </div>
+        <CancelOrderButton order={order} />
         </div>
       </div>
 

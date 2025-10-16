@@ -14,7 +14,7 @@ async function restockItems(items, session) {
   }
 }
 
-async function changeOrderStatus(orderId, toStatus, actorId = null, actorRole = "admin", reason = "") {
+async function changeOrderStatus(orderId, toStatus) {
   const session = await mongoose.startSession();
   session.startTransaction();
   try {
@@ -51,10 +51,7 @@ async function changeOrderStatus(orderId, toStatus, actorId = null, actorRole = 
     order.orderStatusHistory = order.orderStatusHistory || [];
     order.orderStatusHistory.push({
       status: toStatus,
-      changedAt: new Date(),
-      actor: actorId || null,
-      actorRole: "admin",
-      reason: reason || ""
+      changedAt: new Date()
     });
 
     // xóa autoConfirmJobId
