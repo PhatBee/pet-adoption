@@ -15,8 +15,12 @@ const LoginPage = () => {
     try {
       const result = await dispatch(loginThunk(credentials));
       if (loginThunk.fulfilled.match(result)) {
+        const user = result.payload?.user;
         toast.success('Đăng nhập thành công!');
-        navigate('/dashboard');
+
+        if(user?.role === 'admin') {
+          navigate('/admin/dashboard');
+        } else navigate('/');
       } else if (loginThunk.rejected.match(result)) {
         toast.error(result.payload || 'Đăng nhập thất bại');
       }

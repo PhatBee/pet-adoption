@@ -3,6 +3,7 @@ const router = express.Router();
 const { authenticate } = require("../middleware/authMiddleware");
 const isAdmin = require("../middleware/isAdmin");
 const { listOrders, getOrder, updateOrderStatus, approveCancelRequest, rejectCancelRequest } = require("../controllers/adminOrderController");
+const {getRevenueStats} = require("../controllers/adminSalesController");
 
 // router.use(isAdmin);
 
@@ -12,5 +13,9 @@ router.get("/orders/:id", authenticate, isAdmin, getOrder);
 router.patch("/orders/:id/status", authenticate, isAdmin, updateOrderStatus);
 router.patch("/orders/:id/cancel/approve", authenticate, isAdmin, approveCancelRequest);
 router.patch("/orders/:id/cancel/reject", authenticate, isAdmin, rejectCancelRequest);
+
+//Thống kê
+router.get("/stats/revenue", authenticate, authenticate, isAdmin, getRevenueStats);
+// router.get("/stats", authenticate, isAdmin, getStats);
 
 module.exports = router;

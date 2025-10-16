@@ -86,7 +86,7 @@ function App() {
         <Route path="/orders/:orderId/item/:productId/snapshot" element={<ProductSnapshotDetail />} />
         <Route path="/admin/orders" element={<AdminOrderPage />} />
         <Route path="/wishlist" element={<WishlistPage />} />
-        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/admin/dashboard" element={<Dashboard />} />
 
         <Route path="*" element={<ErrorPage />} />
       </Routes>

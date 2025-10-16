@@ -35,8 +35,7 @@ async function changeOrderStatus(orderId, toStatus) {
 
     // Đơn bị hủy thì restock sản phẩm
     if (toStatus === "cancelled") {
-      if (["confirmed", "preparing", "shipping"].includes(fromStatus)) {
-        // restock
+      if (["pending", "confirmed", "preparing"].includes(fromStatus)) {
         await restockItems(order.items, session);
       }
       order.cancelledAt = new Date();
