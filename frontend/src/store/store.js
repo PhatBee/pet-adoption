@@ -11,6 +11,7 @@ import snapshotReducer from './orderSnapshotSlice'
 import wishlistReducer from './wishlistSlice'
 import productListReducer from './productListSlice';
 import adminOrderReducer from './admin/adminOrderSlice';
+import adminStatsReducer from './admin/adminStatsSlice';
 
 
 const rootReducer = combineReducers({
@@ -24,7 +25,7 @@ const rootReducer = combineReducers({
   wishlist: wishlistReducer,
   productList: productListReducer,
   adminOrders: adminOrderReducer,
-
+  adminStats: adminStatsReducer,
 });
 
 const persistConfig = {

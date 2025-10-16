@@ -86,7 +86,7 @@ function App() {
         <Route path="/orders/:id" element={<OrderDetailPage />} />
         <Route path="/orders/:orderId/item/:productId/snapshot" element={<ProductSnapshotDetail />} />
         <Route path="/wishlist" element={<WishlistPage />} />
-        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/admin/dashboard" element={<Dashboard />} />
 
         {/* 2. Bọc route admin bằng AdminRoute */}
           <Route 
