@@ -1,51 +1,105 @@
-// src/auth/auth.service.ts
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, ForbiddenException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { UsersService } from '../users/users.service'; // Giả sử bạn có UsersService
-import * as bcrypt from 'bcrypt';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import * as bcrypt from 'bcryptjs';
+import { UsersService } from '../users/users.service';
+import { RefreshToken } from '../schema/refresh-token.schema';
 
 @Injectable()
 export class AuthService {
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
+    @InjectModel(RefreshToken.name) private refreshTokenModel: Model<RefreshToken>,
   ) {}
 
-  /**
-   * Kiểm tra thông tin đăng nhập của người dùng.
-   * @param email Email người dùng nhập
-   * @param pass Mật khẩu người dùng nhập
-   * @returns Thông tin user nếu hợp lệ, nếu không trả về null
-   */
-  async validateAdmin(email: string, pass: string): Promise<any> {
-    const user = await this.usersService.findOneByEmail(email);
-
-    // Kiểm tra 3 điều kiện:
-    // 1. User có tồn tại không?
-    // 2. Mật khẩu có đúng không? (dùng bcrypt để so sánh)
-    // 3. User có phải là 'admin' không?
-    if (user && (await bcrypt.compare(pass, user.password)) && user.role === 'admin') {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { password, ...result } = user.toObject(); // Loại bỏ password khỏi kết quả trả về
-      return result;
+  async validateAdmin(email: string, password: string) {
+    const user = await this.usersService.findByEmail(email);
+    if (!user || user.role !== 'admin') {
+      throw new UnauthorizedException('Không có quyền truy cập');
     }
-    
-    // Nếu một trong 3 điều kiện trên sai, trả về null
-    return null;
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      throw new UnauthorizedException('Sai mật khẩu');
+    }
+
+    return user;
   }
 
-  /**
-   * Tạo JWT Access Token sau khi xác thực thành công.
-   * @param user Thông tin user đã được xác thực
-   * @returns Đối tượng chứa access_token
-   */
+  // ---- Đăng nhập: tạo cả access và refresh token ----
   async login(user: any) {
-    // Dữ liệu sẽ được mã hóa vào trong token
-    // Không bao giờ đưa mật khẩu hay các thông tin nhạy cảm vào đây
-    const payload = { email: user.email, sub: user._id, role: user.role };
-    
+    const payload = { sub: user._id, email: user.email, role: user.role };
+
+    const accessToken = this.jwtService.sign(payload, {
+      secret: process.env.JWT_ACCESS_SECRET || 'ACCESS_SECRET',
+      expiresIn: '1d',
+    });
+
+    const refreshToken = this.jwtService.sign(payload, {
+      secret: process.env.JWT_REFRESH_SECRET || 'REFRESH_SECRET',
+      expiresIn: '7d',
+    });
+
+    // Lưu refresh token vào DB
+    await this.refreshTokenModel.create({
+      token: refreshToken,
+      userId: user._id,
+      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    });
+
     return {
-      access_token: this.jwtService.sign(payload),
+      accessToken,
+      refreshToken,
+      user: {
+        id: user._id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+      },
     };
+  }
+
+  // ---- Làm mới Access Token ----
+  async refresh(refreshToken: string) {
+    if (!refreshToken) {
+      throw new UnauthorizedException('Không có refresh token');
+    }
+
+    const dbToken = await this.refreshTokenModel.findOne({ token: refreshToken });
+    if (!dbToken) {
+      throw new ForbiddenException('Refresh token không hợp lệ hoặc đã bị logout');
+    }
+
+    try {
+      const decoded = this.jwtService.verify(refreshToken, {
+        secret: process.env.JWT_REFRESH_SECRET || 'REFRESH_SECRET',
+      });
+
+      const newAccessToken = this.jwtService.sign(
+        {
+          sub: decoded.sub,
+          email: decoded.email,
+          role: decoded.role,
+        },
+        {
+          secret: process.env.JWT_REFRESH_SECRET || 'ACCESS_SECRET',
+          expiresIn: '1d',
+        },
+      );
+
+      return { accessToken: newAccessToken };
+    } catch (error) {
+      throw new ForbiddenException('Refresh token không hợp lệ hoặc hết hạn');
+    }
+  }
+
+  // ---- Logout: xóa refresh token ----
+  async logout(refreshToken: string) {
+    if (refreshToken) {
+      await this.refreshTokenModel.deleteOne({ token: refreshToken });
+    }
+    return { message: 'Đăng xuất thành công' };
   }
 }

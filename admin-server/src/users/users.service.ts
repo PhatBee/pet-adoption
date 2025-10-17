@@ -15,10 +15,8 @@ export class UsersService {
    * @param email Email cần tìm
    * @returns Document của User hoặc null nếu không tìm thấy
    */
-  async findOneByEmail(email: string): Promise<User | undefined> {
-    // Dùng Mongoose để tìm user có email trùng khớp trong database
-    const user = await this.userModel.findOne({ email: email.toLowerCase() }).exec();
-    return user || undefined;
+  async findByEmail(email: string): Promise<User | null> {
+    return this.userModel.findOne({ email }).exec();
   }
 
 }
