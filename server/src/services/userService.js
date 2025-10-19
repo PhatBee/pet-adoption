@@ -32,6 +32,14 @@ const getProfile = async (req, res) => {
 // Cập nhật profile user
 const updateProfile = async (userId, { name, email, phone }) => {
   try {
+    // 1. Thêm Regex để kiểm tra tên (giống hệt frontend)
+    const nameRegex = /^[a-zA-ZàáâãèéêìíòóôõùúýăđĩũơưÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚÝĂĐĨŨƠƯ\s]+$/;
+
+    // 2. Thêm logic kiểm tra cho trường name
+    if (name && !nameRegex.test(name.trim())) {
+      throw { status: 400, message: "Họ tên không hợp lệ, chỉ được chứa chữ cái và khoảng trắng." };
+    }
+
     const user = await User.findById(userId);
     if (!user) throw { status: 404, message: "Người dùng không tồn tại" };
 

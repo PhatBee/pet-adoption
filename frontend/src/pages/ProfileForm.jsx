@@ -8,6 +8,7 @@ import { SERVER_BASE } from "../config";
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const phoneRegex = /^\+?[0-9]{7,15}$/;
+const nameRegex = /^[a-zA-ZàáâãèéêìíòóôõùúýăđĩũơưÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚÝĂĐĨŨƠƯ\s]+$/;
 
 export default function ProfileForm() {
   const dispatch = useDispatch();
@@ -71,6 +72,7 @@ export default function ProfileForm() {
 
   const validate = () => {
     if (!name.trim()) return "Họ tên không được để trống";
+    if (!nameRegex.test(name.trim())) return "Họ tên chỉ được chứa chữ cái và khoảng trắng.";
     if (!emailRegex.test(email)) return "Email không hợp lệ";
     if (phone && !phoneRegex.test(phone)) return "Số điện thoại không hợp lệ";
     return null;
