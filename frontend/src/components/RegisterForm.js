@@ -3,9 +3,12 @@ import { registerApi } from "../api/authApi";
 import { toast } from "react-toastify";
 import { Link } from "react-router-dom";
 
+const nameRegex = /^[a-zA-ZàáâãèéêìíòóôõùúýăđĩũơưÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚÝĂĐĨŨƠƯ\s]+$/;
+
 const RegisterForm = ({ onRegisterSuccess }) => {
   const [form, setForm] = useState({ name: "", email: "", password: "" });
   const [loading, setLoading] = useState(false);
+  const nameInputRef = React.useRef(null); // 💥 THÊM REF ĐỂ FOCUS
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -13,6 +16,14 @@ const RegisterForm = ({ onRegisterSuccess }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // 💥 THÊM LOGIC VALIDATION
+    if (!nameRegex.test(form.name.trim())) {
+        toast.error("Họ và tên không đúng định dạng, vui lòng nhập lại");
+        nameInputRef.current?.focus(); // Focus vào ô họ và tên
+        return; 
+    }
+
     setLoading(true);
     try {
       const res = await registerApi(form);
@@ -41,6 +52,7 @@ const RegisterForm = ({ onRegisterSuccess }) => {
           <input
             type="text"
             name="name"
+            ref={nameInputRef}
             placeholder="Nhập họ và tên"
             className="w-full px-3 py-2 border border-gray-300 rounded-lg 
                        focus:outline-none focus:ring-2 focus:ring-indigo-400"

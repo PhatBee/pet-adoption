@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { verifyOtpApi, resendOtpApi } from "../api/authApi";
 import { toast } from "react-toastify";
 
-const OtpForm = ({ email }) => {
+const OtpForm = ({ email, onOtpSuccess }) => {
   const [otp, setOtp] = useState("");
   // const [message, setMessage] = useState("");
 
@@ -11,6 +11,10 @@ const OtpForm = ({ email }) => {
     try {
       const res = await verifyOtpApi({ email, otp });
       toast.success(res.data.message);
+
+      // 💥 GỌI HÀM XỬ LÝ THÀNH CÔNG ĐỂ ĐIỀU HƯỚNG
+      if (onOtpSuccess) onOtpSuccess();
+      
     } catch (error) {
       toast.error(error.response?.data?.message || "Xác thực thất bại");
     }
