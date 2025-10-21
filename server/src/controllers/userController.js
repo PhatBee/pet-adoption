@@ -2,6 +2,7 @@ const userService = require("../services/userService");
 const sharp = require("sharp");
 const path = require("path");
 const fs = require("fs").promises;
+const multer = require("multer"); // 1. Import multer để kiểm tra lỗi
 
 // GET /api/users/me
 const getProfile = async (req, res) => {
@@ -55,10 +56,16 @@ const updateProfile = async (req, res) => {
     const safe = await userService.getUserById(userId);
     return res.json({ message: "Cập nhật thành công", user: safe });
   } catch (err) {
-    // // Nếu multer ném lỗi file lớn / loại file -> trả 400
-    // if (err.message === "Chỉ chấp nhận ảnh .jpeg .png .webp") {
-    //   return res.status(400).json({ message: err.message });
-    // }
+    // --- 2. Cập nhật logic bắt lỗi ---
+    // Bắt lỗi cụ thể từ multer (sai định dạng file, quá dung lượng)
+    if (err instanceof multer.MulterError) {
+      return res.status(400).json({ message: `Lỗi tải file: ${err.message}` });
+    }
+    // Bắt lỗi từ fileFilter của bạn
+    if (err.message === "Chỉ chấp nhận ảnh .jpeg .png .webp") {
+      return res.status(400).json({ message: err.message });
+    }
+
     const code = err.status || 500;
     return res.status(code).json({ message: err.message || "Lỗi server" });
   }

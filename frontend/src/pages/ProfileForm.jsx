@@ -106,7 +106,19 @@ export default function ProfileForm() {
       setRemoveAvatar(false);
       setAvatarUrl(updatedUser.avatarUrl ? (updatedUser.avatarUrl.startsWith("http") ? updatedUser.avatarUrl : SERVER_BASE + updatedUser.avatarUrl) : null);
     } catch (err) {
-      const msg = err.response?.data?.message || "Cập nhật thất bại";
+      let msg = err.response?.data?.message || "Cập nhật thất bại";
+
+      // 💥 THAY ĐỔI Ở ĐÂY: Xử lý lỗi từ Multer 'File too large'
+      if (msg.includes("File too large")) {
+        msg = "File ảnh upload không vượt quá 2MB";
+      } else if (msg.includes("Chỉ chấp nhận ảnh .jpeg .png .webp")) {
+        // Có thể là lỗi từ server, dù frontend đã chặn
+        msg = "Chỉ chấp nhận ảnh .jpeg .png .webp";
+      } else if (msg.startsWith("Lỗi tải file:")) {
+          // Xử lý các lỗi Multer khác
+          msg = "Lỗi upload file: " + msg.split(":")[1].trim();
+      }
+      
       toast.error(msg);
     } finally {
       setSubmitting(false);

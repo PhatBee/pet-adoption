@@ -1,7 +1,9 @@
 // src/components/AvatarUploader.jsx
 import React, { useEffect, useState } from "react";
+import { toast } from "react-toastify"; // 1. Import toast
 
 const PLACEHOLDER = "anon-1756225814890-bdf366938b95.png"; // bạn có thể thêm file tĩnh
+const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2 MB
 
 /**
  * Props:
@@ -20,6 +22,22 @@ export default function AvatarUploader({ src, onFileSelect, onRemove }) {
   const handleFileChange = (e) => {
     const f = e.target.files?.[0];
     if (!f) return;
+
+    // --- 2. Thêm logic validation file ---
+    const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+    if (!allowedTypes.includes(f.type)) {
+      toast.error("Chỉ chấp nhận ảnh .jpeg .png .webp");
+      e.target.value = null; // Reset input để người dùng có thể chọn lại file
+      return;
+    }
+
+    // 💥 THÊM LOGIC KIỂM TRA KÍCH THƯỚC FILE
+    if (f.size > MAX_FILE_SIZE) {
+      toast.error("File ảnh upload không vượt quá 2MB");
+      e.target.value = null; // Reset input để người dùng có thể chọn lại file
+      return;
+    }
+
     const url = URL.createObjectURL(f);
     setPreview(url);
     onFileSelect && onFileSelect(f);
@@ -49,7 +67,7 @@ export default function AvatarUploader({ src, onFileSelect, onRemove }) {
         <input
           id={hiddenInputId}
           type="file"
-          accept="image/*"
+          accept="image/jpeg,image/png,image/webp"
           onChange={handleFileChange}
           className="hidden"
         />
