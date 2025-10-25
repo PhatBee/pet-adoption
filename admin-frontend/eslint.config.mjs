@@ -32,6 +32,8 @@ const eslintConfig = [
         }
       ],
 
+      '@typescript-eslint/no-empty-object-type': 'warn',
+
       // --- END OF NEW RULE ADDITIONS ---
 
     },

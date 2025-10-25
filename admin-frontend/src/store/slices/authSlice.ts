@@ -1,6 +1,7 @@
 // src/store/slices/authSlice.ts
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { loginAdminApi, LoginCredentials, LoginResponse } from '../api/authApi';
+import type { RootState } from '../store';
 
 interface AuthState {
   user: any | null;
@@ -63,4 +64,5 @@ const authSlice = createSlice({
 });
 
 export const { logout } = authSlice.actions;
+export const selectUser = (state: RootState) => state.auth.user;
 export default authSlice.reducer;
