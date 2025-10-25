@@ -1,20 +1,27 @@
-import * as dotenv from 'dotenv';
-dotenv.config();
+// src/main.ts (NestJS)
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-
-
+import cookieParser = require('cookie-parser');
+import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
+import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   app.enableCors({
-    origin: 'http://localhost:6060', // Allow requests from your frontend
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS', // Allowed HTTP methods
-    credentials: true, // If your frontend sends cookies or authorization headers
+    origin: 'http://localhost:6060', 
+    credentials: true,
   });
 
+  app.use(cookieParser());
+  app.setGlobalPrefix('api');
+  
+  app.useGlobalPipes(new ValidationPipe());
 
-  await app.listen(process.env.PORT ?? 3000);
+  app.useGlobalFilters(new AllExceptionsFilter());
+
+  const PORT = process.env.PORT || 4000;
+  await app.listen(PORT);
+  console.log(`Admin server is running on port ${PORT}`);
 }
 bootstrap();

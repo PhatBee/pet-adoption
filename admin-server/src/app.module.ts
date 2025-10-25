@@ -1,38 +1,39 @@
-import { MiddlewareConsumer, Module, RequestMethod } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { JwtModule } from '@nestjs/jwt';
-
-import { AppService } from './app.service';
+import { Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
-import { OrdersModule } from './orders/orders.module';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
+
 import { AuthModule } from './auth/auth.module';
-import { UsersModule } from './users/users.module';
 import { AdminModule } from './admin/admin.module';
-import { AutoRefreshMiddleware } from './auth/auto-refresh.middleware';
-
-
 
 @Module({
   imports: [
 
-    MongooseModule.forRoot(process.env.DB_URI || ""),
-    JwtModule.register({}),
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
 
-    OrdersModule,
+    MongooseModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: async (configService: ConfigService) => ({
+        uri: configService.get<string>('DB_URI'),
+      }),
+    }),
+    
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'uploads'),
+      serveRoot: '/uploads',
+    }),
 
-    AuthModule,
-
-    UsersModule,
+    AuthModule, 
+    
     AdminModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
+  controllers: [],
+  providers: [
+
+  ],
 })
-export class AppModule {
-  configure(consumer: MiddlewareConsumer) {
-    consumer
-      .apply(AutoRefreshMiddleware)
-      // Áp middleware cho các route cần bảo vệ. Ví dụ áp cho tất cả route bắt đầu bằng /admin
-      .forRoutes({ path: '/admin/*', method: RequestMethod.ALL });
-  }
-}
+export class AppModule {}
