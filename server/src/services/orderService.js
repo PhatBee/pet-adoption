@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const Order = require("../models/Order");
-const Product = require("../models/Product");
+const { Product } = require("../models/Product");
+
 
 /**
  * Lấy danh sách đơn hàng của user theo pagination (page-based)
@@ -116,4 +117,56 @@ async function cancelOrder(orderId, userId) {
   }
 }
 
-module.exports = { getUserOrderById, fetchUserOrders, updateOrderStatus, cancelOrder, restockItems };
+async function getReorderInfo (orderId) {
+  
+  const order = await Order.findById(orderId); // Không cần populate ở đây
+  if (!order) throw new Error("Không tìm thấy đơn hàng.");
+
+  const available = [];
+  const unavailable = [];
+
+  for (const item of order.items) {
+// Tìm sản phẩm hiện tại trong DB
+    // (item.product là ID)
+    const product = await Product.findById(item.product);
+
+    let reason = "";    
+    // BẮT ĐẦU LOGIC KIỂM TRA MỚI
+    if (!product) {
+      reason = "Sản phẩm đã bị xoá";
+    } else if (!product.isActive) {
+      reason = "Sản phẩm đã ngừng kinh doanh";
+    } else if (product.stock < item.quantity) { 
+      // === THAY ĐỔI QUAN TRỌNG ===
+      // So sánh kho thực tế với số lượng trong đơn hàng
+      reason = `Không đủ số lượng (cần ${item.quantity}, còn ${product.stock})`;
+    }
+    // KẾT THÚC LOGIC KIỂM TRA MỚI
+
+     if (reason) {
+      unavailable.push({
+        name: item.productSnapshot.name, // Lấy tên từ snapshot cho an toàn
+        quantity: item.quantity,
+        reason: reason
+      });
+    } else {
+      // === THAY ĐỔI QUAN TRỌNG ===
+      // Trả về cấu trúc mà CheckoutPage.jsx mong đợi
+      // { product: { ... }, quantity: ... }
+      available.push({
+        product: {
+          _id: product._id,
+          name: product.name,
+          price: product.price,
+          thumbnail: product.thumbnail,
+          stock: product.stock // Gửi luôn stock để tham khảo
+        },
+        quantity: item.quantity
+      });
+    }
+  }
+
+   return { available, unavailable };
+};
+
+module.exports = { getUserOrderById, fetchUserOrders, updateOrderStatus, cancelOrder, restockItems, getReorderInfo };

@@ -12,6 +12,8 @@ import wishlistReducer from './wishlistSlice'
 import productListReducer from './productListSlice';
 import adminOrderReducer from './admin/adminOrderSlice';
 import adminStatsReducer from './admin/adminStatsSlice';
+import reorderReducer from "./reorderSlice";
+
 
 
 const rootReducer = combineReducers({
@@ -26,6 +28,7 @@ const rootReducer = combineReducers({
   productList: productListReducer,
   adminOrders: adminOrderReducer,
   adminStats: adminStatsReducer,
+  reorder: reorderReducer,
 });
 
 const persistConfig = {

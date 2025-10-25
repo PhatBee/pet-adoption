@@ -13,6 +13,7 @@ import { toast } from "react-toastify";
 import { useNavigate, useLocation } from "react-router-dom";
 import AddressModal from "../components/user/AddressModal";
 import AddressForm from "../components/user/AddressForm";
+import { clearReorder } from "../store/reorderSlice";
 
 export default function CheckoutPage() {
   const dispatch = useDispatch();
@@ -21,7 +22,7 @@ export default function CheckoutPage() {
   // 1. Dùng useLocation để lấy state được truyền qua
   const location = useLocation();
   const itemsFromCart = location.state?.itemsToCheckout;
-
+  const { items: reorderItems } = useSelector((s) => s.reorder || { items: [] });
   const { cart, addresses, isLoading, error, lastOrder, appliedCoupon, pointsToUse } = useSelector((s) => s.order || {});
   const user = useSelector(selectUser);
   const [selectedAddress, setSelectedAddress] = useState(null);
@@ -32,10 +33,17 @@ export default function CheckoutPage() {
 
   // 2. Quyết định xem nên hiển thị sản phẩm nào
   // Ưu tiên sản phẩm được chọn từ giỏ hàng, nếu không có thì dùng cả giỏ hàng (trường hợp vào thẳng checkout)
-  const itemsToDisplay = itemsFromCart || cart?.items || [];
-  const itemsTotal = itemsToDisplay.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
+  const itemsToDisplay =
+    reorderItems && reorderItems.length > 0
+      ? reorderItems
+      : itemsFromCart || cart?.items || [];
 
-    useEffect(() => {
+  const itemsTotal = itemsToDisplay.reduce(
+    (sum, item) => sum + item.product.price * item.quantity,
+    0
+  );
+
+  useEffect(() => {
     // Vẫn gọi để lấy thông tin giỏ hàng, nhưng phần địa chỉ sẽ dùng từ authSlice
     dispatch(fetchCheckoutData());
   }, [dispatch]);
@@ -63,6 +71,8 @@ export default function CheckoutPage() {
       }
       toast.success("Đặt hàng thành công");
       navigate(`/orders/${lastOrder.orderId || lastOrder.order?._id || ""}`);
+      dispatch(clearReorder());
+
     }
   }, [lastOrder, navigate]);
 

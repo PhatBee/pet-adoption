@@ -93,6 +93,10 @@ const slice = createSlice({
     pointsToUse: 0,
     couponValidationStatus: 'idle', // 'idle' | 'loading' | 'succeeded' | 'failed'
     couponError: null,
+    availableItems: [],
+    unavailableItems: [],
+    loading: false,
+    error: null
   },
   reducers: {
     resetOrders: (s) => {
@@ -159,10 +163,9 @@ const slice = createSlice({
         state.couponError = action.payload;
       })
       .addCase(requestCancelOrder.fulfilled, (state, action) => {
-      const idx = state.items.findIndex(o => o._id === action.payload._id);
-      if (idx >= 0) state.items[idx] = action.payload;
+        const idx = state.items.findIndex(o => o._id === action.payload._id);
+        if (idx >= 0) state.items[idx] = action.payload;
       });
-
   }
 });
 
