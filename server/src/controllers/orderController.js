@@ -1,6 +1,7 @@
   const orderService = require("../services/orderService");
   const Order = require("../models/Order");
   const Review = require("../models/Review")
+  const { processIpn, processReturnUrl } = require("../services/vnpayService");
 
   async function getListMyOrders(req, res) {
     try {
@@ -118,4 +119,43 @@
     }
   }
 
-  module.exports = { getListMyOrders, cancelOrder, getOrderDetail, getProductSnapshot};
+  /**
+ * Xử lý VNPAY Return
+ * Trình duyệt của user được VNPAY redirect về đây
+ */
+const vnpayReturn = (req, res) => {
+    try {
+        const { isValid, params } = processReturnUrl(req.query);
+        const CLIENT_URL = process.env.CLIENT_URL;
+
+        // Tạo query string để gửi về frontend
+        const queryString = querystring.stringify(params);
+
+        if (isValid) {
+            // Chuyển hướng về trang kết quả của React
+            res.redirect(`${CLIENT_URL}/payment/result?${queryString}`);
+        } else {
+            // Chuyển hướng về trang kết quả với mã lỗi
+            res.redirect(`${CLIENT_URL}/payment/result?vnp_ResponseCode=97`);
+        }
+    } catch (error) {
+        console.error("Lỗi VNPAY Return:", error);
+        res.redirect(`${CLIENT_URL}/payment/result?vnp_ResponseCode=99`);
+    }
+};
+
+/**
+ * Xử lý VNPAY IPN
+ * Server VNPAY gọi về đây (server-to-server)
+ */
+const vnpayIpn = async (req, res) => {
+    try {
+        const result = await processIpn(req.query);
+        res.status(200).json(result);
+    } catch (error) {
+        console.error("Lỗi VNPAY IPN:", error);
+        res.status(200).json({ RspCode: '99', Message: 'Unknown error' });
+    }
+};
+
+module.exports = { getListMyOrders, cancelOrder, getOrderDetail, getProductSnapshot, vnpayReturn, vnpayIpn };

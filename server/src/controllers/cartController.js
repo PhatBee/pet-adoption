@@ -1,6 +1,7 @@
 const cartService = require("../services/cartService");
 const userService = require("../services/userService");
 const {createOrderFromCart} = require("../services/cartService");
+const { createPaymentUrl } = require("../services/vnpayService");
 
 
 // Lấy giỏ hàng của user hiện tại
@@ -124,13 +125,27 @@ const placeOrder = async (req, res) => {
         // Truyền `items` vào service
         const  { order }  = await createOrderFromCart({ userId, shippingAddress, paymentMethod, items, couponCode, pointsToUse });
 
-        // Nếu dùng VNPAY -> trả về URL thanh toán
+        // --- 2. XỬ LÝ VNPAY ---
         if (paymentMethod === "VNPAY") {
-            // Tạo URL thanh toán giả lập
-            const vnpayUrl = `https://sandbox.vnpayment.vn/paymentv2/vpcpay.html?vnp_Amount=${order.total * 100}&vnp_OrderInfo=Thanh+toan+don+hang+${order._id}&vnp_TxnRef=${order._id}`;
-            return res.json({ orderId: order._id, paymentUrl: vnpayUrl });
+            // Lấy IP client
+            const ipAddr = req.headers['x-forwarded-for'] ||
+                req.connection.remoteAddress ||
+                req.socket.remoteAddress ||
+                req.connection.socket.remoteAddress;
+
+            // Tạo URL thanh toán
+            const vnpayUrl = createPaymentUrl(
+                ipAddr,
+                order.total, // Tổng số tiền
+                order._id.toString(), // Mã đơn hàng
+                `Thanh toan don hang ${order._id}` // Thông tin đơn hàng
+            );
+
+            // 3. Trả về redirectUrl (frontend sẽ tự động chuyển hướng)
+            return res.json({ orderId: order._id, redirectUrl: vnpayUrl });
         }
 
+        // 4. Nếu là COD, trả về như cũ
         res.json({ orderId: order._id, order });
     } catch (error) {
         const code = error.status || 500;
