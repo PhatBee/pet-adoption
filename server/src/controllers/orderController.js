@@ -204,4 +204,60 @@ const vnpayIpn = async (req, res) => {
     }
 };
 
-module.exports = { getListMyOrders, cancelOrder, getOrderDetail, getProductSnapshot, vnpayReturn, vnpayIpn };
+// === 2. MOMO HANDLERS ===
+/**
+ * Xử lý MoMo Return
+ * Trình duyệt user được MoMo redirect về đây (GET)
+ */
+const momoReturn = (req, res) => {
+    const CLIENT_URL = process.env.CLIENT_URL;
+
+    try {
+        const { isValid, params } = verifyMomoReturnUrl(req.query);
+
+        // Tạo query string để gửi về frontend
+        // Quan trọng: Chỉ gửi các tham số cần thiết và an toàn
+        const returnParams = {
+            orderId: params.orderId,
+            amount: params.amount,
+            resultCode: params.resultCode,
+            message: params.message,
+            payType: params.payType,
+            transId: params.transId,
+            // Không gửi signature về client
+        };
+        const queryString = querystring.stringify(returnParams);
+
+        if (isValid) {
+            // Chuyển hướng về trang kết quả React
+            res.redirect(`${CLIENT_URL}/payment/result?${queryString}&source=momo`); // Thêm source=momo để biết là từ MoMo
+        } else {
+            // Chữ ký không hợp lệ, vẫn chuyển hướng nhưng báo lỗi
+             console.warn("MoMo Return URL Signature Invalid:", req.query);
+            res.redirect(`${CLIENT_URL}/payment/result?resultCode=99&message=Invalid+signature&source=momo`);
+        }
+    } catch (error) {
+        console.error("Lỗi MoMo Return:", error);
+        res.redirect(`${CLIENT_URL}/payment/result?resultCode=99&message=Unknown+error&source=momo`);
+    }
+};
+
+/**
+ * Xử lý MoMo IPN
+ * Server MoMo gọi về đây (POST)
+ */
+const momoIpn = async (req, res) => {
+    try {
+        // MoMo gửi IPN bằng POST với body là JSON
+        const result = await processMomoIpn(req.body);
+        // Phản hồi cho MoMo theo đúng format họ yêu cầu
+        res.status(204).send(); // Status 204 No Content là đủ, không cần body
+         console.log("MoMo IPN processed:", result); // Log kết quả xử lý
+    } catch (error) {
+        console.error("Lỗi MoMo IPN:", error);
+        // Không thể báo lỗi trực tiếp cho MoMo ở đây, chỉ log lại
+         res.status(204).send(); // Vẫn phải trả 204
+    }
+};
+
+module.exports = { getListMyOrders, cancelOrder, getOrderDetail, getProductSnapshot, vnpayReturn, vnpayIpn, momoReturn, momoIpn };

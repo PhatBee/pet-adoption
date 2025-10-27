@@ -1,7 +1,9 @@
 const cartService = require("../services/cartService");
 const userService = require("../services/userService");
 const {createOrderFromCart} = require("../services/cartService");
-const { createPaymentUrl } = require("../services/vnpayService");
+const { createPaymentUrl: createVnpayUrl } = require("../services/vnpayService"); // Đổi tên để tránh trùng
+// 1. Import MoMo service
+const { createPaymentRequest: createMomoRequest } = require("../services/momoService");
 
 
 // Lấy giỏ hàng của user hiện tại
@@ -134,7 +136,7 @@ const placeOrder = async (req, res) => {
                 req.connection.socket.remoteAddress;
 
             // Tạo URL thanh toán
-            const vnpayUrl = createPaymentUrl(
+            const vnpayUrl = createVnpayUrl(
                 ipAddr,
                 order.total, // Tổng số tiền
                 order._id.toString(), // Mã đơn hàng
@@ -143,6 +145,29 @@ const placeOrder = async (req, res) => {
 
             // 3. Trả về redirectUrl (frontend sẽ tự động chuyển hướng)
             return res.json({ orderId: order._id, redirectUrl: vnpayUrl });
+        }
+        // --- 3. XỬ LÝ MOMO ---
+        else if (paymentMethod === "MOMO") {
+            try {
+                const requestId = orderId; // Dùng luôn orderId làm requestId cho đơn giản
+                const extraData = Buffer.from(JSON.stringify({ userId: userId })).toString("base64"); // Ví dụ: mã hóa userId vào extraData
+                
+                const momoResponse = await createMomoRequest(
+                    orderId,
+                    order.total,
+                    `Thanh toan don hang ${orderId}`,
+                    requestId,
+                    extraData
+                );
+                
+                // Trả về payUrl của MoMo (frontend sẽ redirect)
+                return res.json({ orderId: orderId, redirectUrl: momoResponse.payUrl });
+            } catch (momoError) {
+                 console.error("Lỗi khi tạo yêu cầu MoMo:", momoError);
+                 // Cân nhắc hủy đơn hàng đã tạo ở đây nếu gọi MoMo thất bại
+                 // await cancelPendingOrderAndRestoreStock(order, "Lỗi tạo link thanh toán MoMo");
+                 return res.status(500).json({ message: momoError.message || "Không thể tạo yêu cầu thanh toán MoMo" });
+            }
         }
 
         // 4. Nếu là COD, trả về như cũ
