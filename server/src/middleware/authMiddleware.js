@@ -4,7 +4,7 @@ const authenticate = (req, res, next) => {
     const auth = req.headers.authorization || "";
     const token = auth.startsWith("Bearer ") ? auth.substring(7) : null;
 
-    if (!token) return res.sendStatus(401).json({ message: "Thiếu access token" });
+    if (!token) return res.status(401).json({ message: "Thiếu access token" });;
 
     try {
         const userData = verifyAccessToken(token);
@@ -13,7 +13,7 @@ const authenticate = (req, res, next) => {
 
         return next();
     } catch (error) {
-        return res.sendStatus(403).json({ message: "Token không hợp lệ hoặc đã hết hạn" });
+        return res.status(403).json({ message: "Token không hợp lệ hoặc đã hết hạn" });
     }
 }
 

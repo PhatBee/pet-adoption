@@ -3,6 +3,7 @@ const crypto = require("crypto");
 const moment = require('moment');
 const Order = require('../models/Order'); // Import Order model
 
+
 // Lấy config từ .env (đã được load bởi server.js)
 const vnp_TmnCode = process.env.vnp_TmnCode;
 const vnp_HashSecret = process.env.vnp_HashSecret;
@@ -128,16 +129,19 @@ async function processIpn(vnp_Params) {
 function processReturnUrl(vnp_Params) {
     let secureHash = vnp_Params['vnp_SecureHash'];
 
-    delete vnp_Params['vnp_SecureHash'];
-    delete vnp_Params['vnp_SecureHashType'];
+    const paramsCopy = Object.assign({}, vnp_Params);
 
-    vnp_Params = sortObject(vnp_Params);
+
+    delete paramsCopy['vnp_SecureHash'];
+    delete paramsCopy['vnp_SecureHashType'];
+
+    const sortedParams = sortObject(paramsCopy);
     
-    let signData = querystring.stringify(vnp_Params, { encode: false });
+    let signData = querystring.stringify(sortedParams, { encode: false });
     let hmac = crypto.createHmac("sha512", vnp_HashSecret);
     let signed = hmac.update(new Buffer(signData, 'utf-8')).digest("hex");
 
-    return { isValid: secureHash === signed, params: vnp_Params };
+    return { isValid: secureHash === signed, params: sortedParams };
 }
 
 // Hàm helper sort object (lấy từ VNPAY demo)

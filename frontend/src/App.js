@@ -35,6 +35,7 @@ import { fetchWishlist } from "./store/wishlistSlice"
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect } from "react";
 import { refreshSessionThunk } from './store/authThunks';
+import PaymentResultPage from './pages/PaymentResultPage';
 
 
 function App() {
@@ -86,6 +87,7 @@ function App() {
         <Route path="/orders/:id" element={<OrderDetailPage />} />
         <Route path="/orders/:orderId/item/:productId/snapshot" element={<ProductSnapshotDetail />} />
         <Route path="/wishlist" element={<WishlistPage />} />
+        <Route path="/payment/result" element={<PaymentResultPage />} />
         <Route path="/admin/dashboard" element={<Dashboard />} />
 
         {/* 2. Bọc route admin bằng AdminRoute */}
