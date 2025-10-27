@@ -167,7 +167,14 @@ const createOrderFromCart = async ({ userId, shippingAddress, paymentMethod, ite
       // --- 4. Tính toán tổng cuối cùng ---
       const total = itemsTotal - couponDiscount - pointsDiscount;
 
-      // 5. Tạo đơn hàng và lưu thông tin giảm giá
+      // 5. TẠO GIỜ HẾT HẠN CHO ĐƠN HÀNG VNPAY
+      let expiresAt = null;
+      if (paymentMethod === "VNPAY") {
+        // Cho đơn hàng 15 phút để thanh toán
+        expiresAt = new Date(Date.now() + 15 * 60 * 1000); 
+      }
+
+      // 6. Tạo đơn hàng và lưu thông tin giảm giá
       const order = new Order({
         user: userId,
         items: orderItems,
@@ -180,13 +187,14 @@ const createOrderFromCart = async ({ userId, shippingAddress, paymentMethod, ite
         pointsDiscount,
         total,
         status: "pending",
-        orderStatusHistory: [{ status: "pending", orderedAt: new Date() }]
+        orderStatusHistory: [{ status: "pending", orderedAt: new Date() }],
+        expiresAt: expiresAt
       });
 
       await order.save({ session });
       createdOrder = order;
 
-      // 6. Cập nhật dữ liệu database
+      // 7. Cập nhật dữ liệu database
       // Cập nhật tồn kho sản phẩm
       for (const item of order.items) {
         await Product.updateOne(

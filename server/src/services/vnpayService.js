@@ -2,6 +2,7 @@ const querystring = require('qs');
 const crypto = require("crypto");
 const moment = require('moment');
 const Order = require('../models/Order'); // Import Order model
+const { cancelPendingOrderAndRestoreStock } = require('./orderService');
 
 
 // Lấy config từ .env (đã được load bởi server.js)
@@ -58,13 +59,18 @@ function createPaymentUrl(ipAddr, amount, orderId, orderInfo = 'Thanh toan don h
 async function processIpn(vnp_Params) {
     let secureHash = vnp_Params['vnp_SecureHash'];
 
-    // Xóa vnp_SecureHash và vnp_SecureHashType (nếu có) để kiểm tra chữ ký
-    delete vnp_Params['vnp_SecureHash'];
-    delete vnp_Params['vnp_SecureHashType'];
+    const paramsCopy = Object.assign({}, vnp_Params);
 
-    vnp_Params = sortObject(vnp_Params);
+
+    // Xóa vnp_SecureHash và vnp_SecureHashType (nếu có) để kiểm tra chữ ký
+    delete paramsCopy['vnp_SecureHash'];
+    delete paramsCopy['vnp_SecureHashType'];
+
+
+
+    const sorted_params = sortObject(paramsCopy);
     
-    let signData = querystring.stringify(vnp_Params, { encode: false });
+    let signData = querystring.stringify(sorted_params, { encode: false });
     let hmac = crypto.createHmac("sha512", vnp_HashSecret);
     let signed = hmac.update(new Buffer(signData, 'utf-8')).digest("hex");
 
@@ -91,10 +97,10 @@ async function processIpn(vnp_Params) {
                 return { RspCode: '02', Message: 'Order already confirmed' };
             }
 
-            // 4. Cập nhật trạng thái đơn hàng dựa trên rspCode
+            // 2. CẬP NHẬT LOGIC
             if (rspCode === '00') {
                 // Giao dịch thành công
-                order.status = 'processing'; // Hoặc 'completed' nếu bạn không có bước 'processing'
+                order.status = 'confirmed';
                 order.isPaid = true;
                 order.paidAt = new Date();
                 order.paymentInfo = {
@@ -102,14 +108,14 @@ async function processIpn(vnp_Params) {
                     vnpBankCode: vnp_Params['vnp_BankCode'],
                     vnpPayDate: vnp_Params['vnp_PayDate'],
                 };
-                order.orderStatusHistory.push({ status: "processing", updatedAt: new Date() });
+                order.orderStatusHistory.push({ status: "confirmed", changedAt: new Date() });
+                await order.save(); // Lưu thay đổi
             } else {
                 // Giao dịch thất bại
-                order.status = 'cancelled';
-                order.orderStatusHistory.push({ status: "cancelled", updatedAt: new Date(), reason: "Thanh toán VNPAY thất bại" });
+                // 3. Gọi hàm hủy đơn và hoàn kho
+                await cancelPendingOrderAndRestoreStock(order, `Thanh toán VNPAY thất bại. Mã lỗi: ${rspCode}`);
             }
 
-            await order.save();
             return { RspCode: '00', Message: 'Success' };
 
         } catch (error) {

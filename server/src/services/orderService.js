@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const Order = require("../models/Order");
-const Product = require("../models/Product");
+const {Product} = require("../models/Product");
+const User = require("../models/User");
 
 /**
  * Lấy danh sách đơn hàng của user theo pagination (page-based)
@@ -116,4 +117,75 @@ async function cancelOrder(orderId, userId) {
   }
 }
 
-module.exports = { getUserOrderById, fetchUserOrders, updateOrderStatus, cancelOrder, restockItems };
+// Cancel Order For Vnpay
+/**
+ * Hủy một đơn hàng và hoàn trả lại số lượng tồn kho.
+ * Chỉ nên gọi hàm này cho các đơn hàng CHƯA được thanh toán (pending)
+ * @param {object} order - Toàn bộ đối tượng Order (từ Mongoose)
+ * @param {string} reason - Lý do hủy đơn
+ */
+const cancelPendingOrderAndRestoreStock = async (order, reason) => {
+  if (order.status !== 'pending') {
+    console.warn(`Attempted to cancel an already processed order: ${order._id}`);
+    return;
+  }
+
+  // Bắt đầu một transaction để đảm bảo an toàn
+  const session = await Order.startSession();
+  session.startTransaction();
+
+  try {
+    // 1. Cập nhật trạng thái đơn hàng
+    order.status = 'cancelled';
+    order.orderStatusHistory.push({
+      status: 'cancelled',
+      changedAt: new Date(),
+      reason: reason
+    });
+    await order.save({ session });
+
+    // 2. Hoàn trả lại stock cho từng sản phẩm
+    for (const item of order.items) {
+      await Product.updateOne(
+        { _id: item.product }, // Dùng item.product (là _id)
+        { 
+          $inc: { 
+            stock: item.quantity,    // Cộng trả lại stock
+            soldCount: -item.quantity // Trừ đi số lượng đã bán
+          } 
+        },
+        { session }
+      );
+    }
+
+    // 3. Xử lý bù lại điểm tích lũy đã cộng
+    // Lấy tổng tiền từ các tên field phổ biến
+    const total = order.itemsTotal ?? 0;
+    const loyaltyDeducted = Math.round(total * 0.10); // 10%, làm tròn
+
+    // Lấy user và cập nhật loyaltyPoints
+    const userId = order.user && order.user._id ? order.user._id : order.user;
+    const user = await User.findById(userId).session(session);
+    if (!user) {
+      throw new Error(`Người dùng ${userId} không tồn tại`);
+    }
+
+    const currentPoints = user.loyaltyPoints ?? 0;
+    const newPoints = Math.max(0, currentPoints - loyaltyDeducted);
+    user.loyaltyPoints = newPoints;
+
+    await user.save({ session });
+
+
+    // 3. Commit transaction
+    await session.commitTransaction();
+  } catch (error) {
+    // Nếu có lỗi, rollback tất cả
+    await session.abortTransaction();
+    console.error(`Failed to cancel and restore stock for order ${order._id}:`, error);
+  } finally {
+    session.endSession();
+  }
+};
+
+module.exports = { getUserOrderById, fetchUserOrders, updateOrderStatus, cancelOrder, restockItems, cancelPendingOrderAndRestoreStock };

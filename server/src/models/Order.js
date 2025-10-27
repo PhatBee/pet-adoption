@@ -2,7 +2,8 @@ const mongoose = require("mongoose");
 
 const orderStatusHistorySchema = new mongoose.Schema({
   status: { type: String, required: true },
-  changedAt: { type: Date, default: Date.now }
+  changedAt: { type: Date, default: Date.now },
+  reason: { type: String, default: null }
 }, { _id: false });
 
 const orderItemSchema = new mongoose.Schema({
@@ -40,6 +41,7 @@ const orderSchema = new mongoose.Schema({
     type: Date, 
     default: () => new Date(Date.now() + 30 * 60 * 1000) 
   },
+  expiresAt: { type: Date, default: null }
 
 }, { timestamps: true });
 
