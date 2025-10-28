@@ -6,6 +6,9 @@ import { join } from 'path';
 
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
+import { AdminSalesModule } from './admin-sales/admin-sales.module';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
 
 @Module({
   imports: [
@@ -27,13 +30,22 @@ import { UserModule } from './user/user.module';
       serveRoot: '/uploads',
     }),
 
-    AuthModule, 
-    
+    ThrottlerModule.forRoot([{
+      name: 'default',
+      ttl: 60 * 15,
+      limit: 100,
+    }]),
+
+    AuthModule,
     UserModule,
+    AdminSalesModule,
   ],
   controllers: [],
   providers: [
-
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
   ],
 })
 export class AppModule {}

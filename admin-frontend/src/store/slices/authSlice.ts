@@ -1,5 +1,6 @@
 // src/store/slices/authSlice.ts
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { clearAccessToken, setAccessToken } from '../../utils/tokenStorage';
 import { loginAdminApi, LoginCredentials, LoginResponse } from '../api/authApi';
 import type { RootState } from '../store';
 
@@ -39,8 +40,7 @@ const authSlice = createSlice({
   initialState,
   reducers: {
     logout: (state) => {
-      localStorage.removeItem('admin_token');
-      localStorage.removeItem('admin_user');
+      clearAccessToken();
       state.user = null;
       state.token = null;
     },
@@ -55,6 +55,7 @@ const authSlice = createSlice({
         state.isLoading = false;
         state.user = action.payload.user;
         state.token = action.payload.access_token;
+        setAccessToken(action.payload.access_token);
       })
       .addCase(loginAdmin.rejected, (state, action) => {
         state.isLoading = false;

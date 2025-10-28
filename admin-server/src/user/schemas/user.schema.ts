@@ -67,9 +67,8 @@ export class User extends Document {
 
 export const UserSchema = SchemaFactory.createForClass(User);
 
-// TỰ ĐỘNG HASH MẬT KHẨU TRƯỚC KHI LƯU (Rất quan trọng)
 UserSchema.pre<User>('save', async function (next) {
-  // Chỉ hash nếu mật khẩu bị thay đổi (hoặc là user mới)
+
   if (!this.isModified('password')) {
     return next();
   }

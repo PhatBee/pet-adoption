@@ -1,4 +1,4 @@
-// src/store/api/authApi.ts
+import { setAccessToken } from '../../utils/tokenStorage';
 export interface LoginCredentials {
   email: string;
   password: string;
@@ -15,7 +15,6 @@ export interface LoginResponse {
 }
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
-
 /**
  * Gọi API đăng nhập Admin
  * @param credentials email & password
@@ -34,9 +33,7 @@ export const loginAdminApi = async (credentials: LoginCredentials): Promise<Logi
     throw new Error(data.message || 'Đăng nhập thất bại');
   }
 
-  // Lưu vào localStorage (nếu muốn tách ra chỗ khác cũng được)
-  localStorage.setItem('admin_token', data.access_token);
-  localStorage.setItem('admin_user', JSON.stringify(data.user));
+  setAccessToken(data.access_token);
 
   return data;
 };

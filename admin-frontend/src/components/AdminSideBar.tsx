@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/router'; // Import useRouter
 import { ShoppingBag, Package, Users, Tag, Bell, LayoutDashboard } from "lucide-react";
+import LogoutButton from './LogoutButton';
 
 // Thêm Dashboard vào menu
 const menuItems = [
@@ -29,7 +30,6 @@ export default function AdminSidebar() {
       <nav className="flex-1">
         <ul className="space-y-2">
           {menuItems.map(({ icon: Icon, label, href }) => {
-            // Kiểm tra xem link này có active không
             const isActive = currentPath === href;
 
             return (
@@ -37,14 +37,13 @@ export default function AdminSidebar() {
                 <Link
                   href={href}
                   className={`
-                    flex items-center gap-3 px-3 py-2.5 rounded-lg no-underline 
-                    font-medium transition-all duration-200
-                    ${
-                      isActive
-                        ? "bg-indigo-100 text-indigo-700 shadow-sm" // Style khi Active
-                        : "text-gray-600 hover:bg-gray-100 hover:text-gray-900" // Style mặc định
+                    flex items-center gap-3 px-3 py-2.5 rounded-lg no-underline
+                    font-medium transition-all duration-200
+                    ${isActive
+                      ? "bg-indigo-100 text-indigo-700 shadow-sm"
+                      : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
                     }
-                  `}
+                  `}
                 >
                   <Icon className={`w-5 h-5 ${isActive ? "text-indigo-600" : "text-gray-500"}`} />
                   <span className="text-sm">{label}</span>
@@ -54,7 +53,11 @@ export default function AdminSidebar() {
           })}
         </ul>
       </nav>
-      {/* (Có thể thêm phần User/Logout ở cuối sidebar) */}
+
+      <div className="mt-auto pt-4 border-t border-gray-200">
+        <LogoutButton />
+      </div>
+
     </aside>
   );
 }
