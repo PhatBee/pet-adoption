@@ -10,11 +10,9 @@ export default function CartPage() {
   const { items, isLoading } = useSelector((s) => s.cart);
 
   useEffect(() => {
-    // Chỉ fetch cart nếu chưa có item nào, tránh fetch lại không cần thiết
-    if (items.length === 0) {
+   
       dispatch(fetchCart());
-    }
-  }, [dispatch, items.length]);
+  }, [dispatch]);
 
   // THAY ĐỔI QUAN TRỌNG: Chỉ hiển thị loading toàn trang khi đang tải và chưa có item nào
   if (isLoading && items.length === 0) {

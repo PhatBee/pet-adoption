@@ -125,6 +125,13 @@ const cartSlice = createSlice({
             .addCase(addCartItem.fulfilled, (state, action) => {
                 state.isLoading = false;
                 state.items = action.payload.items;
+                // 💥 Đảm bảo các sản phẩm đã chọn vẫn còn trong giỏ hàng
+                const currentProductIds = state.items.map(item => item.product._id);
+                state.selectedItems = state.selectedItems.filter(id => currentProductIds.includes(id));
+                // 💥 Thêm sản phẩm mới vào danh sách chọn (giả sử người dùng muốn chọn nó)
+                // Lấy ID sản phẩm mới thêm (giả định API trả về items mới, ta cần tìm ID mới)
+                const newIds = currentProductIds.filter(id => !state.selectedItems.includes(id));
+                state.selectedItems.push(...newIds); // Thêm các ID mới vào danh sách chọn
                 console.log(action.payload.items);
                 state.error = null;
             })
@@ -141,6 +148,9 @@ const cartSlice = createSlice({
             .addCase(removeCartItem.fulfilled, (state, action) => {
                 state.isLoading = false;
                 state.items = action.payload.items;
+                // 💥 Lọc bỏ ID của sản phẩm đã bị xóa khỏi danh sách chọn
+                const currentProductIds = state.items.map(item => item.product._id);
+                state.selectedItems = state.selectedItems.filter(id => currentProductIds.includes(id));
                 state.error = null;
             })
             .addCase(removeCartItem.rejected, (state, action) => {
@@ -154,6 +164,9 @@ const cartSlice = createSlice({
             .addCase(updateCartItem.fulfilled, (state, action) => {
                 state.isLoading = false;
                 state.items = action.payload.items;
+                // 💥 Đảm bảo selectedItems vẫn hợp lệ sau khi cập nhật
+                const currentProductIds = state.items.map(item => item.product._id);
+                state.selectedItems = state.selectedItems.filter(id => currentProductIds.includes(id));
                 state.error = null;
             })
             .addCase(updateCartItem.rejected, (state, action) => {
