@@ -10,8 +10,8 @@ router.get("/vnpay_return", vnpayReturn);
 // 2. Route VNPAY IPN (VNPAY's server)
 router.get("/vnpay_ipn", vnpayIpn);
 
-router.get("/momo_return", orderController.momoReturn); // GET cho redirect trình duyệt
-router.post("/momo_ipn", orderController.momoIpn); // POST cho server MoMo gọi
+router.get("/momo_return", momoReturn); // GET cho redirect trình duyệt
+router.post("/momo_ipn", momoIpn); // POST cho server MoMo gọi
 
 // danh sách đơn của user
 router.get("/my", authenticate, getListMyOrders);

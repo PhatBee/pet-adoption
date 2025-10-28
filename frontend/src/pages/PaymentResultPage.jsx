@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
-import { FaCheckCircle, FaTimesCircle } from 'react-icons/fa';
+import { FaCheckCircle, FaTimesCircle, FaInfoCircle } from 'react-icons/fa';
 
 // Các mã lỗi cơ bản từ VNPAY (bạn có thể mở rộng)
 const vnpayMessages = {
@@ -18,29 +18,92 @@ const vnpayMessages = {
   '99': 'Lỗi không xác định. Vui lòng liên hệ quản trị viên.',
 };
 
+// === THÊM MOMO MESSAGES ===
+// Dựa trên file Danh Sách Result Codes _ MoMo Developers.html
+const momoMessages = {
+  0: 'Giao dịch thành công.',
+  10: 'Hệ thống đang bảo trì.',
+  11: 'Truy cập bị từ chối.',
+  // ... (Thêm các mã lỗi quan trọng khác từ file HTML bạn cung cấp) ...
+  1000: 'Giao dịch đang chờ xác nhận.', // Mã này quan trọng
+  1001: 'Giao dịch thất bại do tài khoản không đủ tiền.',
+  1003: 'Giao dịch bị hủy.',
+  1004: 'Giao dịch thất bại do vượt quá hạn mức.',
+  1005: 'Giao dịch thất bại do url hoặc QR code đã hết hạn.',
+  1006: 'Giao dịch thất bại do người dùng từ chối xác nhận.',
+  // ...
+  9000: 'Giao dịch đã được xác nhận thành công.', // Đây cũng là thành công
+  // Lỗi mặc định
+  default: 'Giao dịch không thành công. Vui lòng thử lại hoặc liên hệ hỗ trợ.',
+  99: 'Lỗi không xác định. Vui lòng liên hệ hỗ trợ.', // Lỗi chung hoặc signature sai
+};
+
 export default function PaymentResultPage() {
   const [searchParams] = useSearchParams();
   const [message, setMessage] = useState('');
   const [isSuccess, setIsSuccess] = useState(false);
-  
-  const vnp_ResponseCode = searchParams.get('vnp_ResponseCode');
-  const vnp_TxnRef = searchParams.get('vnp_TxnRef'); // Mã đơn hàng
-  const vnp_Amount = searchParams.get('vnp_Amount');
-  const vnp_PayDate = searchParams.get('vnp_PayDate');
-  const vnp_BankCode = searchParams.get('vnp_BankCode');
+  const [isPending, setIsPending] = useState(false); // Thêm trạng thái chờ
+  const [details, setDetails] = useState({}); // Lưu trữ chi tiết giao dịch
+
+  // Đọc source để biết là VNPAY hay MOMO
+  const source = searchParams.get('source');
 
   useEffect(() => {
-    if (vnp_ResponseCode === '00') {
-      setIsSuccess(true);
-      setMessage(vnpayMessages['00'] || 'Giao dịch thành công');
-    } else {
-      setIsSuccess(false);
-      setMessage(vnpayMessages[vnp_ResponseCode] || 'Giao dịch không thành công');
+    let msg = '';
+    let success = false;
+    let pending = false;
+    const extractedDetails = {};
+
+    if (source === 'momo') {
+      const resultCode = searchParams.get('resultCode');
+      extractedDetails.orderId = searchParams.get('orderId');
+      extractedDetails.amount = searchParams.get('amount');
+      extractedDetails.transId = searchParams.get('transId'); // MoMo trans id
+      extractedDetails.payType = searchParams.get('payType');
+      extractedDetails.resultCode = resultCode;
+
+      // ResultCode 0 hoặc 9000 là thành công
+      if (resultCode === '0' || resultCode === '9000') {
+        success = true;
+        msg = momoMessages[resultCode] || momoMessages[0];
+      } 
+      // ResultCode 1000 là đang chờ
+      else if (resultCode === '1000') {
+          pending = true;
+          msg = momoMessages[1000];
+      }
+      else {
+        success = false;
+        msg = momoMessages[resultCode] || momoMessages.default;
+      }
+
+    } else { // Mặc định là VNPAY
+      const vnp_ResponseCode = searchParams.get('vnp_ResponseCode');
+      extractedDetails.orderId = searchParams.get('vnp_TxnRef');
+      extractedDetails.amount = searchParams.get('vnp_Amount');
+      extractedDetails.vnpTranNo = searchParams.get('vnp_TransactionNo'); // VNPAY trans id
+      extractedDetails.bankCode = searchParams.get('vnp_BankCode');
+      extractedDetails.payDate = searchParams.get('vnp_PayDate');
+      extractedDetails.responseCode = vnp_ResponseCode;
+
+      if (vnp_ResponseCode === '00') {
+        success = true;
+        msg = vnpayMessages['00'];
+      } else {
+        success = false;
+        msg = vnpayMessages[vnp_ResponseCode] || 'Giao dịch không thành công';
+      }
     }
-  }, [vnp_ResponseCode]);
+
+    setMessage(msg);
+    setIsSuccess(success);
+    setIsPending(pending);
+    setDetails(extractedDetails);
+
+  }, [searchParams, source]);
 
   // Định dạng ngày giờ
-  const formatPayDate = (dateStr) => {
+  const formatVnpayDate = (dateStr) => {
     if (!dateStr) return '';
     // 20231207170112 -> YYYYMMDDHHmmss
     try {
@@ -59,50 +122,78 @@ export default function PaymentResultPage() {
     <div className="container mx-auto max-w-2xl text-center p-8 my-10 bg-white shadow-lg rounded-lg">
       {isSuccess ? (
         <FaCheckCircle className="text-green-500 text-6xl mx-auto mb-4" />
+      ) : isPending ? (
+          <FaInfoCircle className="text-yellow-500 text-6xl mx-auto mb-4" />
       ) : (
         <FaTimesCircle className="text-red-500 text-6xl mx-auto mb-4" />
       )}
       
-      <h1 className={`text-3xl font-bold mb-4 ${isSuccess ? 'text-gray-800' : 'text-red-600'}`}>
+      <h1 className={`text-3xl font-bold mb-4 ${isSuccess ? 'text-gray-800' : isPending ? 'text-yellow-700' : 'text-red-600'}`}>
         {message}
       </h1>
       
       <p className="text-gray-600 mb-6">
-        {isSuccess 
-          ? 'Cảm ơn bạn đã hoàn tất thanh toán.' 
-          : 'Đã có lỗi xảy ra trong quá trình thanh toán. Vui lòng kiểm tra lại.'}
+        {isSuccess ? 'Cảm ơn bạn đã hoàn tất thanh toán.' : 
+         isPending ? 'Giao dịch đang chờ xác nhận từ MoMo. Vui lòng đợi hoặc kiểm tra lại sau.' : 
+         'Đã có lỗi xảy ra. Vui lòng kiểm tra lại.'}
       </p>
 
       {/* Hiển thị thông tin giao dịch */}
       <div className="text-left bg-gray-50 p-6 rounded-md border">
         <h3 className="text-lg font-semibold mb-4 border-b pb-2">Thông tin giao dịch</h3>
         <div className="space-y-3">
-          <div className="flex justify-between">
-            <span className="text-gray-500">Mã đơn hàng:</span>
-            <span className="font-medium text-gray-900">{vnp_TxnRef}</span>
-          </div>
-          {isSuccess && (
-            <>
-              <div className="flex justify-between">
+          {details.orderId && (
+            <div className="flex justify-between">
+              <span className="text-gray-500">Mã đơn hàng:</span>
+              <span className="font-medium text-gray-900">{details.orderId}</span>
+            </div>
+          )}
+          {details.amount && (
+             <div className="flex justify-between">
                 <span className="text-gray-500">Số tiền:</span>
                 <span className="font-medium text-gray-900">
-                  {(Number(vnp_Amount) / 100).toLocaleString()} VNĐ
+                  {/* VNPAY amount * 100, MoMo thì không */}
+                  {(Number(details.amount) / (source === 'momo' ? 1 : 100)).toLocaleString()} VNĐ
                 </span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-500">Ngân hàng:</span>
-                <span className="font-medium text-gray-900">{vnp_BankCode}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-500">Thời gian:</span>
-                <span className="font-medium text-gray-900">{formatPayDate(vnp_PayDate)}</span>
-              </div>
-            </>
           )}
-          {!isSuccess && vnp_ResponseCode && (
+          {/* VNPAY Details */}
+          {source !== 'momo' && details.bankCode && (
+             <div className="flex justify-between">
+                <span className="text-gray-500">Ngân hàng (VNPAY):</span>
+                <span className="font-medium text-gray-900">{details.bankCode}</span>
+              </div>
+          )}
+           {source !== 'momo' && details.vnpTranNo && (
+             <div className="flex justify-between">
+                <span className="text-gray-500">Mã GD VNPAY:</span>
+                <span className="font-medium text-gray-900">{details.vnpTranNo}</span>
+              </div>
+          )}
+          {source !== 'momo' && details.payDate && (
+             <div className="flex justify-between">
+                <span className="text-gray-500">Thời gian (VNPAY):</span>
+                <span className="font-medium text-gray-900">{formatVnpayDate(details.payDate)}</span>
+              </div>
+          )}
+           {/* MOMO Details */}
+           {source === 'momo' && details.transId && (
+             <div className="flex justify-between">
+                <span className="text-gray-500">Mã GD MoMo:</span>
+                <span className="font-medium text-gray-900">{details.transId}</span>
+              </div>
+          )}
+           {source === 'momo' && details.payType && (
+             <div className="flex justify-between">
+                <span className="text-gray-500">Loại thanh toán (MoMo):</span>
+                <span className="font-medium text-gray-900">{details.payType}</span>
+              </div>
+          )}
+          {/* Mã lỗi */}
+          {!isSuccess && !isPending && (details.resultCode || details.responseCode) && (
             <div className="flex justify-between">
-              <span className="text-gray-500">Mã lỗi VNPAY:</span>
-              <span className="font-medium text-red-600">{vnp_ResponseCode}</span>
+              <span className="text-gray-500">Mã lỗi:</span>
+              <span className="font-medium text-red-600">{details.resultCode || details.responseCode}</span>
             </div>
           )}
         </div>
@@ -115,12 +206,15 @@ export default function PaymentResultPage() {
         >
           Về trang chủ
         </Link>
-        <Link 
-          to={`/orders/${vnp_TxnRef}`} 
-          className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-        >
-          Xem chi tiết đơn hàng
-        </Link>
+         {/* Chỉ hiển thị nút xem đơn hàng nếu có orderId */}
+         {details.orderId && (
+            <Link 
+            to={`/orders/${details.orderId}`} 
+            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+            >
+            Xem chi tiết đơn hàng
+            </Link>
+         )}
       </div>
     </div>
   );

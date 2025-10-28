@@ -4,8 +4,8 @@
   const User = require("../models/User");
   const mongoose = require("mongoose");
   const querystring = require('qs');
-  const { processIpn, processReturnUrl } = require("../services/vnpayService");
-
+  const { processIpn: processVnpayIpn, processReturnUrl: processVnpayReturnUrl } = require("../services/vnpayService");
+  const { processIpn: processMomoIpn, verifyReturnUrl: verifyMomoReturnUrl } = require("../services/momoService");
   async function getListMyOrders(req, res) {
     try {
       const userId = req.user.id;
@@ -168,7 +168,7 @@ const vnpayReturn = (req, res) => {
 
     try {
         console.log("VNPAY Return Query:", req.query);
-        const { isValid, params } = processReturnUrl(req.query);
+        const { isValid, params } = processVnpayReturnUrl(req.query);
 
         console.log("VNPAY Return Params:", params);
 
@@ -196,7 +196,7 @@ const vnpayReturn = (req, res) => {
  */
 const vnpayIpn = async (req, res) => {
     try {
-        const result = await processIpn(req.query);
+        const result = await processVnpayIpn(req.query);
         res.status(200).json(result);
     } catch (error) {
         console.error("Lỗi VNPAY IPN:", error);

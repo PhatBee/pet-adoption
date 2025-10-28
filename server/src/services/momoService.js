@@ -22,7 +22,7 @@ const ipnUrl = process.env.MOMO_IPN_URL;           // Cần public URL khi test
  */
 function createPaymentRequest(orderId, amount, orderInfo = "Thanh toán đơn hàng", requestId, extraData = "") {
     return new Promise((resolve, reject) => {
-        const requestType = "captureWallet"; // Hoặc "payWithMethod" nếu bạn dùng ATM/CC qua MoMo
+        const requestType = "payWithMethod"; // Hoặc "captureWallet"
         const lang = 'vi';
 
         // Dữ liệu cần ký tên
@@ -210,6 +210,8 @@ function verifyReturnUrl(queryParams) {
         extraData,
         signature: receivedSignature
     } = queryParams;
+
+    console.log("verify return url: ", queryParams);
 
     // Dữ liệu cần ký tên để xác thực (theo đúng thứ tự MoMo yêu cầu)
     const rawSignature = `accessKey=${accessKey}&amount=${amount}&extraData=${extraData}&message=${message}&orderId=${orderId}&orderInfo=${orderInfo}&orderType=${orderType}&partnerCode=${resPartnerCode}&payType=${payType}&requestId=${requestId}&responseTime=${responseTime}&resultCode=${resultCode}&transId=${transId}`;

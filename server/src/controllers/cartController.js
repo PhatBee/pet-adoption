@@ -120,12 +120,13 @@ const placeOrder = async (req, res) => {
             return res.status(400).json({ message: "Vui lòng chọn sản phẩm để đặt hàng" });
         }
 
-        if (paymentMethod && !["COD", "VNPAY"].includes(paymentMethod)) {
+        if (paymentMethod && !["COD", "VNPAY", "MOMO"].includes(paymentMethod)) {
             return res.status(400).json({ message: "Phương thức thanh toán không hợp lệ" });
         }
 
         // Truyền `items` vào service
         const  { order }  = await createOrderFromCart({ userId, shippingAddress, paymentMethod, items, couponCode, pointsToUse });
+        const orderId = order._id.toString();
 
         // --- 2. XỬ LÝ VNPAY ---
         if (paymentMethod === "VNPAY") {
