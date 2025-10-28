@@ -1,13 +1,17 @@
-const orderService = require("../services/orderService");
-const Order = require("../models/Order");
-const Review = require("../models/Review");
-
-async function getListMyOrders(req, res) {
-  try {
-    const userId = req.user.id;
-    const page = req.query.page || 1;
-    const limit = req.query.limit || 10;
-    const status = req.query.status || null; // Lấy status từ query params
+  const orderService = require("../services/orderService");
+  const Order = require("../models/Order");
+  const Review = require("../models/Review")
+  const User = require("../models/User");
+  const mongoose = require("mongoose");
+  const querystring = require('qs');
+  const { processIpn: processVnpayIpn, processReturnUrl: processVnpayReturnUrl } = require("../services/vnpayService");
+  const { processIpn: processMomoIpn, verifyReturnUrl: verifyMomoReturnUrl } = require("../services/momoService");
+  async function getListMyOrders(req, res) {
+    try {
+      const userId = req.user.id;
+      const page = req.query.page || 1;
+      const limit = req.query.limit || 10;
+      const status = req.query.status || null; // Lấy status từ query params
 
     const data = await orderService.fetchUserOrders(userId, page, limit, status);
     return res.json(data);
@@ -31,10 +35,14 @@ async function getListMyOrders(req, res) {
 //   }
 // }
 
-async function cancelOrder(req, res) {
-  try {
-    const userId = req.user.id;
-    const orderId = req.params.orderId;
+  async function cancelOrder(req, res) {
+    const session = await mongoose.startSession();
+    try {
+      const userId = req.user.id;
+      const orderId = req.params.orderId;
+
+      session.startTransaction();
+
 
     const order = await Order.findOne({ _id: orderId, user: userId });
     if (!order) return res.status(404).json({ message: "Đơn hàng không tồn tại" });
@@ -44,7 +52,12 @@ async function cancelOrder(req, res) {
       return res.status(403).json({ message: "Bạn không có quyền hủy đơn này" });
     }
 
-    const now = new Date();
+      const now = new Date();
+
+      const total = order.itemsTotal ?? 0;
+      
+      // Hàm tính số xu cần trừ (15% của tổng tiền)
+      const deduction = Math.round(0.15 * total);
 
     // Nếu còn trong thời hạn hủy (30 phút sau khi đặt)
     if (now <= order.cancellableUntil &&
@@ -52,27 +65,55 @@ async function cancelOrder(req, res) {
       order.status = "cancelled";
       order.orderStatusHistory.push({ status: "cancelled", changedAt: now });
 
-      await order.save();
-      return res.json({ message: "Hủy đơn thành công", order });
+        // Cập nhật loyaltyPoints của user - chỉ khi hủy thành công
+      const user = await User.findById(userId).session(session);
+      if (!user) {
+        await session.abortTransaction();
+        session.endSession();
+        return res.status(404).json({ message: "Người dùng không tồn tại" });
+      }
+
+      // Trừ loyaltyPoints, không cho âm
+      const currentPoints = user.loyaltyPoints ?? 0;
+      const newPoints = Math.max(0, currentPoints - deduction);
+      user.loyaltyPoints = newPoints;
+
+      // Lưu cả order và user trong transaction
+      await order.save({ session });
+      await user.save({ session });
+
+      await session.commitTransaction();
+      session.endSession();
+
+      return res.json({
+        message: "Hủy đơn thành công",
+        order
+      });
+      }
+
+      // Nếu đã quá hạn hoặc đơn đang chuẩn bị/giao
+      if (["confirmed", "preparing", "shipping"].includes(order.status)) {
+        order.status = "cancel_requested";
+        order.orderStatusHistory.push({ status: "cancel_requested", changedAt: now });
+        await order.save({ session });
+
+        await session.commitTransaction();
+        session.endSession();
+        return res.json({ message: "Đã gửi yêu cầu hủy đơn.", order });
+      }
+
+      // Nếu đơn đã giao hoặc đã hủy thì không cho hủy
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(400).json({ message: "Không thể hủy đơn" });
+
+    } catch (error) {
+      try { await session.abortTransaction(); } catch (_) {}
+      session.endSession();
+      console.error("Cancel Order Error:", error);
+      res.status(500).json({ message: "Lỗi server", error });
     }
-
-    // Nếu đã quá hạn hoặc đơn đang chuẩn bị/giao
-    if (["confirmed", "preparing", "shipping"].includes(order.status)) {
-      order.status = "cancel_requested";
-      order.orderStatusHistory.push({ status: "cancel_requested", changedAt: now });
-
-      await order.save();
-      return res.json({ message: "Đã gửi yêu cầu hủy đơn.", order });
-    }
-
-    // Nếu đơn đã giao hoặc đã hủy thì không cho hủy
-    return res.status(400).json({ message: "Không thể hủy đơn" });
-
-  } catch (error) {
-    console.error("Cancel Order Error:", error);
-    res.status(500).json({ message: "Lỗi server", error });
   }
-}
 
 // GET /api/orders/:id  -> chi tiết order (chỉ owner)
 async function getOrderDetail(req, res) {
@@ -118,14 +159,105 @@ async function getProductSnapshot(req, res) {
   }
 }
 
-async function getReorderInfo(req, res) {
-  try {
-    const { orderId } = req.params;
-    const result = await orderService.getReorderInfo(orderId);
-    res.json(result);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-}
+  /**
+ * Xử lý VNPAY Return
+ * Trình duyệt của user được VNPAY redirect về đây
+ */
+const vnpayReturn = (req, res) => {
+    const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:3000';
 
-module.exports = { getListMyOrders, cancelOrder, getOrderDetail, getProductSnapshot, getReorderInfo };
+    try {
+        console.log("VNPAY Return Query:", req.query);
+        const { isValid, params } = processVnpayReturnUrl(req.query);
+
+        console.log("VNPAY Return Params:", params);
+
+
+        // Tạo query string để gửi về frontend
+        const queryString = querystring.stringify(params);
+        console.log("VNPAY Return Query String:", queryString);
+
+        if (isValid) {
+            // Chuyển hướng về trang kết quả của React
+            res.redirect(`${CLIENT_URL}/payment/result?${queryString}`);
+        } else {
+            // Chuyển hướng về trang kết quả với mã lỗi
+            res.redirect(`${CLIENT_URL}/payment/result?vnp_ResponseCode=97`);
+        }
+    } catch (error) {
+        console.error("Lỗi VNPAY Return:", error);
+        res.redirect(`${CLIENT_URL}/payment/result?vnp_ResponseCode=99`);
+    }
+};
+
+/**
+ * Xử lý VNPAY IPN
+ * Server VNPAY gọi về đây (server-to-server)
+ */
+const vnpayIpn = async (req, res) => {
+    try {
+        const result = await processVnpayIpn(req.query);
+        res.status(200).json(result);
+    } catch (error) {
+        console.error("Lỗi VNPAY IPN:", error);
+        res.status(200).json({ RspCode: '99', Message: 'Unknown error' });
+    }
+};
+
+// === 2. MOMO HANDLERS ===
+/**
+ * Xử lý MoMo Return
+ * Trình duyệt user được MoMo redirect về đây (GET)
+ */
+const momoReturn = (req, res) => {
+    const CLIENT_URL = process.env.CLIENT_URL;
+
+    try {
+        const { isValid, params } = verifyMomoReturnUrl(req.query);
+
+        // Tạo query string để gửi về frontend
+        // Quan trọng: Chỉ gửi các tham số cần thiết và an toàn
+        const returnParams = {
+            orderId: params.orderId,
+            amount: params.amount,
+            resultCode: params.resultCode,
+            message: params.message,
+            payType: params.payType,
+            transId: params.transId,
+            // Không gửi signature về client
+        };
+        const queryString = querystring.stringify(returnParams);
+
+        if (isValid) {
+            // Chuyển hướng về trang kết quả React
+            res.redirect(`${CLIENT_URL}/payment/result?${queryString}&source=momo`); // Thêm source=momo để biết là từ MoMo
+        } else {
+            // Chữ ký không hợp lệ, vẫn chuyển hướng nhưng báo lỗi
+             console.warn("MoMo Return URL Signature Invalid:", req.query);
+            res.redirect(`${CLIENT_URL}/payment/result?resultCode=99&message=Invalid+signature&source=momo`);
+        }
+    } catch (error) {
+        console.error("Lỗi MoMo Return:", error);
+        res.redirect(`${CLIENT_URL}/payment/result?resultCode=99&message=Unknown+error&source=momo`);
+    }
+};
+
+/**
+ * Xử lý MoMo IPN
+ * Server MoMo gọi về đây (POST)
+ */
+const momoIpn = async (req, res) => {
+    try {
+        // MoMo gửi IPN bằng POST với body là JSON
+        const result = await processMomoIpn(req.body);
+        // Phản hồi cho MoMo theo đúng format họ yêu cầu
+        res.status(204).send(); // Status 204 No Content là đủ, không cần body
+         console.log("MoMo IPN processed:", result); // Log kết quả xử lý
+    } catch (error) {
+        console.error("Lỗi MoMo IPN:", error);
+        // Không thể báo lỗi trực tiếp cho MoMo ở đây, chỉ log lại
+         res.status(204).send(); // Vẫn phải trả 204
+    }
+};
+
+module.exports = { getListMyOrders, cancelOrder, getOrderDetail, getProductSnapshot, vnpayReturn, vnpayIpn, momoReturn, momoIpn };

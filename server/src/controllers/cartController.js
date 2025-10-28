@@ -1,6 +1,9 @@
 const cartService = require("../services/cartService");
 const userService = require("../services/userService");
 const {createOrderFromCart} = require("../services/cartService");
+const { createPaymentUrl: createVnpayUrl } = require("../services/vnpayService"); // Đổi tên để tránh trùng
+// 1. Import MoMo service
+const { createPaymentRequest: createMomoRequest } = require("../services/momoService");
 
 
 // Lấy giỏ hàng của user hiện tại
@@ -117,20 +120,58 @@ const placeOrder = async (req, res) => {
             return res.status(400).json({ message: "Vui lòng chọn sản phẩm để đặt hàng" });
         }
 
-        if (paymentMethod && !["COD", "VNPAY"].includes(paymentMethod)) {
+        if (paymentMethod && !["COD", "VNPAY", "MOMO"].includes(paymentMethod)) {
             return res.status(400).json({ message: "Phương thức thanh toán không hợp lệ" });
         }
 
         // Truyền `items` vào service
         const  { order }  = await createOrderFromCart({ userId, shippingAddress, paymentMethod, items, couponCode, pointsToUse });
+        const orderId = order._id.toString();
 
-        // Nếu dùng VNPAY -> trả về URL thanh toán
+        // --- 2. XỬ LÝ VNPAY ---
         if (paymentMethod === "VNPAY") {
-            // Tạo URL thanh toán giả lập
-            const vnpayUrl = `https://sandbox.vnpayment.vn/paymentv2/vpcpay.html?vnp_Amount=${order.total * 100}&vnp_OrderInfo=Thanh+toan+don+hang+${order._id}&vnp_TxnRef=${order._id}`;
-            return res.json({ orderId: order._id, paymentUrl: vnpayUrl });
+            // Lấy IP client
+            const ipAddr = req.headers['x-forwarded-for'] ||
+                req.connection.remoteAddress ||
+                req.socket.remoteAddress ||
+                req.connection.socket.remoteAddress;
+
+            // Tạo URL thanh toán
+            const vnpayUrl = createVnpayUrl(
+                ipAddr,
+                order.total, // Tổng số tiền
+                order._id.toString(), // Mã đơn hàng
+                `Thanh toan don hang ${order._id}` // Thông tin đơn hàng
+            );
+
+            // 3. Trả về redirectUrl (frontend sẽ tự động chuyển hướng)
+            return res.json({ orderId: order._id, redirectUrl: vnpayUrl });
+        }
+        // --- 3. XỬ LÝ MOMO ---
+        else if (paymentMethod === "MOMO") {
+            try {
+                const requestId = orderId; // Dùng luôn orderId làm requestId cho đơn giản
+                const extraData = Buffer.from(JSON.stringify({ userId: userId })).toString("base64"); // Ví dụ: mã hóa userId vào extraData
+                
+                const momoResponse = await createMomoRequest(
+                    orderId,
+                    order.total,
+                    `Thanh toan don hang ${orderId}`,
+                    requestId,
+                    extraData
+                );
+                
+                // Trả về payUrl của MoMo (frontend sẽ redirect)
+                return res.json({ orderId: orderId, redirectUrl: momoResponse.payUrl });
+            } catch (momoError) {
+                 console.error("Lỗi khi tạo yêu cầu MoMo:", momoError);
+                 // Cân nhắc hủy đơn hàng đã tạo ở đây nếu gọi MoMo thất bại
+                 // await cancelPendingOrderAndRestoreStock(order, "Lỗi tạo link thanh toán MoMo");
+                 return res.status(500).json({ message: momoError.message || "Không thể tạo yêu cầu thanh toán MoMo" });
+            }
         }
 
+        // 4. Nếu là COD, trả về như cũ
         res.json({ orderId: order._id, order });
     } catch (error) {
         const code = error.status || 500;

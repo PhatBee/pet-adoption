@@ -2,7 +2,8 @@ const mongoose = require("mongoose");
 
 const orderStatusHistorySchema = new mongoose.Schema({
   status: { type: String, required: true },
-  changedAt: { type: Date, default: Date.now }
+  changedAt: { type: Date, default: Date.now },
+  reason: { type: String, default: null }
 }, { _id: false });
 
 const orderItemSchema = new mongoose.Schema({
@@ -16,11 +17,23 @@ const addressSchema = new mongoose.Schema({
   ward: String, district: String, city: String
 }, { _id: false });
 
+// Thêm cấu trúc cho paymentInfo
+const paymentInfoSchema = new mongoose.Schema({
+  // VNPAY fields
+  vnpTranNo: String,
+  vnpBankCode: String,
+  vnpPayDate: String,
+  // MOMO fields
+  momoTransId: String, // Thêm trường này
+  momoPayType: String, // Thêm trường này (ví dụ: qr, app)
+}, { _id: false });
+
 const orderSchema = new mongoose.Schema({
   user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
   items: [orderItemSchema],
   shippingAddress: addressSchema,
-  paymentMethod: { type: String, enum: ["COD", "VNPAY"], default: "COD" },
+  paymentMethod: { type: String, enum: ["COD", "VNPAY", "MOMO"], default: "COD" },
+  paymentInfo: paymentInfoSchema, // Sử dụng schema mới
   itemsTotal: { type: Number, required: true },
 
   // -- THÊM CÁC TRƯỜNG KHUYẾN MÃI VÀ ĐIỂM TÍCH LŨY Ở ĐÂY --
@@ -40,6 +53,7 @@ const orderSchema = new mongoose.Schema({
     type: Date, 
     default: () => new Date(Date.now() + 30 * 60 * 1000) 
   },
+  expiresAt: { type: Date, default: null }
 
 }, { timestamps: true });
 

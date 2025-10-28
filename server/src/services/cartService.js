@@ -167,7 +167,14 @@ const createOrderFromCart = async ({ userId, shippingAddress, paymentMethod, ite
       // --- 4. Tính toán tổng cuối cùng ---
       const total = itemsTotal - couponDiscount - pointsDiscount;
 
-      // 5. Tạo đơn hàng và lưu thông tin giảm giá
+      // 5. TẠO GIỜ HẾT HẠN CHO ĐƠN HÀNG VNPAY
+      let expiresAt = null;
+      if (paymentMethod === "VNPAY") {
+        // Cho đơn hàng 15 phút để thanh toán
+        expiresAt = new Date(Date.now() + 15 * 60 * 1000); 
+      }
+
+      // 6. Tạo đơn hàng và lưu thông tin giảm giá
       const order = new Order({
         user: userId,
         items: orderItems,
@@ -180,13 +187,14 @@ const createOrderFromCart = async ({ userId, shippingAddress, paymentMethod, ite
         pointsDiscount,
         total,
         status: "pending",
-        orderStatusHistory: [{ status: "pending", orderedAt: new Date() }]
+        orderStatusHistory: [{ status: "pending", orderedAt: new Date() }],
+        expiresAt: expiresAt
       });
 
       await order.save({ session });
       createdOrder = order;
 
-      // 6. Cập nhật dữ liệu database
+      // 7. Cập nhật dữ liệu database
       // Cập nhật tồn kho sản phẩm
       for (const item of order.items) {
         await Product.updateOne(
@@ -235,66 +243,4 @@ const createOrderFromCart = async ({ userId, shippingAddress, paymentMethod, ite
     session.endSession();
   }
 }
-// Fallback: tạo đơn hàng từ giỏ hàng nếu lỗi trong transaction
-const createOrderFromCartFallback = async ({ userId, shippingAddress, paymentMethod }) => {
-  // Lấy giỏ hàng
-  const cart = await Cart.findOne({ user: userId }).populate("items.product");
-  if (!cart || !cart.items.length) throw { status: 400, message: "Giỏ hàng trống" };
-
-  let itemsTotal = 0;
-  const orderItems = [];
-  for (const item of cart.items) {
-    const product = item.product;
-    const quantity = item.quantity;
-    if (!product) throw { status: 400, message: "Sản phẩm trong giỏ hàng không tồn tại" };
-    if (product.stock < quantity) throw { status: 400, message: `Sản phẩm ${product.name} không đủ hàng` };
-
-    itemsTotal += product.price * quantity;
-    // snapshot thông tin sản phẩm
-    const productSnapshot = {
-      id: product._id,
-      name: product.name,
-      price: product.price,
-      thumbnail: product.thumbnail,
-      description: product.description,
-      slug: product.slug,
-      category: product.category,
-      compareAtPrice: product.compareAtPrice,
-      image: product.images || null
-    };
-
-    orderItems.push({ product: product._id, productSnapshot: productSnapshot, quantity: quantity });
-  }
-
-  const total = itemsTotal; // Possible add shipping fee, tax, discount, etc.
-
-  // Tạo đơn hàng
-  const order = new Order({
-    user: userId,
-    items: orderItems,
-    shippingAddress,
-    paymentMethod,
-    itemsTotal,
-    total,
-    status: "pending",
-    orderedAt: new Date(),
-  });
-
-  await order.save();
-
-  // Cập nhật tồn kho
-  for (const item of cart.items) {
-    await Product.updateOne(
-      { _id: item.product._id },
-      { $inc: { stock: -item.quantity, soldCount: item.quantity } }
-    );
-  }
-
-  // Xóa các item đã đặt khỏi giỏ hàng
-  cart.items = [];
-  await cart.save();
-
-  return { order };
-}
-
 module.exports = { getCartByUser, addProductToCart, updateCartItem, removeCartItem, clearCart, createOrderFromCart };
