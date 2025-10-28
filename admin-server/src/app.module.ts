@@ -9,6 +9,7 @@ import { UserModule } from './user/user.module';
 import { AdminSalesModule } from './admin-sales/admin-sales.module';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
+import { AdminOrderModule } from './orders/orders.module';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { APP_GUARD } from '@nestjs/core';
     AuthModule,
     UserModule,
     AdminSalesModule,
+    AdminOrderModule,
   ],
   controllers: [],
   providers: [

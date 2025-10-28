@@ -44,13 +44,37 @@ export class AdminSalesService {
           revenue: { $sum: '$total' },
         },
       },
-      { $sort: { '_id.year': 1, '_id.month': 1, '_id.day': 1 } },
+      // { $sort: { '_id.year': 1, '_id.month': 1, '_id.day': 1 } },
     ]);
 
-    return orders.map((o) => ({
-      label: `${o._id.day}/${o._id.month}`,
-      revenue: o.revenue,
-    }));
+    const revenueMap = new Map<string, number>();
+    orders.forEach((order) => {
+      const year = order._id.year;
+      const month = order._id.month.toString().padStart(2, '0');
+      const day = order._id.day.toString().padStart(2, '0');
+      const dateKey = `${year}-${month}-${day}`;
+      revenueMap.set(dateKey, order.revenue);
+    });
+
+    const results: { label: string; revenue: number }[] = [];
+    const currentDate = new Date(start);
+
+    while (currentDate <= end) {
+      const year = currentDate.getFullYear();
+      const month = (currentDate.getMonth() + 1).toString().padStart(2, '0');
+      const day = currentDate.getDate().toString().padStart(2, '0');
+      const dateKey = `${year}-${month}-${day}`;
+      const label = `${day}/${month}`;
+
+      const revenue = revenueMap.get(dateKey) || 0;
+
+      results.push({ label, revenue });
+
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+
+    // 4. Trả về mảng kết quả đầy đủ
+    return results;
   }
 
 private async getRevenueByWeek(): Promise<{ label: string; revenue: number }[]> {

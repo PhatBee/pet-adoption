@@ -97,8 +97,8 @@ export class Order {
   @Prop()
   deliveredAt: Date;
 
-  @Prop({ default: null })
-  autoConfirmJobId: string;
+  @Prop({ type: String, default: null })
+  autoConfirmJobId: string | null;
 
   @Prop([OrderStatusHistorySchema])
   orderStatusHistory: OrderStatusHistory[];

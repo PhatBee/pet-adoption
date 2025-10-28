@@ -1,5 +1,6 @@
 import axios, { AxiosError, AxiosRequestConfig } from "axios";
 import { getAccessToken, setAccessToken, clearAccessToken } from "../../utils/tokenStorage";
+import { ListOrdersQueryDto, UpdateOrderStatusDto } from '../../types/next';
 
 const axiosClient = axios.create({
   baseURL: "http://localhost:4000/api",
@@ -27,7 +28,7 @@ const processQueue = (error: AxiosError | null, token: string | null = null) => 
     if (error) {
       p.reject(error);
     } else {
-      if (p.config.headers) { // Cần kiểm tra headers tồn tại
+      if (p.config.headers) {
         p.config.headers.Authorization = `Bearer ${token}`;
       }
       p.resolve(axiosClient(p.config));
@@ -52,8 +53,6 @@ axiosClient.interceptors.response.use(
 
       isRefreshing = true;
       try {
-        console.log("🔄 Refreshing token via POST...");
-
         const resp = await axiosClient.post("/auth/refresh");
         const { access_token } = resp.data;
 
