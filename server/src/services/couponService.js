@@ -30,4 +30,20 @@ const validateCoupon = async (code, itemsTotal) => {
     return coupon;
 }
 
-module.exports = { validateCoupon };
+/**
+ * Lấy tất cả các coupon còn hoạt động và chưa hết hạn
+ */
+const getActiveCoupons = async () => {
+  const now = new Date();
+  
+  const coupons = await Coupon.find({
+    isActive: true, //
+    expiresAt: { $gt: now } // Chỉ lấy mã chưa hết hạn
+  })
+  .sort({ expiresAt: 1 }) // Ưu tiên mã sắp hết hạn lên đầu
+  .lean(); // .lean() để đọc nhanh hơn
+  
+  return coupons;
+}
+
+module.exports = { validateCoupon, getActiveCoupons };

@@ -16,6 +16,12 @@ export default function Header() {
 
         <nav className="flex items-center gap-5">
           <Link
+            to="/coupon"
+            className="text-gray-700 hover:text-indigo-600 no-underline"
+          >
+            Khuyến mãi
+          </Link>
+          <Link
             to="/wishlist"
             className="text-gray-700 hover:text-indigo-600 no-underline"
           >
