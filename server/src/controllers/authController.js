@@ -141,6 +141,9 @@ const login = async (req, res) => {
     if (!user.isVerified) {
       return res.status(403).json({ message: "Tài khoản chưa được xác thực" });
     }
+    if (!user.isActive) {
+      return res.status(403).json({ message: "Tài khoản đã bị khóa" });
+    }
 
     // 2. Kiểm tra mật khẩu
     const isPasswordValid = await comparePassword(password, user.password);

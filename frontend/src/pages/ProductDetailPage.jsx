@@ -87,6 +87,20 @@ export default function ProductDetailPage() {
             <h1 className="text-3xl font-bold flex items-center gap-3">
               {product.name}
             </h1>
+
+            {/* Hiển thị viewCount và soldCount */}
+            <div className="mt-2 flex items-center gap-3 text-sm text-gray-600">
+              <div className="flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5s8.268 2.943 9.542 7c-1.274 4.057-5.065 7-9.542 7s-8.268-2.943-9.542-7z" /></svg>
+                <span>{(product.viewCount || 0).toLocaleString()} lượt xem</span>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4" /></svg>
+                <span>{(product.soldCount || 0).toLocaleString()} đã bán</span>
+              </div>
+            </div>
+
             <div className="mt-3">
               <Rating value={reviewStats.average} text={`(${reviewStats.count} đánh giá)`} />
             </div>
