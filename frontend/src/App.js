@@ -37,6 +37,7 @@ import { useEffect } from "react";
 import { refreshSessionThunk } from './store/authThunks';
 import PaymentResultPage from './pages/PaymentResultPage';
 import PromotionsPage from './pages/PromotionsPage';
+import AboutPage from './pages/AboutPage';
 
 
 function App() {
@@ -90,6 +91,7 @@ function App() {
         <Route path="/wishlist" element={<WishlistPage />} />
         <Route path="/payment/result" element={<PaymentResultPage />} />
         <Route path="/promotions" element={<PromotionsPage />} />
+        <Route path="/about" element={<AboutPage />} />
         <Route path="/admin/dashboard" element={<Dashboard />} />
 
         {/* 2. Bọc route admin bằng AdminRoute */}
