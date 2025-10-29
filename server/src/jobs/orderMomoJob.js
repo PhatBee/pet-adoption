@@ -1,6 +1,7 @@
 const cron = require('node-cron');
 const Order = require('../models/Order');
 const { cancelPendingOrderAndRestoreStock } = require('../services/orderService');
+const notificationService = require('../services/notificationService'); // 1. Import service
 
 console.log('🕒 Cron job for pending MoMo orders is scheduled.');
 
@@ -30,6 +31,18 @@ cron.schedule('*/5 * * * *', async () => {
 
     for (const order of expiredOrders) {
       await cancelPendingOrderAndRestoreStock(order, 'Đơn hàng MoMo tự động hủy do hết hạn thanh toán');
+
+      // --- 2. GỬI THÔNG BÁO HỦY TỰ ĐỘNG ---
+      // Gửi sau khi cancelPendingOrderAndRestoreStock đã chạy xong
+      await notificationService.createAndSendNotification(
+        order.user,
+        {
+          title: 'Đơn hàng MoMo đã bị hủy',
+          message: `Đơn hàng #${order._id.toString().slice(-6)} đã bị hủy tự động do quá hạn thanh toán MoMo.`,
+          link: `/orders/${order._id}`
+        }
+      );
+      // ------------------------------------
     }
 
   } catch (error) {

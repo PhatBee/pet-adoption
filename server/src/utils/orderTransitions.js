@@ -3,7 +3,7 @@ const ALLOWED = {
   confirmed: ["shipping", "cancel_requested"],
   shipping: ["delivered", "refunded"],
   delivered: ["refunded"],
-  cancel_requested: ["cancelled", "confirmed"],
+  cancel_requested: ["cancelled", "confirmed", "preparing"],
   cancelled: [],
   refunded: []
 };

@@ -1,10 +1,12 @@
 const Cart = require("../models/Cart");
-const {Product} = require("../models/Product");
+const { Product } = require("../models/Product");
 const mongoose = require("mongoose");
 const Order = require("../models/Order");
 const User = require("../models/User");
 const Coupon = require('../models/Coupon')
 const notificationService = require('./notificationService');
+const { translateOrderStatus } = require('../utils/orderStatus'); // đường dẫn tuỳ project
+
 
 // Lấy giỏ hàng của user hiện tại
 const getCartByUser = async (userId) => {
@@ -172,7 +174,7 @@ const createOrderFromCart = async ({ userId, shippingAddress, paymentMethod, ite
       let expiresAt = null;
       if (paymentMethod === "VNPAY") {
         // Cho đơn hàng 15 phút để thanh toán
-        expiresAt = new Date(Date.now() + 15 * 60 * 1000); 
+        expiresAt = new Date(Date.now() + 15 * 60 * 1000);
       }
 
       // 6. Tạo đơn hàng và lưu thông tin giảm giá
@@ -228,14 +230,15 @@ const createOrderFromCart = async ({ userId, shippingAddress, paymentMethod, ite
 
     // --- 2. GỬI THÔNG BÁO (Sau khi transaction thành công) ---
     if (createdOrder) {
-        await notificationService.createAndSendNotification(
-            userId,
-            {
-                title: 'Đơn hàng mới đã được tạo',
-                message: `Đơn hàng #${createdOrder._id.toString().slice(-6)} của bạn đã được tạo. Trạng thái: ${createdOrder.status}.`,
-                link: `/orders/${createdOrder._id}`
-            }
-        );
+      const statusLabel = translateOrderStatus(createdOrder.status);
+      await notificationService.createAndSendNotification(
+        userId,
+        {
+          title: 'Đơn hàng mới đã được tạo',
+          message: `Đơn hàng #${createdOrder._id.toString().slice(-6)} của bạn đã được tạo. Trạng thái: ${statusLabel}.`,
+          link: `/orders/${createdOrder._id}`
+        }
+      );
     }
     // --------------------------------------------------------
 
@@ -257,4 +260,6 @@ const createOrderFromCart = async ({ userId, shippingAddress, paymentMethod, ite
     session.endSession();
   }
 }
+
+
 module.exports = { getCartByUser, addProductToCart, updateCartItem, removeCartItem, clearCart, createOrderFromCart };
