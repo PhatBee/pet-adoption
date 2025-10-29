@@ -55,6 +55,11 @@ export class ProductController {
     return this.productService.update(id, updateProductDto);
   }
 
+  @Patch(':id/enable')
+  enable(@Param('id', ParseMongoIdPipe) id: string): Promise<Product> {
+    return this.productService.enable(id);
+  }
+
   @Patch(':id/disable')
   disable(@Param('id', ParseMongoIdPipe) id: string): Promise<Product> {
     return this.productService.disable(id);

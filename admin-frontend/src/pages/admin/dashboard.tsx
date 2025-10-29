@@ -2,7 +2,7 @@ import React from 'react';
 import type { ReactElement, ReactNode } from 'react';
 import AdminLayout from '../../components/AdminLayout';
 import type { NextPageWithLayout } from '../../types/next';
-import SalesChart from '../../components/AdminSalesChart';
+import SalesChart from '../../components/sale/AdminSalesChart';
 
 const DashboardPage: NextPageWithLayout = () => {
   // Logic lấy data cho dashboard (nếu cần) có thể dùng SWR hoặc useEffect

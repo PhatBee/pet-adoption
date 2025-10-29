@@ -15,3 +15,69 @@ export interface ListOrdersQueryDto {
 export interface UpdateOrderStatusDto {
   status: string;
 }
+
+export interface BaseRef {
+  _id: string;
+  name: string;
+}
+
+export interface Product {
+  _id: string;
+  name: string;
+  slug: string;
+  shortDescription?: string | null;
+  description?: string | null;
+  price: number;
+  compareAtPrice: number;
+  images: string[] | null;
+  thumbnail?: string;
+  stock: number;
+  category: BaseRef | string;
+  pet: BaseRef | string;
+  brand?: string | null;
+  soldCount: number;
+  viewCount: number;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ProductQueryDto {
+  search?: string;
+  categoryId?: string;
+  petId?: string;
+  page: number;
+  limit: number;
+}
+
+export interface CreateProductDto {
+  name: string;
+  slug?: string;
+  price: number;
+  stock: number;
+  shortDescription?: string | null;
+  description?: string | null;
+  compareAtPrice?: number;
+  images?: string[];
+  thumbnail?: string | null;
+  category: string; 
+  pet: string;      
+  brand?: string | null;
+  manufacturer?: string | null;
+  country?: string | null;
+  itemWeight?: string | null;
+  dimensions?: string | null;
+  category: string;
+  pet: string;
+}
+
+export type UpdateProductDto = Partial<CreateProductDto> & {
+  isActive?: boolean;
+};
+
+export interface PaginatedResult<T> {
+  data: T[];
+  totalItems: number;
+  totalPages: number;
+  currentPage: number;
+}

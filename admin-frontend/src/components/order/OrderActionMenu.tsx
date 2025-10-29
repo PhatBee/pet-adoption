@@ -1,6 +1,6 @@
 import React, { ChangeEvent } from "react";
-import { useAppDispatch, useAppSelector } from "../store/store";
-import { updateOrderStatus } from "../store/slices/adminOrderSlice";
+import { useAppDispatch, useAppSelector } from "../../store/store";
+import { updateOrderStatus } from "../../store/slices/adminOrderSlice";
 import { toast } from "react-toastify";
 
 const statusFlow = {

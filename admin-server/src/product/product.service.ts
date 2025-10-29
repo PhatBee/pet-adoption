@@ -23,18 +23,23 @@ export class ProductService {
   ) {}
 
   async create(createProductDto: CreateProductDto): Promise<Product> {
+    const existingProduct = await this.productModel.findOne({ name: createProductDto.name });
+    if (existingProduct) {
+      throw new BadRequestException('Product name already exists');
+    }
+
     const newSlug = slugify(createProductDto.name, { lower: true, strict: true });
-    
+
     const categoryExists = await this.categoryModel.findById(createProductDto.category);
     const petExists = await this.petModel.findById(createProductDto.pet);
-    
+
     if (!categoryExists || !petExists) {
-        throw new NotFoundException('Category or Pet not found.');
+      throw new NotFoundException('Category or Pet not found.');
     }
 
     const createdProduct = new this.productModel({
-        ...createProductDto,
-        slug: newSlug,
+      ...createProductDto,
+      slug: newSlug,
     });
     return createdProduct.save();
   }
@@ -123,6 +128,18 @@ export class ProductService {
       throw new NotFoundException(`Product with ID "${id}" not found`);
     }
     return updatedProduct;
+  }
+
+  async enable(id: string): Promise<Product> {
+    const enabledProduct = await this.productModel
+      .findByIdAndUpdate(id, { isActive: true }, { new: true })
+      .exec();
+
+    if (!enabledProduct) {
+      throw new NotFoundException(`Product with ID "${id}" not found`);
+    }
+
+    return enabledProduct;
   }
 
   async disable(id: string): Promise<Product> {

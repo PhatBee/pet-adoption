@@ -1,7 +1,7 @@
 import React, { useEffect, useState, ReactElement } from 'react';
 import { fetchOrders, setFilters } from '../../store/slices/adminOrderSlice';
-import OrderList from '../../components/OrderList';
-import OrderDetailModal from '../../components/OrderDetailModal';
+import OrderList from '../../components/order/OrderList';
+import OrderDetailModal from '../../components/order/OrderDetailModal';
 import AdminLayout from '../../components/AdminLayout';
 import { NextPageWithLayout } from '../../types/next';
 import { useAppDispatch, useAppSelector, RootState } from '../../store/store';

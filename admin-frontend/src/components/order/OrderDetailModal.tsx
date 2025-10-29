@@ -1,7 +1,7 @@
 // src/components/admin/OrderDetailModal.jsx
 import React, { useEffect } from "react";
-import { useAppDispatch, useAppSelector, RootState } from "../store/store";
-import { fetchOrderById, clearSelectedOrder, updateOrderStatus, Order } from "../store/slices/adminOrderSlice";
+import { useAppDispatch, useAppSelector, RootState } from "../../store/store";
+import { fetchOrderById, clearSelectedOrder, updateOrderStatus, Order } from "../../store/slices/adminOrderSlice";
 import OrderStatusBadge from "./OrderStatusBadge";
 
 interface OrderDetailModalProps {

@@ -1,6 +1,6 @@
 // src/components/admin/OrderTable.jsx
 import React from "react";
-import type { Order } from "../store/slices/adminOrderSlice";
+import type { Order } from "../../store/slices/adminOrderSlice";
 import OrderStatusBadge from "./OrderStatusBadge";
 import OrderActionMenu from "./OrderActionMenu";
 

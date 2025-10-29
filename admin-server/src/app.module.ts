@@ -10,6 +10,9 @@ import { AdminSalesModule } from './admin-sales/admin-sales.module';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import { AdminOrderModule } from './orders/orders.module';
+import { ProductModule } from './product/product.module';
+import { PetModule } from './pet/pet.module';
+import { CategoryModule } from './category/category.module';
 
 @Module({
   imports: [
@@ -41,6 +44,9 @@ import { AdminOrderModule } from './orders/orders.module';
     UserModule,
     AdminSalesModule,
     AdminOrderModule,
+    ProductModule,
+    CategoryModule,
+    PetModule,
   ],
   controllers: [],
   providers: [

@@ -61,7 +61,7 @@ export class Order {
   @Prop({ type: AddressSchema })
   shippingAddress: Address;
 
-  @Prop({ enum: ['COD', 'VNPAY'], default: 'COD' })
+  @Prop({ enum: ['COD', 'VNPAY', 'MOMO'], default: 'COD' })
   paymentMethod: string;
 
   @Prop({ required: true })
