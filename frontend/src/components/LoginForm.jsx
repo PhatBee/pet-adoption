@@ -1,11 +1,16 @@
 import React, { useState } from "react";
 import PropTypes from 'prop-types';
+import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
+
 
 const LoginForm = ({ onSubmit, isLoading }) => {
   const [form, setForm] = useState({ 
     email: "", 
     password: "" 
   });
+
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e) => {
     setForm((prev) => ({ 
@@ -63,7 +68,7 @@ const LoginForm = ({ onSubmit, isLoading }) => {
             <button
               type="button" // Rất quan trọng: để không submit form
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600"
+              className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 cursor-pointer"
               aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
             >
               {showPassword ? (

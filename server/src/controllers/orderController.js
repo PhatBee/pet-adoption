@@ -181,6 +181,16 @@ async function getProductSnapshot(req, res) {
   }
 }
 
+async function getReorderInfo(req, res) {
+  try {
+    const { orderId } = req.params;
+    const result = await orderService.getReorderInfo(orderId);
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+}
+
 /**
 * Xử lý VNPAY Return
 * Trình duyệt của user được VNPAY redirect về đây
@@ -282,4 +292,4 @@ const momoIpn = async (req, res) => {
   }
 };
 
-module.exports = { getListMyOrders, cancelOrder, getOrderDetail, getProductSnapshot, vnpayReturn, vnpayIpn, momoReturn, momoIpn };
+module.exports = { getListMyOrders, cancelOrder, getOrderDetail, getProductSnapshot, vnpayReturn, vnpayIpn, momoReturn, momoIpn, getReorderInfo };
