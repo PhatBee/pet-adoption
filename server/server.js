@@ -5,7 +5,7 @@ const connectDB = require("../server/src/config/db");
 const cors = require('cors'); // Install with: npm install cors
 const path = require("path");
 const http = require('http'); // 1. Import http
-const { initializeSocket } = require('./socket/socketHandler'); // 2. Import handler socket
+const { initializeSocket } = require('./src/socket/socketHandler'); // 2. Import handler socket
 
 const authRoutes = require("../server/src/routes/authRoutes");
 const userRoutes = require("../server/src/routes/userRoutes");

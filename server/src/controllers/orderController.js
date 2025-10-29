@@ -1,71 +1,71 @@
-  const orderService = require("../services/orderService");
-  const Order = require("../models/Order");
-  const Review = require("../models/Review")
-  const User = require("../models/User");
-  const mongoose = require("mongoose");
-  const querystring = require('qs');
-  const { processIpn: processVnpayIpn, processReturnUrl: processVnpayReturnUrl } = require("../services/vnpayService");
-  const { processIpn: processMomoIpn, verifyReturnUrl: verifyMomoReturnUrl } = require("../services/momoService");
-  async function getListMyOrders(req, res) {
-    try {
-      const userId = req.user.id;
-      const page = req.query.page || 1;
-      const limit = req.query.limit || 10;
-      const status = req.query.status || null; // Lấy status từ query params
+const orderService = require("../services/orderService");
+const Order = require("../models/Order");
+const Review = require("../models/Review")
+const User = require("../models/User");
+const mongoose = require("mongoose");
+const querystring = require('qs');
+const { processIpn: processVnpayIpn, processReturnUrl: processVnpayReturnUrl } = require("../services/vnpayService");
+const { processIpn: processMomoIpn, verifyReturnUrl: verifyMomoReturnUrl } = require("../services/momoService");
+async function getListMyOrders(req, res) {
+  try {
+    const userId = req.user.id;
+    const page = req.query.page || 1;
+    const limit = req.query.limit || 10;
+    const status = req.query.status || null; // Lấy status từ query params
 
-      const data = await orderService.fetchUserOrders(userId, page, limit, status);
-      return res.json(data);
-    } catch (err) {
-      return res.status(500).json({ message: "Lỗi khi lấy lịch sử mua hàng" });
-    }
+    const data = await orderService.fetchUserOrders(userId, page, limit, status);
+    return res.json(data);
+  } catch (err) {
+    return res.status(500).json({ message: "Lỗi khi lấy lịch sử mua hàng" });
   }
+}
 
 
-  // async function getMyOrder(req, res) {
-  //   try {
-  //     const userId = req.user.id;
-  //     const orderId = req.params.id;
-  //     const order = await orderService.getUserOrderById(userId, orderId);
+// async function getMyOrder(req, res) {
+//   try {
+//     const userId = req.user.id;
+//     const orderId = req.params.id;
+//     const order = await orderService.getUserOrderById(userId, orderId);
 
-  //     if (!order) return res.status(404).json({ message: "Không tìm thấy đơn hàng" });
+//     if (!order) return res.status(404).json({ message: "Không tìm thấy đơn hàng" });
 
-  //     return res.json({ order });
-  //   } catch (err) {
-  //     return res.status(500).json({ message: "Lỗi khi lấy chi tiết đơn hàng" });
-  //   }
-  // }
+//     return res.json({ order });
+//   } catch (err) {
+//     return res.status(500).json({ message: "Lỗi khi lấy chi tiết đơn hàng" });
+//   }
+// }
 
-  async function cancelOrder(req, res) {
-    const session = await mongoose.startSession();
-    try {
-      const userId = req.user.id;
-      const orderId = req.params.orderId;
+async function cancelOrder(req, res) {
+  const session = await mongoose.startSession();
+  try {
+    const userId = req.user.id;
+    const orderId = req.params.orderId;
 
-      session.startTransaction();
+    session.startTransaction();
 
 
-      const order = await Order.findOne({ _id: orderId, user: userId });
-      if (!order) return res.status(404).json({ message: "Đơn hàng không tồn tại" });
+    const order = await Order.findOne({ _id: orderId, user: userId });
+    if (!order) return res.status(404).json({ message: "Đơn hàng không tồn tại" });
 
-      // Kiểm tra đơn có thuộc về user không
-      if (order.user.toString() !== userId.toString()) {
-        return res.status(403).json({ message: "Bạn không có quyền hủy đơn này" });
-      }
+    // Kiểm tra đơn có thuộc về user không
+    if (order.user.toString() !== userId.toString()) {
+      return res.status(403).json({ message: "Bạn không có quyền hủy đơn này" });
+    }
 
-      const now = new Date();
+    const now = new Date();
 
-      const total = order.itemsTotal ?? 0;
-      
-      // Hàm tính số xu cần trừ (15% của tổng tiền)
-      const deduction = Math.round(0.15 * total);
+    const total = order.itemsTotal ?? 0;
 
-      // Nếu còn trong thời hạn hủy (30 phút sau khi đặt)
-      if (now <= order.cancellableUntil && 
-        ["pending", "confirmed"].includes(order.status)) {
-        order.status = "cancelled";
-        order.orderStatusHistory.push({ status: "cancelled", changedAt: now });
+    // Hàm tính số xu cần trừ (15% của tổng tiền)
+    const deduction = Math.round(0.15 * total);
 
-        // Cập nhật loyaltyPoints của user - chỉ khi hủy thành công
+    // Nếu còn trong thời hạn hủy (30 phút sau khi đặt)
+    if (now <= order.cancellableUntil &&
+      ["pending", "confirmed"].includes(order.status)) {
+      order.status = "cancelled";
+      order.orderStatusHistory.push({ status: "cancelled", changedAt: now });
+
+      // Cập nhật loyaltyPoints của user - chỉ khi hủy thành công
       const user = await User.findById(userId).session(session);
       if (!user) {
         await session.abortTransaction();
@@ -83,111 +83,132 @@
       await user.save({ session });
 
       await session.commitTransaction();
+
+      // --- 2. GỬI THÔNG BÁO HỦY ---
+      await notificationService.createAndSendNotification(
+        userId,
+        {
+          title: 'Đơn hàng đã được huỷ',
+          message: `Bạn đã huỷ thành công đơn hàng #${orderId.toString().slice(-6)}.`,
+          link: `/orders/${orderId}`
+        }
+      );
       session.endSession();
 
       return res.json({
         message: "Hủy đơn thành công",
         order
       });
-      }
-
-      // Nếu đã quá hạn hoặc đơn đang chuẩn bị/giao
-      if (["confirmed", "preparing", "shipping"].includes(order.status)) {
-        order.status = "cancel_requested";
-        order.orderStatusHistory.push({ status: "cancel_requested", changedAt: now });
-        await order.save({ session });
-
-        await session.commitTransaction();
-        session.endSession();
-        return res.json({ message: "Đã gửi yêu cầu hủy đơn.", order });
-      }
-
-      // Nếu đơn đã giao hoặc đã hủy thì không cho hủy
-      await session.abortTransaction();
-      session.endSession();
-      return res.status(400).json({ message: "Không thể hủy đơn" });
-
-    } catch (error) {
-      try { await session.abortTransaction(); } catch (_) {}
-      session.endSession();
-      console.error("Cancel Order Error:", error);
-      res.status(500).json({ message: "Lỗi server", error });
     }
-  }
 
-  // GET /api/orders/:id  -> chi tiết order (chỉ owner)
-  async function getOrderDetail(req, res) {
-    try {
-      const userId = req.user.id;
-      const orderId = req.params.id;
+    // Nếu đã quá hạn hoặc đơn đang chuẩn bị/giao
+    if (["confirmed", "preparing", "shipping"].includes(order.status)) {
+      order.status = "cancel_requested";
+      order.orderStatusHistory.push({ status: "cancel_requested", changedAt: now });
+      await order.save({ session });
 
-      const order = await Order.findOne({ _id: orderId, user: userId }).lean();
-      if (!order) return res.status(404).json({ message: "Đơn hàng không tồn tại" });
+      await session.commitTransaction();
 
-      // Lấy reviews liên quan đến order (nếu có)
-      const reviews = await Review.find({ order: orderId, user: userId }).lean();
-
-      // map reviews theo productId để frontend dễ dùng
-      const reviewMap = {};
-      for (const r of reviews) reviewMap[r.product.toString()] = r;
-
-      return res.json({ order, reviews: reviewMap });
-    } catch (err) {
-      console.error(err);
-      return res.status(500).json({ message: "Lỗi khi lấy chi tiết đơn" });
-    }
-  }
-
-  async function getProductSnapshot(req, res) {
-    try {
-      const { orderId, productId } = req.params;
-      const order = await Order.findById(orderId);
-
-      if (!order) return res.status(404).json({ message: "Order not found" });
-
-      const item = order.items.find(
-        (i) => i.product.toString() === productId.toString()
+      // --- 3. GỬI THÔNG BÁO YÊU CẦU HỦY ---
+      await notificationService.createAndSendNotification(
+        userId,
+        {
+          title: 'Đã gửi yêu cầu huỷ đơn',
+          message: `Yêu cầu huỷ đơn hàng #${orderId.toString().slice(-6)} của bạn đã được gửi.`,
+          link: `/orders/${orderId}`
+        }
       );
 
-      if (!item) return res.status(404).json({ message: "Product not found in order" });
-
-      // snapshot lưu trong order
-      return res.json({ snapshot: item.productSnapshot, currentProductId: item.product });
-    } catch (err) {
-      console.error(err);
-      return res.status(500).json({ message: "Server error" });
+      session.endSession();
+      return res.json({ message: "Đã gửi yêu cầu hủy đơn.", order });
     }
+
+    // Nếu đơn đã giao hoặc đã hủy thì không cho hủy
+    await session.abortTransaction();
+    session.endSession();
+    return res.status(400).json({ message: "Không thể hủy đơn" });
+
+  } catch (error) {
+    try { await session.abortTransaction(); } catch (_) { }
+    session.endSession();
+    console.error("Cancel Order Error:", error);
+    res.status(500).json({ message: "Lỗi server", error });
   }
+}
 
-  /**
- * Xử lý VNPAY Return
- * Trình duyệt của user được VNPAY redirect về đây
- */
+// GET /api/orders/:id  -> chi tiết order (chỉ owner)
+async function getOrderDetail(req, res) {
+  try {
+    const userId = req.user.id;
+    const orderId = req.params.id;
+
+    const order = await Order.findOne({ _id: orderId, user: userId }).lean();
+    if (!order) return res.status(404).json({ message: "Đơn hàng không tồn tại" });
+
+    // Lấy reviews liên quan đến order (nếu có)
+    const reviews = await Review.find({ order: orderId, user: userId }).lean();
+
+    // map reviews theo productId để frontend dễ dùng
+    const reviewMap = {};
+    for (const r of reviews) reviewMap[r.product.toString()] = r;
+
+    return res.json({ order, reviews: reviewMap });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Lỗi khi lấy chi tiết đơn" });
+  }
+}
+
+async function getProductSnapshot(req, res) {
+  try {
+    const { orderId, productId } = req.params;
+    const order = await Order.findById(orderId);
+
+    if (!order) return res.status(404).json({ message: "Order not found" });
+
+    const item = order.items.find(
+      (i) => i.product.toString() === productId.toString()
+    );
+
+    if (!item) return res.status(404).json({ message: "Product not found in order" });
+
+    // snapshot lưu trong order
+    return res.json({ snapshot: item.productSnapshot, currentProductId: item.product });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Server error" });
+  }
+}
+
+/**
+* Xử lý VNPAY Return
+* Trình duyệt của user được VNPAY redirect về đây
+*/
 const vnpayReturn = (req, res) => {
-    const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:3000';
+  const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:3000';
 
-    try {
-        console.log("VNPAY Return Query:", req.query);
-        const { isValid, params } = processVnpayReturnUrl(req.query);
+  try {
+    console.log("VNPAY Return Query:", req.query);
+    const { isValid, params } = processVnpayReturnUrl(req.query);
 
-        console.log("VNPAY Return Params:", params);
+    console.log("VNPAY Return Params:", params);
 
 
-        // Tạo query string để gửi về frontend
-        const queryString = querystring.stringify(params);
-        console.log("VNPAY Return Query String:", queryString);
+    // Tạo query string để gửi về frontend
+    const queryString = querystring.stringify(params);
+    console.log("VNPAY Return Query String:", queryString);
 
-        if (isValid) {
-            // Chuyển hướng về trang kết quả của React
-            res.redirect(`${CLIENT_URL}/payment/result?${queryString}`);
-        } else {
-            // Chuyển hướng về trang kết quả với mã lỗi
-            res.redirect(`${CLIENT_URL}/payment/result?vnp_ResponseCode=97`);
-        }
-    } catch (error) {
-        console.error("Lỗi VNPAY Return:", error);
-        res.redirect(`${CLIENT_URL}/payment/result?vnp_ResponseCode=99`);
+    if (isValid) {
+      // Chuyển hướng về trang kết quả của React
+      res.redirect(`${CLIENT_URL}/payment/result?${queryString}`);
+    } else {
+      // Chuyển hướng về trang kết quả với mã lỗi
+      res.redirect(`${CLIENT_URL}/payment/result?vnp_ResponseCode=97`);
     }
+  } catch (error) {
+    console.error("Lỗi VNPAY Return:", error);
+    res.redirect(`${CLIENT_URL}/payment/result?vnp_ResponseCode=99`);
+  }
 };
 
 /**
@@ -195,13 +216,13 @@ const vnpayReturn = (req, res) => {
  * Server VNPAY gọi về đây (server-to-server)
  */
 const vnpayIpn = async (req, res) => {
-    try {
-        const result = await processVnpayIpn(req.query);
-        res.status(200).json(result);
-    } catch (error) {
-        console.error("Lỗi VNPAY IPN:", error);
-        res.status(200).json({ RspCode: '99', Message: 'Unknown error' });
-    }
+  try {
+    const result = await processVnpayIpn(req.query);
+    res.status(200).json(result);
+  } catch (error) {
+    console.error("Lỗi VNPAY IPN:", error);
+    res.status(200).json({ RspCode: '99', Message: 'Unknown error' });
+  }
 };
 
 // === 2. MOMO HANDLERS ===
@@ -210,36 +231,36 @@ const vnpayIpn = async (req, res) => {
  * Trình duyệt user được MoMo redirect về đây (GET)
  */
 const momoReturn = (req, res) => {
-    const CLIENT_URL = process.env.CLIENT_URL;
+  const CLIENT_URL = process.env.CLIENT_URL;
 
-    try {
-        const { isValid, params } = verifyMomoReturnUrl(req.query);
+  try {
+    const { isValid, params } = verifyMomoReturnUrl(req.query);
 
-        // Tạo query string để gửi về frontend
-        // Quan trọng: Chỉ gửi các tham số cần thiết và an toàn
-        const returnParams = {
-            orderId: params.orderId,
-            amount: params.amount,
-            resultCode: params.resultCode,
-            message: params.message,
-            payType: params.payType,
-            transId: params.transId,
-            // Không gửi signature về client
-        };
-        const queryString = querystring.stringify(returnParams);
+    // Tạo query string để gửi về frontend
+    // Quan trọng: Chỉ gửi các tham số cần thiết và an toàn
+    const returnParams = {
+      orderId: params.orderId,
+      amount: params.amount,
+      resultCode: params.resultCode,
+      message: params.message,
+      payType: params.payType,
+      transId: params.transId,
+      // Không gửi signature về client
+    };
+    const queryString = querystring.stringify(returnParams);
 
-        if (isValid) {
-            // Chuyển hướng về trang kết quả React
-            res.redirect(`${CLIENT_URL}/payment/result?${queryString}&source=momo`); // Thêm source=momo để biết là từ MoMo
-        } else {
-            // Chữ ký không hợp lệ, vẫn chuyển hướng nhưng báo lỗi
-             console.warn("MoMo Return URL Signature Invalid:", req.query);
-            res.redirect(`${CLIENT_URL}/payment/result?resultCode=99&message=Invalid+signature&source=momo`);
-        }
-    } catch (error) {
-        console.error("Lỗi MoMo Return:", error);
-        res.redirect(`${CLIENT_URL}/payment/result?resultCode=99&message=Unknown+error&source=momo`);
+    if (isValid) {
+      // Chuyển hướng về trang kết quả React
+      res.redirect(`${CLIENT_URL}/payment/result?${queryString}&source=momo`); // Thêm source=momo để biết là từ MoMo
+    } else {
+      // Chữ ký không hợp lệ, vẫn chuyển hướng nhưng báo lỗi
+      console.warn("MoMo Return URL Signature Invalid:", req.query);
+      res.redirect(`${CLIENT_URL}/payment/result?resultCode=99&message=Invalid+signature&source=momo`);
     }
+  } catch (error) {
+    console.error("Lỗi MoMo Return:", error);
+    res.redirect(`${CLIENT_URL}/payment/result?resultCode=99&message=Unknown+error&source=momo`);
+  }
 };
 
 /**
@@ -247,17 +268,17 @@ const momoReturn = (req, res) => {
  * Server MoMo gọi về đây (POST)
  */
 const momoIpn = async (req, res) => {
-    try {
-        // MoMo gửi IPN bằng POST với body là JSON
-        const result = await processMomoIpn(req.body);
-        // Phản hồi cho MoMo theo đúng format họ yêu cầu
-        res.status(204).send(); // Status 204 No Content là đủ, không cần body
-         console.log("MoMo IPN processed:", result); // Log kết quả xử lý
-    } catch (error) {
-        console.error("Lỗi MoMo IPN:", error);
-        // Không thể báo lỗi trực tiếp cho MoMo ở đây, chỉ log lại
-         res.status(204).send(); // Vẫn phải trả 204
-    }
+  try {
+    // MoMo gửi IPN bằng POST với body là JSON
+    const result = await processMomoIpn(req.body);
+    // Phản hồi cho MoMo theo đúng format họ yêu cầu
+    res.status(204).send(); // Status 204 No Content là đủ, không cần body
+    console.log("MoMo IPN processed:", result); // Log kết quả xử lý
+  } catch (error) {
+    console.error("Lỗi MoMo IPN:", error);
+    // Không thể báo lỗi trực tiếp cho MoMo ở đây, chỉ log lại
+    res.status(204).send(); // Vẫn phải trả 204
+  }
 };
 
 module.exports = { getListMyOrders, cancelOrder, getOrderDetail, getProductSnapshot, vnpayReturn, vnpayIpn, momoReturn, momoIpn };

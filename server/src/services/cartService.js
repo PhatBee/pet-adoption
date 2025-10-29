@@ -4,6 +4,7 @@ const mongoose = require("mongoose");
 const Order = require("../models/Order");
 const User = require("../models/User");
 const Coupon = require('../models/Coupon')
+const notificationService = require('./notificationService');
 
 // Lấy giỏ hàng của user hiện tại
 const getCartByUser = async (userId) => {
@@ -224,6 +225,19 @@ const createOrderFromCart = async ({ userId, shippingAddress, paymentMethod, ite
         await userCart.save({ session });
       }
     });
+
+    // --- 2. GỬI THÔNG BÁO (Sau khi transaction thành công) ---
+    if (createdOrder) {
+        await notificationService.createAndSendNotification(
+            userId,
+            {
+                title: 'Đơn hàng mới đã được tạo',
+                message: `Đơn hàng #${createdOrder._id.toString().slice(-6)} của bạn đã được tạo. Trạng thái: ${createdOrder.status}.`,
+                link: `/orders/${createdOrder._id}`
+            }
+        );
+    }
+    // --------------------------------------------------------
 
 
 
