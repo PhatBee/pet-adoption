@@ -74,13 +74,13 @@ axiosClient.interceptors.response.use(
         clearAccessToken(); // buộc đăng nhập lại
 
         // optional: redirect to login page (nếu muốn)
-        try {
-          // If you're using react-router, do navigation in the app instead
-          // fallback: force reload to login
-          window.location.href = "/login";
-        } catch (e) {
-          // ignore
-        }
+        // try {
+        //   // If you're using react-router, do navigation in the app instead
+        //   // fallback: force reload to login
+        //   window.location.href = "/login";
+        // } catch (e) {
+        //   // ignore
+        // }
 
         return Promise.reject(err);
       }
