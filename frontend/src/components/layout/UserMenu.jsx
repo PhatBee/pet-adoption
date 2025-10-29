@@ -6,6 +6,8 @@ import { SERVER_BASE } from "../../../src/config";
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { logoutThunk } from '../../../src/store/authThunks';
+import { persistor } from '../../../src/store/store'; // ✅ Thêm dòng này
+
 import { toast } from 'react-toastify';
 
 const AVATAR_SIZE = 32;
@@ -42,8 +44,11 @@ export default function UserMenu() {
   const handleLogout = async () => {
     try {
       await dispatch(logoutThunk()).unwrap();
+      await persistor.purge();
+      
       localStorage.clear();
       toast.success("Đăng xuất thành công");
+
       navigate("/login");
     } catch (error) {
       console.error("Logout error:", error);

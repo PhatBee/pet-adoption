@@ -8,9 +8,9 @@ const TEAM = [
     id: 't1',
     name: 'Ong Vĩnh Phát',
     role: 'Full-stack',
-    bio: '',
+    bio: 'Fun fact: Listening to music and reading about tech trends during my free time!',
     avatar: 'https://avatars.githubusercontent.com/u/157566580?s=400&u=6399abacfc664571919438dae69317ccaa92a6fb&v=4',
-    socials: { github: 'https://github.com/PhatBee', linkedin: 'www.linkedin.com/in/vĩnh-phát-ong-16a374387' }
+    socials: { github: 'https://github.com/PhatBee', linkedin: 'https://linkedin.com/in/vĩnh-phát-ong-16a374387' }
   },
   {
     id: 't2',
