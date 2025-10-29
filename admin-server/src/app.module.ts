@@ -1,4 +1,6 @@
 import { Module } from '@nestjs/common';
+import { HttpModule } from '@nestjs/axios'; // 1. Import HttpModule
+
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ServeStaticModule } from '@nestjs/serve-static';
@@ -37,6 +39,7 @@ import { AdminOrderModule } from './orders/orders.module';
       limit: 100,
     }]),
 
+    HttpModule,
     AuthModule,
     UserModule,
     AdminSalesModule,
