@@ -7,6 +7,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import type { TypedUseSelectorHook } from 'react-redux';
 import adminOrdersReducer from './slices/adminOrderSlice';
 import adminProductReducer from './slices/adminProductSlice';
+import adminUsersReducer from './slices/adminUserSlice';
 
 const persistConfig = {
   key: 'root',
@@ -19,6 +20,7 @@ const rootReducer = combineReducers({
   adminStats: adminStatsReducer,
   adminOrders: adminOrdersReducer,
   adminProducts: adminProductReducer,
+  adminUsers: adminUsersReducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

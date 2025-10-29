@@ -53,6 +53,9 @@ export class User extends Document {
   @Prop({ default: false })
   isVerified: boolean;
 
+  @Prop({ type: Boolean, default: true })
+  isActive: boolean;
+
   @Prop({ type: [AddressSchema], default: [] })
   addresses: Address[];
 
@@ -77,7 +80,7 @@ UserSchema.pre<User>('save', async function (next) {
     const salt = await bcrypt.genSalt(10);
     this.password = await bcrypt.hash(this.password, salt);
     return next();
-  } catch (err) {
+  } catch (err: any) {
     return next(err);
   }
 });

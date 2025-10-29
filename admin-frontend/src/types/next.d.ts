@@ -81,3 +81,41 @@ export interface PaginatedResult<T> {
   totalPages: number;
   currentPage: number;
 }
+
+//User
+export interface Address {
+  _id?: string;
+  fullName: string;
+  phone: string;
+  street: string;
+  ward?: string | null;
+  district?: string | null;
+  city: string;
+  isDefault?: boolean;
+
+}
+
+export interface User {
+  _id: string;
+  name: string;
+  email: string;
+  avatarUrl?: string | null;
+  role: string;
+  phone?: string | null;
+  isVerified: boolean;
+  isActive: boolean;
+  addresses: Address[];
+  loyaltyPoints: number;
+  createdAt: string;
+  updatedAt: string;
+  totalSpend?: number;
+  totalOrders?: number;
+}
+
+export interface UserQueryDto {
+  page?: number;
+  limit?: number;
+  isActive?: boolean;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+}

@@ -3,11 +3,11 @@ import { FormProvider, useForm, Resolver } from 'react-hook-form';
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { CreateProductDto, UpdateProductDto, Product, BaseRef } from '../types/next';
-import FormInput from './product/FormInput';
-import ImageUploadSection from './product/ImageUploadSection';
+import FormInput from './common/FormInput';
+import ImageUploadSection from './common/ImageUploadSection';
 import productApi from '../store/api/productApi';
 import { toast } from 'react-toastify';
-import FormSelect from './product/FormSelect';
+import FormSelect from './common/FormSelect';
 import categoryApi from '../store/api/categoryApi';
 import petApi from '../store/api/petApi';
 
@@ -17,16 +17,37 @@ const productSchema = yup.object().shape({
     stock: yup.number().required('Số lượng tồn kho là bắt buộc.').min(0, 'Tồn kho phải lớn hơn hoặc bằng 0.'),
     category: yup.string().required('Thể loại là bắt buộc.').test('is-mongo-id', 'Thể loại không hợp lệ.', val => !!val),
     pet: yup.string().required('Loại thú cưng là bắt buộc.').test('is-mongo-id', 'Loại thú cưng không hợp lệ.', val => !!val),
-    thumbnail: yup.string().required('Ảnh thumbnail là bắt buộc.'),
+    thumbnail: yup.string()
+        .url('Thumbnail phải là URL hợp lệ (http://... hoặc https://...).')
+        .required('Ảnh thumbnail là bắt buộc.')
+        .nullable(),
+    images: yup.array()
+        .of(
+            yup.object().shape({
+                value: yup.string()
+                    .url('Mỗi ảnh phải là một URL hợp lệ.')
+                    .required('URL ảnh không được rỗng.')
+            })
+        )
+        .optional()
+        .nullable(),
     shortDescription: yup.string().nullable().optional(),
     description: yup.string().nullable().optional(),
     compareAtPrice: yup.number().min(0).optional(),
-    images: yup.array(yup.string()).optional(),
     brand: yup.string().nullable().optional(),
     isActive: yup.boolean().optional(),
 });
 
-type FormData = CreateProductDto & { isActive?: boolean };
+type FormData = Omit<CreateProductDto, 'images'> & {
+    images?: { value: string }[];
+    isActive?: boolean;
+    name: string;
+    price: number;
+    stock: number;
+    category: string;
+    pet: string;
+    thumbnail: string | null;
+};
 
 interface ProductFormProps {
     isEditMode: boolean;
@@ -35,19 +56,22 @@ interface ProductFormProps {
     onSuccess?: () => void;
 }
 
-const mapProductToFormData = (product: Product): FormData => {
-    const formData: FormData = {
+const mapProductToFormData = (product: Product): Partial<FormData> => {
+    return {
         ...product,
-        category: (product.category as BaseRef)?._id || (product.category as string),
-        pet: (product.pet as BaseRef)?._id || (product.pet as string),
-        shortDescription: product.shortDescription || null,
-        description: product.description || null,
-        thumbnail: product.thumbnail || null,
-        brand: product.brand || null,
-        
-    } as FormData;
-    
-    return formData;
+        category: typeof product.category === 'object' ? (product.category as BaseRef)._id : product.category,
+        pet: typeof product.pet === 'object' ? (product.pet as BaseRef)._id : product.pet,
+        shortDescription: product.shortDescription || '',
+        description: product.description || '',
+        thumbnail: product.thumbnail || '',
+        brand: product.brand || '',
+        images: (product.images || []).map(url => ({ value: url })),
+        name: product.name,
+        price: product.price,
+        stock: product.stock,
+        isActive: product.isActive,
+        compareAtPrice: product.compareAtPrice,
+    };
 };
 
 const ProductForm: React.FC<ProductFormProps> = ({ isEditMode, productId, initialProduct, onSuccess }) => {
@@ -105,11 +129,23 @@ const ProductForm: React.FC<ProductFormProps> = ({ isEditMode, productId, initia
     const onSubmit = async (data: FormData) => {
         setIsLoading(true);
         try {
+            const dtoData = {
+                ...data,
+                images: data.images?.map(imgObj => imgObj.value) || [],
+            };
+
+            const { isActive, ...apiData } = dtoData;
+
             if (isEditMode && productId) {
-                await productApi.updateProduct(productId, data as UpdateProductDto);
+                const updateDto: UpdateProductDto = {
+                    ...apiData,
+                    isActive: data.isActive
+                };
+                await productApi.updateProduct(productId, updateDto);
                 toast.success('Cập nhật thành công!');
             } else {
-                await productApi.createProduct(data as CreateProductDto);
+                const createDto: CreateProductDto = apiData;
+                await productApi.createProduct(createDto);
                 toast.success('Tạo sản phẩm thành công!');
             }
             onSuccess?.();
@@ -162,8 +198,8 @@ const ProductForm: React.FC<ProductFormProps> = ({ isEditMode, productId, initia
                 </div>
 
                 {/* 5. UPLOAD HÌNH ẢNH */}
-                <ImageUploadSection name="thumbnail" label="Ảnh Thumbnail" isMultiple={false} />
-                <ImageUploadSection name="images" label="Thư viện Ảnh" isMultiple={true} />
+                <ImageUploadSection name="thumbnail" label="Ảnh Thumbnail" />
+                <ImageUploadSection name="images" label="Ảnh khác" />
 
                 {/* 6. NÚT SUBMIT */}
                 <div className="pt-4 border-t">

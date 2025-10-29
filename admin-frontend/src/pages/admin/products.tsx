@@ -3,11 +3,12 @@ import React, { useEffect, useState } from 'react';
 import { useAppDispatch, useAppSelector } from '../../store/store';
 import { fetchProducts, setProductQuery } from '../../store/slices/adminProductSlice';
 import AdminLayout from '../../components/AdminLayout';
-import { NextPageWithLayout, Product, ProductQueryDto, PaginatedResult } from '../../types/next';
+import { NextPageWithLayout, Product, ProductQueryDto } from '../../types/next';
 import Head from 'next/head';
 import ProductModal from '../../components/product/ProductModal';
 import productApi from '../../store/api/productApi';
 import { toast } from 'react-toastify';
+import Pagination from '../../components/common/Pagination';
 
 type ModalMode = 'create' | 'view' | 'edit' | null;
 
@@ -29,16 +30,6 @@ interface SearchAndFilterProps {
     query: ProductQueryDto;
     onSearchChange: (newParams: Partial<ProductQueryDto>) => void;
     onAddProduct: () => void;
-}
-
-interface PaginationProps {
-    pagination: {
-        totalItems: number;
-        totalPages: number;
-        currentPage: number;
-        limit: number;
-    };
-    onPageChange: (page: number) => void;
 }
 
 const ProductTable: React.FC<ProductTableProps> = ({ products, onDetailView, onEdit, onDisable, onEnable }) => (
@@ -115,7 +106,6 @@ const SearchAndFilter: React.FC<SearchAndFilterProps> = ({ query, onSearchChange
                 onChange={(e) => onSearchChange({ search: e.target.value, page: 1 })}
                 className="p-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
             />
-            {/* TODO: Thêm select box cho CategoryId và PetId */}
         </div>
         <button
             onClick={onAddProduct}
@@ -126,34 +116,6 @@ const SearchAndFilter: React.FC<SearchAndFilterProps> = ({ query, onSearchChange
     </div>
 );
 
-const Pagination: React.FC<PaginationProps> = ({ pagination, onPageChange }) => (
-    <div className="flex justify-between items-center mt-4 p-4 bg-white shadow rounded-lg border border-gray-100">
-        <p className="text-sm text-gray-700">
-            Hiển thị <span className="font-medium">{(pagination.currentPage - 1) * pagination.limit + 1}</span>
-            đến <span className="font-medium">{Math.min(pagination.currentPage * pagination.limit, pagination.totalItems)}</span>
-            trong tổng số <span className="font-medium">{pagination.totalItems}</span> kết quả
-        </p>
-        <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-            <button
-                onClick={() => onPageChange(pagination.currentPage - 1)}
-                disabled={pagination.currentPage === 1}
-                className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
-            >
-                Trước
-            </button>
-            <span className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-indigo-600 text-sm font-medium text-white">
-                {pagination.currentPage}
-            </span>
-            <button
-                onClick={() => onPageChange(pagination.currentPage + 1)}
-                disabled={pagination.currentPage === pagination.totalPages}
-                className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
-            >
-                Sau
-            </button>
-        </nav>
-    </div>
-);
 // --- TRANG CHÍNH ---
 const ProductManagementPage: NextPageWithLayout = () => {
     const dispatch = useAppDispatch();

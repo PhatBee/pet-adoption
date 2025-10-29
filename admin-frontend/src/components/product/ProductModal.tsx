@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import Modal from './Modal';
+import Modal from '../common/Modal';
 import ProductForm from '../AdminProductForm';
 import ProductView from './ProductView';
 import productApi from '../../store/api/productApi';
@@ -84,7 +84,7 @@ const ProductModal: React.FC<ProductModalProps> = ({
       isOpen={isOpen}
       onClose={onClose}
       title={title}
-      size={mode === 'create' || mode === 'edit' ? 'max' : 'lg'}
+      size={mode === 'create' || mode === 'edit' ? 'max' : 'max'}
     >
       {content}
     </Modal>
