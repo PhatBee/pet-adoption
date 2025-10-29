@@ -15,6 +15,11 @@ const slice = createSlice({
     product: null,
     reviews: [], // Thêm state để lưu danh sách reviews
     reviewStats: { average: 0, count: 0 }, // Thêm state cho thống kê
+    // 1. Thêm state cho sản phẩm liên quan
+    relatedProducts: {
+      byCategory: [],
+      byPet: []
+    },
     isLoading: false,
     error: null,
   },
@@ -24,6 +29,7 @@ const slice = createSlice({
       state.product = null;
       state.reviews = [];
       state.reviewStats = { average: 0, count: 0 };
+      state.relatedProducts = { byCategory: [], byPet: [] };
       state.error = null;
       state.isLoading = false;
     },
@@ -36,7 +42,9 @@ const slice = createSlice({
         s.product = a.payload.product;
         s.reviews = a.payload.reviews || [];
         s.reviewStats = a.payload.reviewStats || { average: 0, count: 0 };
-        })
+        // 3. Lưu dữ liệu liên quan vào state
+        s.relatedProducts = a.payload.relatedProducts || { byCategory: [], byPet: [] };
+      })
       .addCase(fetchProductBySlug.rejected, (s, a) => { s.isLoading = false; s.error = a.error?.message || "Lỗi" ; });
   }
 });
