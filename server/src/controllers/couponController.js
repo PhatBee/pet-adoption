@@ -22,4 +22,16 @@ const validateCoupon = async (req, res) => {
     }
 }
 
-module.exports = {validateCoupon};
+/**
+ * Controller lấy danh sách coupon đang hoạt động
+ */
+const listActiveCoupons = async (req, res) => {
+    try {
+        const coupons = await couponService.getActiveCoupons();
+        res.json(coupons);
+    } catch (error) {
+        res.status(500).json({ message: "Lỗi khi lấy danh sách khuyến mãi" });
+    }
+}
+
+module.exports = {validateCoupon, listActiveCoupons};

@@ -1,8 +1,9 @@
 const cron = require('node-cron');
 const Order = require('../models/Order');
 const { cancelPendingOrderAndRestoreStock } = require('../services/orderService');
+const notificationService = require('../services/notificationService'); // 1. Import service
 
-console.log('🕒 Cron job for pending orders is scheduled.');
+console.log('🕒 Cron job for pending VNPAY orders is scheduled.');
 
 // Chạy tác vụ mỗi 5 phút
 cron.schedule('*/5 * * * *', async () => {
@@ -16,7 +17,7 @@ cron.schedule('*/5 * * * *', async () => {
     });
 
     if (expiredOrders.length === 0) {
-      console.log('No expired orders found.');
+      console.log('No expired VNPAY orders found.');
       return;
     }
 
@@ -25,9 +26,20 @@ cron.schedule('*/5 * * * *', async () => {
     // Hủy từng đơn hàng và hoàn kho
     for (const order of expiredOrders) {
       await cancelPendingOrderAndRestoreStock(order, 'Đơn hàng VNPAY tự động hủy do hết hạn thanh toán');
+
+      // --- 2. GỬI THÔNG BÁO HỦY TỰ ĐỘNG ---
+      // Gửi sau khi cancelPendingOrderAndRestoreStock đã chạy xong
+      await notificationService.createAndSendNotification(
+        order.user,
+        {
+          title: 'Đơn hàng VNPAY đã bị hủy',
+          message: `Đơn hàng #${order._id.toString().slice(-6)} đã bị hủy tự động do quá hạn thanh toán VNPAY.`,
+          link: `/orders/${order._id}`
+        }
+      );
     }
 
   } catch (error) {
-    console.error('Error during scheduled order cancellation:', error);
+    console.error('Error during scheduled VNPAY order cancellation:', error);
   }
 });

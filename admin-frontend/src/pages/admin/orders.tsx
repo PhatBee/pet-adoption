@@ -1,5 +1,5 @@
 import React, { useEffect, useState, ReactElement } from 'react';
-import { fetchOrders, setFilters } from '../../store/slices/adminOrderSlice';
+import { fetchOrders, setFilters, setPage  } from '../../store/slices/adminOrderSlice';
 import OrderList from '../../components/order/OrderList';
 import OrderDetailModal from '../../components/order/OrderDetailModal';
 import AdminLayout from '../../components/AdminLayout';
@@ -22,8 +22,22 @@ const AdminOrderPage: NextPageWithLayout = () => {
   const [searchValue, setSearchValue] = useState(filters.q || '');
 
   useEffect(() => {
-    dispatch(fetchOrders({ page: 1, limit, ...filters }));
-  }, [dispatch, filters, limit]);
+    dispatch(fetchOrders({ page, limit, ...filters }));
+  }, [dispatch, filters, limit, page]);
+
+  // change page handler
+  const handleChangePage = (newPage: number) => {
+    if (newPage < 1) return;
+    const lastPage = Math.max(1, Math.ceil((total || 0) / limit));
+    if (newPage > lastPage) return;
+    // Option 1: dispatch setPage -> useEffect sẽ fetch
+    dispatch(setPage(newPage));
+  };
+
+  // prev/next helpers
+  const lastPage = Math.max(1, Math.ceil((total || 0) / limit));
+  const canPrev = page > 1;
+  const canNext = page < lastPage;
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -75,6 +89,52 @@ const AdminOrderPage: NextPageWithLayout = () => {
       {error && <p className="text-red-500">{error}</p>}
 
       <OrderList orders={orders} onViewDetail={openDetail} />
+
+      {/* ------- PAGINATION UI ------- */}
+      <div className="mt-4 flex items-center justify-between">
+        <div className="text-sm text-gray-600">
+          Hiển thị <strong>{orders.length}</strong> / <strong>{total}</strong> đơn
+        </div>
+
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => handleChangePage(page - 1)}
+            disabled={!canPrev}
+            className={`px-3 py-1 rounded border ${canPrev ? 'hover:bg-gray-100' : 'opacity-50 cursor-not-allowed'}`}>
+            Prev
+          </button>
+
+          {/* Simple page numbers: show few pages around current */}
+          <div className="flex items-center gap-1">
+            {Array.from({ length: lastPage }, (_, i) => i + 1)
+              // hạn chế hiển thị quá nhiều trang: chỉ show window +/-2
+              .filter(p => Math.abs(p - page) <= 2 || p === 1 || p === lastPage)
+              .map((p, idx, arr) => {
+                // insert ellipsis
+                if (idx > 0 && p - arr[idx - 1] > 1) {
+                  return <span key={`dots-${p}`} className="px-2">...</span>;
+                }
+                return (
+                  <button
+                    key={p}
+                    onClick={() => handleChangePage(p)}
+                    className={`px-3 py-1 rounded border ${p === page ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'}`}
+                  >
+                    {p}
+                  </button>
+                );
+              })}
+          </div>
+
+          <button
+            onClick={() => handleChangePage(page + 1)}
+            disabled={!canNext}
+            className={`px-3 py-1 rounded border ${canNext ? 'hover:bg-gray-100' : 'opacity-50 cursor-not-allowed'}`}>
+            Next
+          </button>
+        </div>
+      </div>
+      {/* ------------------------------- */}
 
       {selectedId && (
         <OrderDetailModal orderId={selectedId} onClose={closeModal} />

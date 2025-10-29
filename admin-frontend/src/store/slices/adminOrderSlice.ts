@@ -116,7 +116,16 @@ const slice = createSlice({
         clearSelectedOrder: (s) => { s.selectedOrder = null; s.detailLoading = false; },
         setFilters: (state, action: PayloadAction<{ status?: string; q?: string }>) => {
             state.filters = { ...state.filters, ...action.payload };
+            // Khi thay filter/search, quay lại trang 1
+            state.page = 1;
+            
         },
+
+        // thêm action setPage để chuyển trang
+        setPage: (s, action: PayloadAction<number>) => {
+        s.page = action.payload;
+        },
+
         resetOrders: (s) => {
             s.orders = []; s.page = 1; s.total = 0; s.error = null;
         },
@@ -158,5 +167,5 @@ const slice = createSlice({
     }
 });
 
-export const { clearSelectedOrder, setFilters, resetOrders } = slice.actions;
+export const { clearSelectedOrder, setFilters, resetOrders, setPage  } = slice.actions;
 export default slice.reducer;

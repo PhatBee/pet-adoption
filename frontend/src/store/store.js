@@ -10,6 +10,7 @@ import orderDetailReducer from './orderDetailSlice'
 import snapshotReducer from './orderSnapshotSlice'
 import wishlistReducer from './wishlistSlice'
 import productListReducer from './productListSlice';
+import couponReducer from './couponSlice'
 import adminOrderReducer from './admin/adminOrderSlice';
 import adminStatsReducer from './admin/adminStatsSlice';
 import reorderReducer from "./reorderSlice";
@@ -29,6 +30,7 @@ const rootReducer = combineReducers({
   adminOrders: adminOrderReducer,
   adminStats: adminStatsReducer,
   reorder: reorderReducer,
+  coupons: couponReducer,
 });
 
 const persistConfig = {

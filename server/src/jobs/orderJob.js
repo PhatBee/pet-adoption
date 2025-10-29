@@ -1,5 +1,6 @@
 const cron = require("node-cron");
 const Order = require("../models/Order");
+const notificationService = require('../services/notificationService'); // 1. Import service
 
 // Job chạy mỗi phút để kiểm tra đơn hàng
 cron.schedule("* * * * *", async () => {
@@ -22,8 +23,22 @@ cron.schedule("* * * * *", async () => {
           changedAt: new Date()
         });
         await order.save();
+        let confirmedOrder = order;
 
         console.log(`Đã xác nhận đơn hàng ${order._id}`);
+
+        // --- 2. GỬI THÔNG BÁO ---
+        const statusLabel = translateOrderStatus(confirmedOrder.status);
+
+        await notificationService.createAndSendNotification(
+          order.user, // userId
+          {
+            title: 'Đơn hàng đã được xác nhận',
+            message: `Đơn hàng #${order._id.toString().slice(-6)} của bạn đã được xác nhận và đang chờ xử lý. Trạng thái đơn hàng: ${statusLabel}`,
+            link: `/orders/${order._id}`
+          }
+        );
+        // -------------------------
       }
     }
   } catch (err) {

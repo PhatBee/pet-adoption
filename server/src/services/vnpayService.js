@@ -3,6 +3,7 @@ const crypto = require("crypto");
 const moment = require('moment');
 const Order = require('../models/Order'); // Import Order model
 const { cancelPendingOrderAndRestoreStock } = require('./orderService');
+const notificationService = require('./notificationService'); // 1. Import
 
 
 // Lấy config từ .env (đã được load bởi server.js)
@@ -110,10 +111,30 @@ async function processIpn(vnp_Params) {
                 };
                 order.orderStatusHistory.push({ status: "confirmed", changedAt: new Date() });
                 await order.save(); // Lưu thay đổi
+
+                // --- 2. GỬI THÔNG BÁO THÀNH CÔNG ---
+                await notificationService.createAndSendNotification(
+                    order.user,
+                    {
+                        title: 'Thanh toán thành công!',
+                        message: `Đơn hàng #${orderId.toString().slice(-6)} đã được thanh toán thành công qua VNPAY.`,
+                        link: `/orders/${orderId}`
+                    }
+                );
             } else {
                 // Giao dịch thất bại
                 // 3. Gọi hàm hủy đơn và hoàn kho
                 await cancelPendingOrderAndRestoreStock(order, `Thanh toán VNPAY thất bại. Mã lỗi: ${rspCode}`);
+
+                // --- 3. GỬI THÔNG BÁO THẤT BẠI ---
+                await notificationService.createAndSendNotification(
+                    order.user,
+                    {
+                        title: 'Thanh toán thất bại',
+                        message: `Thanh toán VNPAY cho đơn hàng #${orderId.toString().slice(-6)} đã thất bại. Đơn hàng đã được huỷ.`,
+                        link: `/orders/${orderId}`
+                    }
+                );
             }
 
             return { RspCode: '00', Message: 'Success' };

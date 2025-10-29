@@ -4,7 +4,7 @@ const ALLOWED: Record<string, string[]> = {
   preparing: ["shipping", "cancelled"],
   shipping: ["delivered", "refunded"],
   delivered: ["refunded"],
-  cancel_requested: ["cancelled", "confirmed"],
+  cancel_requested: ["cancelled", "confirmed", "preparing"],
   cancelled: [],
   refunded: []
 };

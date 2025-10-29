@@ -20,13 +20,18 @@ function toLeanQuery(q) {
 }
 
 // 1) Mới nhất
-async function getNewestProducts(limit = 8, petId = null) {
+async function getNewestProducts(limit = 8, petId = null, excludeId = null) {
   // Xây dựng điều kiện query cơ bản
   const queryConditions = { isActive: true };
 
   // Nếu có petId, thêm điều kiện lọc theo pet
   if (petId) {
     queryConditions.pet = petId;
+  }
+
+  // Thêm điều kiện: _id không phải là excludeId
+  if (excludeId) {
+    queryConditions._id = { $ne: excludeId }; // $ne = Not Equal
   }
 
   return toLeanQuery(
@@ -151,6 +156,24 @@ async function getBestSellers(limit = 6, mode = "auto") {
   }
 }
 
+// 2. Thêm hàm mới để lấy sản phẩm theo thể loại
+async function getProductsByCategory(categoryId, limit = 8, excludeId = null) {
+  const queryConditions = { 
+    isActive: true, 
+    category: categoryId 
+  };
+  if (excludeId) {
+    queryConditions._id = { $ne: excludeId };
+  }
+  
+  // Sắp xếp theo bán chạy hoặc mới nhất để tăng liên quan
+  return toLeanQuery(
+    Product.find(queryConditions)
+      .sort({ soldCount: -1, createdAt: -1 })
+      .limit(limit)
+  );
+}
+
 // Lấy tất cả sản phẩm có phân trang
 async function getAllProducts({ 
   page = 1, 
@@ -236,5 +259,6 @@ module.exports = {
   getMostViewedProducts,
   getTopDiscountProducts,
   getBestSellers,
-  getAllProducts
+  getAllProducts,
+  getProductsByCategory
 };

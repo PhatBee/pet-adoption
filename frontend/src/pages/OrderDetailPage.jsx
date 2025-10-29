@@ -15,6 +15,9 @@ import ReorderButton from "../components/order/ReorderButton";
 import { fetchReorderItems } from "../store/reorderSlice";
 import { useNavigate } from "react-router-dom";
 
+import { translateOrderStatus, STATUS_LABELS_VI } from "../utils/orderStatus";
+
+
 
 
 export default function OrderDetailPage() {
@@ -30,6 +33,21 @@ export default function OrderDetailPage() {
   if (isLoading) return <div className="p-6">Đang tải...</div>;
   if (error) return <ErrorPage statusCode="500" title="Lỗi máy chủ" message={error} />;
   if (!order) return null;
+
+  // helper: optional mapping status -> tailwind classes for badge
+  const statusBadgeClass = (status) => {
+    switch (status) {
+      case 'pending': return 'bg-yellow-100 text-yellow-800';
+      case 'confirmed': return 'bg-blue-100 text-blue-800';
+      case 'preparing': return 'bg-indigo-100 text-indigo-800';
+      case 'shipping': return 'bg-orange-100 text-orange-800';
+      case 'delivered': return 'bg-green-100 text-green-800';
+      case 'cancelled': return 'bg-red-100 text-red-800';
+      case 'cancel_requested': return 'bg-red-50 text-red-700';
+      case 'refunded': return 'bg-gray-100 text-gray-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
 
   return (
     <div className="container mx-auto p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -66,7 +84,15 @@ export default function OrderDetailPage() {
           <h4 className="font-semibold mb-3">Thông tin đơn hàng</h4>
           <div className="text-sm text-gray-700">
             <div>Mã đơn: <span className="font-mono">{order._id}</span></div>
-            <div>Trạng thái: {order.status}</div>
+
+            {/* Hiển thị nhãn trạng thái bằng translateOrderStatus */}
+            <div>
+              Trạng thái:{" "}
+              <span className={`inline-block px-2 py-1 text-sm rounded ${statusBadgeClass(order.status)}`}>
+                {translateOrderStatus(order.status, order.status)}
+              </span>
+            </div>
+            
             <div>Phương thức: {order.paymentMethod}</div>
             <div>Ngày đặt: {format(new Date(order.createdAt), "dd/MM/yyyy HH:mm")}</div>
             {order.deliveredAt && <div>Ngày giao: {format(new Date(order.deliveredAt), "dd/MM/yyyy HH:mm")}</div>}

@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const {authenticate} = require("../middleware/authMiddleware");
-const { getListMyOrders, cancelOrder, getOrderDetail, getProductSnapshot,  vnpayReturn, vnpayIpn, momoReturn, momoIpn} = require("../controllers/orderController")
+const { getListMyOrders, cancelOrder, getOrderDetail, getProductSnapshot,  vnpayReturn, vnpayIpn, momoReturn, momoIpn, getReorderInfo } = require("../controllers/orderController")
 const {createOrUpdateReview} = require("../controllers/reviewController")
 
 // 1. Route VNPAY Return (user's browser)

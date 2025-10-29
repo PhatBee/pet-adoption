@@ -52,8 +52,7 @@ export default function CartItem({ item, isLoading }) {
       </div>
       <div className="flex-1">
         <h3 className="font-semibold">{product.name}</h3>
-        <div className="text-sm text-gray-500">Giá: <span className="text-red-600 font-bold">{product.price.toLocaleString()}đ</span></div>
-        <div className="text-sm text-gray-500">Kho: {product.stock}</div>
+<div className="text-sm text-gray-500">Giá: <span className="text-red-600 font-bold">{product.price?.toLocaleString() || 0}đ</span></div>        <div className="text-sm text-gray-500">Kho: {product.stock}</div>
         <div className="mt-2 flex items-center gap-3">
           {/* Vô hiệu hóa QuantitySelector khi đang loading */}
           <QuantitySelector value={quantity} onChange={onQtyChange} min={1} max={product.stock || 1} disabled={isLoading} />
@@ -65,7 +64,7 @@ export default function CartItem({ item, isLoading }) {
         </div>
       </div>
       <div className="flex flex-col justify-between items-end">
-        <div className="font-semibold">{(product.price * quantity).toLocaleString()}đ</div>
+<div className="font-semibold">{(product.price * quantity)?.toLocaleString() || 0}đ</div>
       </div>
     </div>
   );

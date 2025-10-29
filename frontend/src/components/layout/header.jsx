@@ -2,19 +2,26 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { selectUser } from "../../../src/store/authSlice";
+import NotificationBell from "./NotificationBell"; // <-- 1. IMPORT COMPONENT MỚI
 import UserMenu from "./UserMenu";
 
 export default function Header() {
   const user = useSelector(selectUser);
 
   return (
-    <header className="border-b bg-white">
+    <header className="border-b bg-white sticky top-0 z-40">
       <div className="container mx-auto flex items-center justify-between py-3 px-4">
         <Link to="/" className="text-indigo-600 font-bold text-lg no-underline">
           🐾 Pet Store
         </Link>
 
         <nav className="flex items-center gap-5">
+          <Link
+            to="/promotions"
+            className="text-gray-700 hover:text-indigo-600 no-underline"
+          >
+            Khuyến mãi
+          </Link>
           <Link
             to="/wishlist"
             className="text-gray-700 hover:text-indigo-600 no-underline"
@@ -40,7 +47,10 @@ export default function Header() {
             Giới thiệu
           </Link>
           {user ? (
-            <UserMenu />
+            <div className="flex items-center gap-3"> {/* Bọc UserMenu và Bell */}
+              <NotificationBell /> {/* <-- 2. THÊM CHUÔNG Ở ĐÂY */}
+              <UserMenu />
+            </div>
           ) : (
             <div className="flex gap-2">
               <Link

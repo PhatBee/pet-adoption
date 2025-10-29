@@ -1,6 +1,6 @@
 // controllers/productController.js (ví dụ)
 const mongoose = require("mongoose");
-const {Product} = require("../models/Product");
+const { Product } = require("../models/Product");
 const reviewService = require('../services/reviewService');
 const productService = require("../services/productService");
 
@@ -8,17 +8,17 @@ const getBySlug = async (req, res) => {
   try {
     const { slug } = req.params;
 
-  // 2. Dùng .populate() để lấy thông tin chi tiết của pet và category
-  const product = await Product.findOne({ slug, isActive: true })
+    // 2. Dùng .populate() để lấy thông tin chi tiết của pet và category
+    const product = await Product.findOne({ slug, isActive: true })
       .populate('pet', 'name')
       .populate('category', 'name');
-  
-  if (!product) return res.status(404).json({ message: "Không tìm thấy" });
 
-  // 3. Lấy tất cả review của sản phẩm này
-  const reviews = await reviewService.getReviewsByProduct(product._id);
+    if (!product) return res.status(404).json({ message: "Không tìm thấy" });
 
-  // 4. Tính toán rating trung bình và tổng số review
+    // 3. Lấy tất cả review của sản phẩm này
+    const reviews = await reviewService.getReviewsByProduct(product._id);
+
+    // 4. Tính toán rating trung bình và tổng số review
     let averageRating = 0;
     let reviewCount = reviews.length;
     if (reviewCount > 0) {
@@ -26,18 +26,42 @@ const getBySlug = async (req, res) => {
       averageRating = totalRating / reviewCount;
     }
 
-  // 5. Gửi về một object chứa tất cả dữ liệu cần thiết
+    const reviewStats = {
+      average: averageRating.toFixed(1),
+      count: reviewCount,
+    };
+
+    let relatedByCategory = [];
+    let relatedByPet = [];
+
+    // --- 5. GỌI LẤY SẢN PHẨM LIÊN QUAN ---
+    // Chạy song song 2 truy vấn
+    if (product.category && product.pet)
+    {
+      [relatedByCategory, relatedByPet] = await Promise.all([
+      // Lấy 8 sản phẩm cùng thể loại, trừ sản phẩm hiện tại
+      productService.getProductsByCategory(product.category._id, 8, product._id),
+      
+      // Lấy 8 sản phẩm mới nhất cùng loại thú cưng, trừ sản phẩm hiện tại
+      productService.getNewestProducts(8, product.pet._id, product._id)
+    ]);
+    }
+
+
+
+    // 6. Gửi về một object chứa tất cả dữ liệu cần thiết
     res.json({
       product: product,
       reviews: reviews,
-      reviewStats: {
-        average: averageRating.toFixed(1), // Làm tròn đến 1 chữ số thập phân
-        count: reviewCount,
+      reviewStats: reviewStats,
+      relatedProducts: { // <-- Thêm object này
+        byCategory: relatedByCategory,
+        byPet: relatedByPet
       }
     });
 
-  // tăng viewCount “fire-and-forget”
-    Product.updateOne({ _id: product._id }, { $inc: { viewCount: 1 } }).catch(() => {});
+    // tăng viewCount “fire-and-forget”
+    Product.updateOne({ _id: product._id }, { $inc: { viewCount: 1 } }).catch(() => { });
 
   } catch (error) {
     console.error("Lỗi khi lấy chi tiết sản phẩm:", error);
@@ -62,15 +86,15 @@ const getProductById = async (req, res) => {
 const getAllPaginated = async (req, res) => {
   try {
 
-    const { 
-      page, 
-      limit, 
-      searchTerm, 
-      category, 
-      pet, 
-      minPrice, 
-      maxPrice, 
-      sortBy 
+    const {
+      page,
+      limit,
+      searchTerm,
+      category,
+      pet,
+      minPrice,
+      maxPrice,
+      sortBy
     } = req.query;
 
     // 2. Gọi service và truyền vào một object chứa tất cả các tham số
@@ -84,7 +108,7 @@ const getAllPaginated = async (req, res) => {
       maxPrice,
       sortBy,
     });
-    
+
     res.json(result);
   } catch (error) {
     console.error("Lỗi khi lấy sản phẩm phân trang:", error);

@@ -169,7 +169,6 @@ async function getReorderInfo (orderId) {
    return { available, unavailable };
 };
 
-module.exports = { getUserOrderById, fetchUserOrders, updateOrderStatus, cancelOrder, restockItems, getReorderInfo };
 // Cancel Order For Vnpay
 /**
  * Hủy một đơn hàng và hoàn trả lại số lượng tồn kho.
@@ -241,4 +240,4 @@ const cancelPendingOrderAndRestoreStock = async (order, reason) => {
   }
 };
 
-module.exports = { getUserOrderById, fetchUserOrders, updateOrderStatus, cancelOrder, restockItems, cancelPendingOrderAndRestoreStock };
+module.exports = { getUserOrderById, fetchUserOrders, updateOrderStatus, cancelOrder, restockItems, cancelPendingOrderAndRestoreStock, getReorderInfo };

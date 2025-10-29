@@ -2,6 +2,7 @@ const crypto = require('crypto');
 const https = require('https');
 const Order = require('../models/Order'); // Import Order model
 const { cancelPendingOrderAndRestoreStock } = require('./orderService'); // Import hàm hủy đơn
+const notificationService = require('./notificationService'); // 1. Import
 
 // Lấy config từ .env
 const partnerCode = process.env.MOMO_PARTNER_CODE;
@@ -174,11 +175,31 @@ async function processIpn(body) {
             };
             order.orderStatusHistory.push({ status: "confirmed", changedAt: new Date() });
             await order.save();
+
+            // --- 2. GỬI THÔNG BÁO THÀNH CÔNG ---
+            await notificationService.createAndSendNotification(
+                order.user,
+                {
+                    title: 'Thanh toán thành công!',
+                    message: `Đơn hàng #${orderId.toString().slice(-6)} đã được thanh toán thành công qua MOMO.`,
+                    link: `/orders/${orderId}`
+                }
+            );
             console.log(`MoMo IPN - Order ${orderId} confirmed successfully.`);
         } else {
             // Giao dịch thất bại
             console.log(`MoMo IPN - Order ${orderId} failed. ResultCode: ${resultCode}, Message: ${message}`);
             await cancelPendingOrderAndRestoreStock(order, `Thanh toán MoMo thất bại. Mã lỗi: ${resultCode} - ${message}`);
+
+            // --- 3. GỬI THÔNG BÁO THẤT BẠI ---
+             await notificationService.createAndSendNotification(
+                order.user,
+                {
+                    title: 'Thanh toán thất bại',
+                    message: `Thanh toán MOMO cho đơn hàng #${orderId.toString().slice(-6)} đã thất bại. Đơn hàng đã được huỷ.`,
+                    link: `/orders/${orderId}`
+                }
+            );
         }
 
         return { resultCode: 0, message: "Success" }; // Báo cho MoMo đã xử lý thành công
