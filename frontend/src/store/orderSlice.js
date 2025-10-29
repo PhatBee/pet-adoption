@@ -107,6 +107,10 @@ const slice = createSlice({
       state.appliedCoupon = null;
       state.couponError = null;
       state.couponValidationStatus = 'idle';
+    },
+
+    clearLastOrder: (state) => {
+      state.lastOrder = null;
     }
   },
   extraReducers: (builder) => {
@@ -166,5 +170,5 @@ const slice = createSlice({
   }
 });
 
-export const { resetOrders, setPointsToUse, removeCoupon } = slice.actions;
+export const { resetOrders, setPointsToUse, removeCoupon, clearLastOrder  } = slice.actions;
 export default slice.reducer;

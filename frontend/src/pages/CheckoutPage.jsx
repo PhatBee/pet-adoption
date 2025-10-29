@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchCheckoutData, placeOrder } from "../store/orderSlice";
+import { fetchCheckoutData, placeOrder, clearLastOrder } from "../store/orderSlice";
 import { selectUser, updateUser } from "../store/authSlice";
 import { addAddressApi } from "../api/userApi"; // API để thêm địa chỉ
 import AddressSelector from "../components/checkout/AddressSelector";
@@ -55,14 +55,18 @@ export default function CheckoutPage() {
   let pointsDiscount = Math.min(pointsToUse, itemsTotal - couponDiscount);
 
   useEffect(() => {
+    if (!lastOrder) return;
+
     if (lastOrder) {
       // If redirectUrl present (VNPAY)
       if (lastOrder.redirectUrl) {
+        dispatch(clearLastOrder());
         window.location.href = lastOrder.redirectUrl;
         return;
       }
       toast.success("Đặt hàng thành công");
       navigate(`/orders/${lastOrder.orderId || lastOrder.order?._id || ""}`);
+      dispatch(clearLastOrder());
     }
   }, [lastOrder, navigate]);
 
