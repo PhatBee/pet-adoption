@@ -4,6 +4,8 @@ const cookieParser = require("cookie-parser");
 const connectDB = require("../server/src/config/db");
 const cors = require('cors'); // Install with: npm install cors
 const path = require("path");
+const http = require('http'); // 1. Import http
+const { initializeSocket } = require('./socket/socketHandler'); // 2. Import handler socket
 
 const authRoutes = require("../server/src/routes/authRoutes");
 const userRoutes = require("../server/src/routes/userRoutes");
@@ -24,6 +26,13 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(cookieParser());
+
+// 3. Tạo HTTP server từ Express app
+const server = http.createServer(app);
+
+// 4. Khởi tạo Socket.IO và truyền 'server' vào
+// Hàm này cũng sẽ tự động khởi tạo NotificationService
+initializeSocket(server);
 
 // Routes
 app.use("/api/auth", authRoutes);
@@ -48,7 +57,7 @@ connectDB().then(() => {
     require("./src/jobs/orderJob");
     require("./src/jobs/orderVnpayJob");
     require("./src/jobs/orderMomoJob");
-    app.listen(PORT, () => {
+    server.listen(PORT, () => {
         console.log(`Server is running on port ${PORT}`);
     });
 });

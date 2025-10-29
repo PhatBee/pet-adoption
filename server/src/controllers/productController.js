@@ -31,15 +31,21 @@ const getBySlug = async (req, res) => {
       count: reviewCount,
     };
 
+    let relatedByCategory = [];
+    let relatedByPet = [];
+
     // --- 5. GỌI LẤY SẢN PHẨM LIÊN QUAN ---
     // Chạy song song 2 truy vấn
-    const [relatedByCategory, relatedByPet] = await Promise.all([
+    if (product.category && product.pet)
+    {
+      [relatedByCategory, relatedByPet] = await Promise.all([
       // Lấy 8 sản phẩm cùng thể loại, trừ sản phẩm hiện tại
       productService.getProductsByCategory(product.category._id, 8, product._id),
       
       // Lấy 8 sản phẩm mới nhất cùng loại thú cưng, trừ sản phẩm hiện tại
       productService.getNewestProducts(8, product.pet._id, product._id)
     ]);
+    }
 
 
 
