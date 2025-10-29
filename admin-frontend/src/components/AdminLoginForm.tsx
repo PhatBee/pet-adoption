@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { useDispatch, useSelector } from 'react-redux';
 import { loginAdmin } from '../store/slices/authSlice';
 import type { RootState, AppDispatch } from '../store/store';
-
+import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 
 const AdminLoginForm = () => {
   const [form, setForm] = useState({ 
@@ -11,6 +11,8 @@ const AdminLoginForm = () => {
     password: "" 
   });
 
+
+const [showPassword, setShowPassword] = useState(false);
   // Lấy dispatch function
 const dispatch = useDispatch<AppDispatch>();
   
@@ -65,15 +67,33 @@ const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
           <label className="block text-sm font-medium text-gray-600 mb-1">
             Mật khẩu
           </label>
-          <input
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400"
-            type="password"
-            name="password"
-            placeholder="••••••••"
-            value={form.password}
-            onChange={handleChange}
-            required
+          {/* MỚI: Dùng 'relative' để chứa icon */}
+          <div className="relative">
+            <input
+              // MỚI: Thêm 'pr-10' để chữ không đè lên icon
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 pr-10"
+              // MỚI: Đổi type động
+              type={showPassword ? "text" : "password"}
+              name="password"
+              placeholder="••••••••"
+              value={form.password}
+              onChange={handleChange}
+              required
             />
+            {/* MỚI: Nút bấm icon */}
+            <button
+              type="button" // Rất quan trọng: để không submit form
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600"
+              aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+            >
+              {showPassword ? (
+                <EyeSlashIcon className="h-5 w-5" />
+              ) : (
+                <EyeIcon className="h-5 w-5" />
+              )}
+            </button>
+          </div>
         </div>
 
         {/* Button */}

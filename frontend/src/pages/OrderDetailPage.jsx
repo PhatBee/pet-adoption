@@ -11,6 +11,10 @@ import CancelOrderButton from "../components/order/CancelOrderButton";
 import ErrorPage from "./ErrorPage"; // 1. Import trang lỗi
 import { toast } from "react-toastify";
 import { format } from "date-fns";
+import ReorderButton from "../components/order/ReorderButton";
+import { fetchReorderItems } from "../store/reorderSlice";
+import { useNavigate } from "react-router-dom";
+
 
 
 export default function OrderDetailPage() {
@@ -48,7 +52,12 @@ export default function OrderDetailPage() {
               />
             ))}
           </div>
-        <CancelOrderButton order={order} />
+          <div className="mt-4 flex justify-end gap-3">
+            {["pending", "confirmed", "shipping"].includes(order.status) && (
+              <CancelOrderButton order={order} />
+            )}
+            <ReorderButton order={order} />
+          </div>
         </div>
       </div>
 

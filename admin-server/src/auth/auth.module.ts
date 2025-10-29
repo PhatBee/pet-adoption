@@ -21,10 +21,12 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
         signOptions: { expiresIn: '7d' },
       }),
       inject: [ConfigService],
+      global: true,
     }),
     
   ],
   controllers: [AuthController],
   providers: [AuthService, LocalStrategy, JwtStrategy], // Cung cấp Service và Strategies
+  exports: [AuthService, JwtModule],
 })
 export class AuthModule {}

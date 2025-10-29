@@ -13,6 +13,8 @@ import productListReducer from './productListSlice';
 import couponReducer from './couponSlice'
 import adminOrderReducer from './admin/adminOrderSlice';
 import adminStatsReducer from './admin/adminStatsSlice';
+import reorderReducer from "./reorderSlice";
+
 
 
 const rootReducer = combineReducers({
@@ -27,6 +29,7 @@ const rootReducer = combineReducers({
   productList: productListReducer,
   adminOrders: adminOrderReducer,
   adminStats: adminStatsReducer,
+  reorder: reorderReducer,
   coupons: couponReducer,
 });
 

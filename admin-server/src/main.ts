@@ -4,21 +4,33 @@ import { AppModule } from './app.module';
 import cookieParser = require('cookie-parser');
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import { ValidationPipe } from '@nestjs/common';
+import { HttpAdapterHost } from '@nestjs/core';
+import * as dotenv from 'dotenv';
+import { NestExpressApplication } from '@nestjs/platform-express';
+
+dotenv.config();
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
   app.enableCors({
-    origin: 'http://localhost:6060', 
+    origin: 'http://localhost:6060',
     credentials: true,
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    allowedHeaders: 'Content-Type, Authorization',
   });
 
   app.use(cookieParser());
   app.setGlobalPrefix('api');
   
-  app.useGlobalPipes(new ValidationPipe());
+  app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
 
-  app.useGlobalFilters(new AllExceptionsFilter());
+  const httpAdapter = app.get(HttpAdapterHost);
+  app.useGlobalFilters(new AllExceptionsFilter(httpAdapter));
+
+  app.useStaticAssets('uploads', { 
+    prefix: '/uploads',
+  });
 
   const PORT = process.env.PORT || 4000;
   await app.listen(PORT);

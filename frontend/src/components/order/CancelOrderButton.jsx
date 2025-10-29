@@ -21,22 +21,23 @@ export default function CancelOrderButton({ order }) {
   // Trạng thái cho phép hủy
   const cancellableStatuses = ["pending", "confirmed", "preparing"];
 
-  return (
-    <div className="flex justify-end items-center mt-2">
-      {cancellableStatuses.includes(order.status) && (
-        <button
-          onClick={handleCancelRequest}
-          className="px-3 py-1 text-xs text-black rounded-md border:bg-black-600 transition-colors"
-        >
-          Hủy đơn
-        </button>
-      )}
+  if (cancellableStatuses.includes(order.status)) {
+    return (
+      <button
+        onClick={handleCancelRequest}
+        className="px-4 py-2 rounded-md bg-red-500 hover:bg-red-600 text-white text-sm font-semibold shadow-sm transition"
+      >
+        Hủy đơn
+      </button>
+    );
+  }
 
-      {order.status === "cancel_requested" && (
-        <p className="text-yellow-600 text-xs mt-1 italic">
-          Yêu cầu hủy đơn đang chờ xử lý
-        </p>
-      )}
-    </div>
-  );
+  if (order.status === "cancel_requested") {
+    return (
+      <p className="text-orange-600 text-sm italic self-center">
+        Đang chờ duyệt hủy
+      </p>
+    );
+  }
+  return null;
 }
