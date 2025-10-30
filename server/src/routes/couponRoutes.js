@@ -1,5 +1,5 @@
 const express = require("express");
-const { validateCoupon, listActiveCoupons } = require("../controllers/couponController");
+const { validateCoupon, listActiveCoupons, saveCoupon } = require("../controllers/couponController");
 const { authenticate } = require("../middleware/authMiddleware");
 // 2. Giả sử bạn có 1 middleware "authenticateOptional"
 // Nếu không, ta sẽ dùng "authenticate" cho cả hai

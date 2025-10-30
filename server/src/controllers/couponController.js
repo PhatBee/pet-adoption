@@ -32,7 +32,7 @@ const listActiveCoupons = async (req, res) => {
         const coupons = await couponService.getActiveCoupons(userId);
         res.json(coupons);
     } catch (error) {
-        res.status(500).json({ message: "Lỗi khi lấy danh sách khuyến mãi" });
+        res.status(500).json({ message: "Lỗi khi lấy danh sách khuyến mãi: ", error: error.message });
     }
 }
 

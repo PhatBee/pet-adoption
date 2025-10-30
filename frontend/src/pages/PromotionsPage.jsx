@@ -1,8 +1,9 @@
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchActiveCoupons, selectActiveCoupons, selectCouponIsLoading } from '../store/couponSlice';
+import { fetchActiveCoupons, selectActiveCoupons, selectCouponIsLoading, saveCouponThunk } from '../store/couponSlice';
 import CouponCard from '../components/promotion/CouponCard';
 import { FaSpinner } from 'react-icons/fa';
+import { toast } from 'react-toastify'; // 2. Import toast
 
 export default function PromotionsPage() {
   const dispatch = useDispatch();
@@ -10,11 +11,20 @@ export default function PromotionsPage() {
   const isLoading = useSelector(selectCouponIsLoading);
 
   useEffect(() => {
-    // Chỉ gọi API nếu chưa có dữ liệu
-    if (coupons.length === 0) {
       dispatch(fetchActiveCoupons());
+  }, [dispatch]);
+
+  // 3. Hàm xử lý lưu
+  const handleSaveCoupon = async (couponId) => {
+    // dispatch thunk và bắt lỗi (nếu có)
+    const resultAction = await dispatch(saveCouponThunk(couponId));
+    
+    // Nếu thunk bị reject, hiển thị lỗi
+    if (saveCouponThunk.rejected.match(resultAction)) {
+      toast.error(resultAction.payload); // Hiển thị lỗi (ví dụ: "Đã lưu mã này rồi")
+      throw new Error(resultAction.payload); // Ném lỗi để CouponCard biết
     }
-  }, [dispatch, coupons.length]);
+  };
 
   return (
     <div className="bg-gray-50 min-h-screen py-10">
@@ -30,7 +40,11 @@ export default function PromotionsPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {coupons.length > 0 ? (
               coupons.map((coupon) => (
-                <CouponCard key={coupon._id} coupon={coupon} />
+               <CouponCard 
+                  key={coupon._id} 
+                  coupon={coupon} 
+                  onSave={handleSaveCoupon} // 4. Truyền hàm onSave
+                />
               ))
             ) : (
               <p className="text-center text-gray-500 lg:col-span-2">

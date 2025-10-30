@@ -1,5 +1,5 @@
-import React from 'react';
-import { FaCopy, FaCalendarAlt, FaDollarSign } from 'react-icons/fa';
+import React, { useState } from 'react';
+import { FaCopy, FaCalendarAlt, FaDollarSign, FaCheckCircle, FaSave } from 'react-icons/fa'; // 1. Thêm icon
 import { toast } from 'react-toastify';
 
 // Hàm helper định dạng ngày
@@ -13,19 +13,50 @@ const formatCurrency = (value) => {
   return value.toLocaleString('vi-VN') + 'đ';
 };
 
-export default function CouponCard({ coupon }) {
-  const { code, discountType, discountValue, minOrderValue, expiresAt } = coupon; //
+// 2. Thêm prop onSave
+export default function CouponCard({ coupon, onSave }) {
+  const { 
+      code, 
+      discountType, 
+      discountValue, 
+      minOrderValue, 
+      expiresAt,
+      maxDiscountValue, // 3. Lấy thêm thông tin
+      description,
+      isSaved // Lấy cờ isSaved
+    } = coupon;
+
+    const [isSaving, setIsSaving] = useState(false); // State loading cục bộ
 
   const handleCopyCode = () => {
     navigator.clipboard.writeText(code);
     toast.success(`Đã sao chép mã: ${code}`);
   };
 
-  // Định dạng mô tả giảm giá
-  const discountDescription = discountType === 'percentage'
+  // 4. Hàm xử lý khi nhấn Lưu
+  const handleSaveClick = async () => {
+    setIsSaving(true);
+    try {
+      // Gọi hàm onSave (được truyền từ PromotionsPage)
+      await onSave(coupon._id);
+      // slice sẽ tự động cập nhật 'isSaved'
+      toast.success("Đã lưu mã giảm giá!");
+    } catch (errorMsg) {
+      // Bắt lỗi (ví dụ: "Bạn đã lưu mã này rồi")
+      toast.error(errorMsg || "Lưu mã thất bại");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // 5. Cải thiện mô tả giảm giá
+  let discountDescription = discountType === 'percentage'
     ? `Giảm ${discountValue}%`
     : `Giảm ${formatCurrency(discountValue)}`;
-
+  
+  if (discountType === 'percentage' && maxDiscountValue) {
+    discountDescription += ` (tối đa ${formatCurrency(maxDiscountValue)})`;
+  }
   return (
     <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden flex flex-col md:flex-row">
       {/* Phần màu bên trái */}
@@ -50,6 +81,13 @@ export default function CouponCard({ coupon }) {
           </button>
         </div>
 
+        {/* 6. Hiển thị mô tả (nếu có) */}
+        {description && (
+          <p className="text-sm text-gray-600 mb-3 italic">
+            "{description}"
+          </p>
+        )}
+
         <div className="space-y-3">
           <div className="flex items-center gap-3 text-gray-600">
             <FaDollarSign className="text-green-500" size={18} />
@@ -63,6 +101,25 @@ export default function CouponCard({ coupon }) {
               Hạn sử dụng: <strong className="text-gray-800">{formatDate(expiresAt)}</strong>
             </span>
           </div>
+        </div>
+
+        {/* 7. Nút Lưu (phần chân card) */}
+        <div className="mt-5 pt-4 border-t border-gray-100 flex justify-end">
+          {isSaved ? (
+            <div className="flex items-center gap-2 px-4 py-2 text-green-600">
+              <FaCheckCircle />
+              <span>Đã lưu</span>
+            </div>
+          ) : (
+            <button
+              onClick={handleSaveClick}
+              disabled={isSaving}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+            >
+              <FaSave />
+              <span>{isSaving ? 'Đang lưu...' : 'Lưu mã'}</span>
+            </button>
+          )}
         </div>
       </div>
     </div>

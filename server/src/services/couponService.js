@@ -35,7 +35,7 @@ const validateCoupon = async (code, itemsTotal) => {
  * Lấy tất cả các coupon CÔNG KHAI, còn hoạt động và chưa hết hạn
  * userId (tùy chọn): Nếu được cung cấp, sẽ kiểm tra xem user đã lưu coupon nào
  */
-const getActiveCoupons = async () => {
+const getActiveCoupons = async (userId = null) => {
   const now = new Date();
   
   const coupons = await Coupon.find({
