@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Schema as MongooseSchema } from 'mongoose';
 import { User } from './user.schema';
-import { Coupon } from '../../coupon/coupon.schema';
+import { Coupon } from '../../coupon/schemas/coupon.schema';
 
 export type UserCouponDocument = UserCoupon & Document;
 

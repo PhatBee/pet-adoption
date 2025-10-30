@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Schema as MongooseSchema } from 'mongoose';
 
-export type CouponDocument = Coupon & Document;
+export type CouponDocument = Document & Coupon & { _id: MongooseSchema.Types.ObjectId };
 
 export enum DiscountType {
   PERCENTAGE = 'percentage',
@@ -34,13 +34,19 @@ export class Coupon {
   @Prop({ min: 0 })
   maxDiscountValue: number;
 
+  @Prop({ default: '' })
+  description: string;
+
+  @Prop({ default: true, index: true })
+  isPublic: boolean;
+
   @Prop({ default: 0, min: 0 })
   minOrderValue: number;
 
   @Prop({ required: true, type: Date, default: Date.now })
   startsAt: Date;
 
-  @Prop({ required: true, type: Date })
+  @Prop({ type: Date }) //Có thể điều chỉnh mã không hết hạn
   expiresAt: Date;
 
   @Prop({ default: true })

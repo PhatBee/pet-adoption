@@ -15,6 +15,7 @@ import { AdminOrderModule } from './orders/orders.module';
 import { ProductModule } from './product/product.module';
 import { PetModule } from './pet/pet.module';
 import { CategoryModule } from './category/category.module';
+import { CouponModule } from './coupon/coupon.module';
 
 @Module({
   imports: [
@@ -50,6 +51,7 @@ import { CategoryModule } from './category/category.module';
     ProductModule,
     CategoryModule,
     PetModule,
+    CouponModule,
   ],
   controllers: [],
   providers: [
