@@ -1,6 +1,6 @@
 const express = require("express");
 const { validateCoupon, listActiveCoupons, saveCoupon } = require("../controllers/couponController");
-const { authenticate } = require("../middleware/authMiddleware");
+const { authenticate, authenticateOptional } = require("../middleware/authMiddleware");
 // 2. Giả sử bạn có 1 middleware "authenticateOptional"
 // Nếu không, ta sẽ dùng "authenticate" cho cả hai
 // const { authenticateOptional } = require("../middleware/authMiddleware");
@@ -18,7 +18,7 @@ router.post('/save', authenticate, saveCoupon); // 3. Thêm route mới
 //    Nếu bạn muốn trang này công khai, bạn cần 1 middleware "authenticateOptional"
 //    và sửa controller để xử lý req.user có thể null.
 //    Theo logic "Lưu mã", yêu cầu đăng nhập là hợp lý.
-router.get('/', authenticate, listActiveCoupons);
+router.get('/', authenticateOptional, listActiveCoupons);
 
 
 

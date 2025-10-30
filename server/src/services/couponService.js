@@ -38,32 +38,41 @@ const validateCoupon = async (code, itemsTotal) => {
 const getActiveCoupons = async (userId = null) => {
   const now = new Date();
   
-  const coupons = await Coupon.find({
+  // 1. Thay đổi logic query: Bỏ .lean() và thêm .populate()
+  const couponsQuery = Coupon.find({
     isActive: true, //
     isPublic: true, // 2. Chỉ lấy các coupon công khai
     expiresAt: { $gt: now } // Chỉ lấy mã chưa hết hạn
   })
   .sort({ expiresAt: 1 }) // Ưu tiên mã sắp hết hạn lên đầu
-  .lean(); // .lean() để đọc nhanh hơn
+  // Populate để lấy tên từ các model liên quan
+  .populate('productIds', 'name') // Chỉ lấy trường 'name' từ model 'Product'
+  .populate('categoryIds', 'name') // Chỉ lấy trường 'name' từ model 'Category'
+  .populate('petTypeIds', 'name'); // Chỉ lấy trường 'name' từ model 'Pet'
 
-  // 3. Nếu có userId, kiểm tra xem coupon nào đã được lưu
+  const coupons = await couponsQuery.exec(); // Chạy query
+
+  // 2. Chuyển Mongoose document sang object (vì đã bỏ .lean())
+  let couponObjects = coupons.map(c => c.toObject());
+
+  // 3. Nếu có userId, kiểm tra xem coupon nào đã được lưu, làm trên couponObjects
   if (userId) {
     const savedCoupons = await UserCoupon.find({ 
       userId, 
-      couponId: { $in: coupons.map(c => c._id) } 
+      couponId: { $in: couponObjects.map(c => c._id) } 
     }).select('couponId');
 
     const savedCouponIds = new Set(savedCoupons.map(sc => sc.couponId.toString()));
 
     // Thêm cờ isSaved vào mỗi coupon
-    return coupons.map(coupon => ({
+    couponObjects = couponObjects.map(coupon => ({
       ...coupon,
       isSaved: savedCouponIds.has(coupon._id.toString()),
     }));
   }
   
   // Nếu không có userId, trả về danh sách coupon_gốc (không có cờ isSaved)
-  return coupons;
+    return couponObjects;
 }
 
 /**

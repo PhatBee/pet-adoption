@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios'; // 1. Import axios
-axios.defaults.withCredentials = false;
 
 // 2. Định nghĩa API URL
 const PROVINCE_API_URL = "https://provinces.open-api.vn/api/v1";
@@ -31,7 +30,7 @@ export default function AddressForm({ initialData = null, onSubmit, onCancel, is
     const fetchProvinces = async () => {
       setLoadingProvinces(true);
       try {
-        const res = await axios.get(`${PROVINCE_API_URL}/p/`);
+        const res = await axios.get(`${PROVINCE_API_URL}/p/`, { withCredentials: false });
         setProvinces(res.data);
       } catch (error) {
         console.error("Lỗi tải Tỉnh/TP:", error);
@@ -51,7 +50,7 @@ export default function AddressForm({ initialData = null, onSubmit, onCancel, is
         const fetchDistricts = async () => {
           setLoadingDistricts(true);
           try {
-            const res = await axios.get(`${PROVINCE_API_URL}/p/${selectedProvince.code}?depth=2`);
+            const res = await axios.get(`${PROVINCE_API_URL}/p/${selectedProvince.code}?depth=2`, {withCredentials: false});
             setDistricts(res.data.districts);
           } catch (error) {
             console.error("Lỗi tải Quận/Huyện:", error);
@@ -76,7 +75,7 @@ export default function AddressForm({ initialData = null, onSubmit, onCancel, is
         const fetchWards = async () => {
           setLoadingWards(true);
           try {
-            const res = await axios.get(`${PROVINCE_API_URL}/d/${selectedDistrict.code}?depth=2`);
+            const res = await axios.get(`${PROVINCE_API_URL}/d/${selectedDistrict.code}?depth=2`, {withCredentials: false });
             setWards(res.data.wards);
           } catch (error) {
             console.error("Lỗi tải Phường/Xã:", error);

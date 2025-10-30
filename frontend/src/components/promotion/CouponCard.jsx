@@ -1,5 +1,9 @@
 import React, { useState } from 'react';
-import { FaCopy, FaCalendarAlt, FaDollarSign, FaCheckCircle, FaSave } from 'react-icons/fa'; // 1. Thêm icon
+// 1. Thêm các icon mới
+import {
+  FaCopy, FaCalendarAlt, FaDollarSign, FaCheckCircle, FaSave,
+  FaTags, FaPaw, FaBoxOpen, FaGlobeAsia
+} from 'react-icons/fa';
 import { toast } from 'react-toastify';
 
 // Hàm helper định dạng ngày
@@ -14,19 +18,23 @@ const formatCurrency = (value) => {
 };
 
 // 2. Thêm prop onSave
-export default function CouponCard({ coupon, onSave }) {
-  const { 
-      code, 
-      discountType, 
-      discountValue, 
-      minOrderValue, 
-      expiresAt,
-      maxDiscountValue, // 3. Lấy thêm thông tin
-      description,
-      isSaved // Lấy cờ isSaved
-    } = coupon;
+export default function CouponCard({ coupon, onSave, isAuthenticated }) {
+  const {
+    code,
+    discountType,
+    discountValue,
+    minOrderValue,
+    expiresAt,
+    maxDiscountValue, // 3. Lấy thêm thông tin
+    description,
+    isSaved, // Lấy cờ isSaved
+    appliesTo, // VD: 'specific_products'
+    productIds, // VD: [{_id: '1', name: 'Pate'}]
+    categoryIds,
+    petTypeIds
+  } = coupon;
 
-    const [isSaving, setIsSaving] = useState(false); // State loading cục bộ
+  const [isSaving, setIsSaving] = useState(false); // State loading cục bộ
 
   const handleCopyCode = () => {
     navigator.clipboard.writeText(code);
@@ -53,10 +61,104 @@ export default function CouponCard({ coupon, onSave }) {
   let discountDescription = discountType === 'percentage'
     ? `Giảm ${discountValue}%`
     : `Giảm ${formatCurrency(discountValue)}`;
-  
+
   if (discountType === 'percentage' && maxDiscountValue) {
     discountDescription += ` (tối đa ${formatCurrency(maxDiscountValue)})`;
   }
+
+  // 3. Helper component để hiển thị danh sách áp dụng
+  const renderAppliesTo = () => {
+    // chuẩn bị các section sẽ hiển thị
+    const sections = [];
+
+    // Nếu admin chọn ALL_PRODUCTS thì vẫn thêm một section "Tất cả" để hiển thị (nếu không có cụ thể nào thì chỉ show phần này)
+    if (appliesTo === 'all_products') {
+      sections.push({
+        key: 'all_products',
+        icon: <FaGlobeAsia className="text-blue-500" size={16} />,
+        title: 'Áp dụng cho:',
+        items: [{ _id: 'all', name: 'Tất cả sản phẩm' }],
+        showWhenEmpty: true, // hiện khi không có mục cụ thể
+      });
+    }
+
+    // Nếu có categoryIds
+    if (Array.isArray(categoryIds) && categoryIds.length > 0) {
+      sections.push({
+        key: 'categories',
+        icon: <FaTags className="text-teal-500" size={16} />,
+        title: 'Danh mục áp dụng:',
+        items: categoryIds,
+      });
+    }
+
+    // Nếu có petTypeIds
+    if (Array.isArray(petTypeIds) && petTypeIds.length > 0) {
+      sections.push({
+        key: 'pet_types',
+        icon: <FaPaw className="text-orange-500" size={16} />,
+        title: 'Loại thú cưng áp dụng:',
+        items: petTypeIds,
+      });
+    }
+
+    // Nếu có productIds
+    if (Array.isArray(productIds) && productIds.length > 0) {
+      sections.push({
+        key: 'products',
+        icon: <FaBoxOpen className="text-purple-500" size={16} />,
+        title: 'Sản phẩm áp dụng:',
+        items: productIds,
+      });
+    }
+
+    // Nếu không có section nào (và appliesTo không phải all_products) -> không render
+    if (sections.length === 0) return null;
+
+    return (
+      <div className="space-y-3">
+        {sections.map((section) => {
+          // Nếu section là all_products và có các section khác tồn tại, muốn ẩn "Tất cả" khi có cụ thể ?
+          // Hiện logic: nếu đây là all_products và có items cụ thể khác (length > 1), ta vẫn hiển thị cả "Tất cả" + các mục cụ thể.
+          // Nếu bạn muốn ẩn "Tất cả" khi có cụ thể, uncomment đoạn kiểm tra dưới.
+          // if (section.key === 'all_products' && sections.length > 1) return null;
+
+          const items = Array.isArray(section.items) ? section.items : [];
+
+          // Nếu section đánh dấu chỉ hiển thị khi empty nhưng không empty -> ẩn
+          if (section.showWhenEmpty && items.length > 0) {
+            // nếu muốn vẫn hiển thị "Tất cả" kèm cụ thể, comment dòng này
+            // return null;
+          }
+
+          return (
+            <div key={section.key} className="flex items-start gap-3 text-gray-600">
+              <div className="mt-1 flex-shrink-0">{section.icon}</div>
+              <div>
+                <span className="font-semibold text-gray-700">{section.title}</span>
+                <div className="flex flex-wrap gap-1.5 mt-1">
+                  {items.map((item) => {
+                    // item có thể là object {_id, name} hoặc string
+                    const id = item?._id ?? item?.id ?? item;
+                    const name = item?.name ?? item?.title ?? String(item);
+                    return (
+                      <span
+                        key={id}
+                        className="text-xs bg-gray-100 text-gray-800 px-2 py-0.5 rounded-full border border-gray-200"
+                      >
+                        {name}
+                      </span>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
   return (
     <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden flex flex-col md:flex-row">
       {/* Phần màu bên trái */}
@@ -88,6 +190,7 @@ export default function CouponCard({ coupon, onSave }) {
           </p>
         )}
 
+        {/* 4. Cập nhật khối thông tin */}
         <div className="space-y-3">
           <div className="flex items-center gap-3 text-gray-600">
             <FaDollarSign className="text-green-500" size={18} />
@@ -101,26 +204,35 @@ export default function CouponCard({ coupon, onSave }) {
               Hạn sử dụng: <strong className="text-gray-800">{formatDate(expiresAt)}</strong>
             </span>
           </div>
+
+          {renderAppliesTo()}
+
         </div>
 
+        {/* 5. Thêm flex-grow để đẩy nút Lưu xuống dưới */}
+        <div className="flex-grow"></div>
+
         {/* 7. Nút Lưu (phần chân card) */}
-        <div className="mt-5 pt-4 border-t border-gray-100 flex justify-end">
-          {isSaved ? (
-            <div className="flex items-center gap-2 px-4 py-2 text-green-600">
-              <FaCheckCircle />
-              <span>Đã lưu</span>
-            </div>
-          ) : (
-            <button
-              onClick={handleSaveClick}
-              disabled={isSaving}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
-            >
-              <FaSave />
-              <span>{isSaving ? 'Đang lưu...' : 'Lưu mã'}</span>
-            </button>
-          )}
-        </div>
+        {/* 2. Bọc toàn bộ khối nút Lưu bằng điều kiện `isAuthenticated` */}
+        {isAuthenticated && (
+          <div className="mt-5 pt-4 border-t border-gray-100 flex justify-end">
+            {isSaved ? (
+              <div className="flex items-center gap-2 px-4 py-2 text-green-600">
+                <FaCheckCircle />
+                <span>Đã lưu</span>
+              </div>
+            ) : (
+              <button
+                onClick={handleSaveClick}
+                disabled={isSaving}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+              >
+                <FaSave />
+                <span>{isSaving ? 'Đang lưu...' : 'Lưu mã'}</span>
+              </button>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

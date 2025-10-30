@@ -4,11 +4,13 @@ import { fetchActiveCoupons, selectActiveCoupons, selectCouponIsLoading, saveCou
 import CouponCard from '../components/promotion/CouponCard';
 import { FaSpinner } from 'react-icons/fa';
 import { toast } from 'react-toastify'; // 2. Import toast
+import { selectIsAuthenticated } from '../store/authSlice'; // 1. Import selector
 
 export default function PromotionsPage() {
   const dispatch = useDispatch();
   const coupons = useSelector(selectActiveCoupons);
   const isLoading = useSelector(selectCouponIsLoading);
+  const isAuthenticated = useSelector(selectIsAuthenticated); // 2. Lấy trạng thái đăng nhập
 
   useEffect(() => {
       dispatch(fetchActiveCoupons());
@@ -44,6 +46,7 @@ export default function PromotionsPage() {
                   key={coupon._id} 
                   coupon={coupon} 
                   onSave={handleSaveCoupon} // 4. Truyền hàm onSave
+                  isAuthenticated={isAuthenticated} // 3. Truyền prop xuống
                 />
               ))
             ) : (
