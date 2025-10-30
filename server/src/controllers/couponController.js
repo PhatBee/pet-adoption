@@ -27,11 +27,33 @@ const validateCoupon = async (req, res) => {
  */
 const listActiveCoupons = async (req, res) => {
     try {
-        const coupons = await couponService.getActiveCoupons();
+        // 1. Lấy userId từ middleware (nếu có). req.user có thể là null
+        const userId = req.user?.id || null;
+        const coupons = await couponService.getActiveCoupons(userId);
         res.json(coupons);
     } catch (error) {
         res.status(500).json({ message: "Lỗi khi lấy danh sách khuyến mãi" });
     }
 }
 
-module.exports = {validateCoupon, listActiveCoupons};
+/**
+ * 2. Thêm controller mới: Lưu coupon
+ */
+const saveCoupon = async (req, res) => {
+  try {
+    const userId = req.user.id; // Yêu cầu đăng nhập
+    const { couponId } = req.body;
+
+    if (!couponId) {
+      return res.status(400).json({ message: "Thiếu Coupon ID" });
+    }
+    
+    await couponService.saveCouponForUser(userId, couponId);
+    res.status(201).json({ message: "Lưu mã giảm giá thành công!" });
+
+  } catch (error) {
+    res.status(error.status || 400).json({ message: error.message || 'Lưu mã thất bại' });
+  }
+}
+
+module.exports = {validateCoupon, listActiveCoupons, saveCoupon};
