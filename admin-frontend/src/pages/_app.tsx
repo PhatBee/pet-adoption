@@ -1,10 +1,8 @@
-// src/pages/_app.tsx  (hoặc /pages/_app.tsx tùy project)
 import type { AppProps } from 'next/app';
 import { Provider } from 'react-redux';
 import { store, persistor } from '../store/store';
 import '../app/globals.css';
 import type { NextPageWithLayout } from '../types/next';
-import type { NextComponentType } from 'next'; // optional
 import { ReactElement } from 'react';
 import { PersistGate } from 'redux-persist/integration/react';
 

@@ -4,8 +4,6 @@ import { CouponService } from './coupon.service';
 import { CouponController } from './coupon.controller';
 import { Coupon, CouponSchema } from './schemas/coupon.schema';
 import { UserCoupon, UserCouponSchema } from '../user/schemas/userCoupon.schema';
-import { AuthModule } from '../auth/auth.module';
-import { AdminGuard } from 'src/auth/guards/admin.guard';
 
 @Module({
   imports: [
@@ -14,8 +12,6 @@ import { AdminGuard } from 'src/auth/guards/admin.guard';
 
       { name: UserCoupon.name, schema: UserCouponSchema }, 
     ]),
-    AuthModule,
-    AdminGuard,
   ],
   controllers: [CouponController],
   providers: [CouponService],

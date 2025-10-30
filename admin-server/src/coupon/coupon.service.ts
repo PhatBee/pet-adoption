@@ -9,8 +9,7 @@ import { Model, Schema as MongooseSchema } from 'mongoose';
 import { Coupon, CouponApplyType, CouponDocument, DiscountType } from './schemas/coupon.schema';
 import { UserCoupon, UserCouponDocument } from '../user/schemas/userCoupon.schema';
 import { CartItemDto } from './dto/cart-item.dto';
-import { CreateCouponDto } from './dto/create-coupon.dto';
-import { UpdateCouponDto } from './dto/update-coupon.dto';
+import { CreateCouponDto, UpdateCouponDto, CouponQueryDto, PaginatedResult } from './dto/coupon.dto';
 import { FilterQuery } from 'mongoose';
 
 @Injectable()
@@ -18,17 +17,43 @@ export class CouponService {
   constructor(
     @InjectModel(Coupon.name) private couponModel: Model<CouponDocument>,
     @InjectModel(UserCoupon.name) private userCouponModel: Model<UserCouponDocument>,
-  ) {}
+  ) { }
 
-  async findAllCoupons(query: any): Promise<Coupon[]> {
+  async findAllCoupons(
+    query: CouponQueryDto,
+  ): Promise<PaginatedResult<Coupon>> {
+    const {
+      page = 1,
+      limit = 10,
+      code,
+      isActive
+    } = query;
+
     const filter: FilterQuery<CouponDocument> = {};
-    if (query.code) {
-      filter.code = { $regex: query.code, $options: 'i' };
+    if (code) {
+      filter.code = { $regex: code, $options: 'i' };
     }
-    if (query.isActive) {
-      filter.isActive = query.isActive === 'true';
+    if (isActive !== undefined) {
+      filter.isActive = isActive;
     }
-    return this.couponModel.find(filter).sort({ createdAt: -1 }).exec();
+
+    const skip = (page - 1) * limit;
+    const totalItems = await this.couponModel.countDocuments(filter);
+    const totalPages = Math.ceil(totalItems / limit);
+
+    const data = await this.couponModel
+      .find(filter)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .exec();
+
+    return {
+      data,
+      totalItems,
+      totalPages,
+      currentPage: page,
+    };
   }
 
   async findOneCoupon(id: string): Promise<Coupon> {
@@ -70,7 +95,7 @@ export class CouponService {
   ): Promise<Coupon> {
     if (updateCouponDto.code) {
       updateCouponDto.code = updateCouponDto.code.toUpperCase();
-      
+
       const existingCoupon = await this.couponModel.findOne({
         code: updateCouponDto.code,
         _id: { $ne: id },
@@ -138,29 +163,29 @@ export class CouponService {
 
     // 2. Tìm tất cả các coupon CÔNG KHAI, CÒN HẠN, CÒN LƯỢT
     // và KHÔNG NẰM TRONG danh sách user đã lưu
-      const publicCoupons = await this.couponModel.find({
-          isPublic: true,
-          isActive: true,
-          _id: { $nin: savedCouponIds },
+    const publicCoupons = await this.couponModel.find({
+      isPublic: true,
+      isActive: true,
+      _id: { $nin: savedCouponIds },
 
-          $and: [
-              {
-                  $or: [
-                      { expiresAt: null },
-                      { expiresAt: { $gt: now } },
-                  ],
-              },
-              {
-                  $or: [
-                      { maxUses: null },
-                      { maxUses: 0 },
-                      { $expr: { $lt: ['$usesCount', '$maxUses'] } },
-                  ],
-              },
+      $and: [
+        {
+          $or: [
+            { expiresAt: null },
+            { expiresAt: { $gt: now } },
           ],
-      });
+        },
+        {
+          $or: [
+            { maxUses: null },
+            { maxUses: 0 },
+            { $expr: { $lt: ['$usesCount', '$maxUses'] } },
+          ],
+        },
+      ],
+    });
 
-      return publicCoupons;
+    return publicCoupons;
   }
 
   /**
@@ -215,7 +240,7 @@ export class CouponService {
     const userCoupon = await this.findUserCoupon(userId, coupon._id);
 
     this.validateCouponEligibility(coupon);
-    
+
     if (userCoupon.isUsed) {
       throw new BadRequestException('Bạn đã dùng mã này rồi.');
     }
@@ -257,7 +282,7 @@ export class CouponService {
    * @param couponId ID của mã Coupon gốc
    */
   async markCouponAsUsed(userCouponId: MongooseSchema.Types.ObjectId, couponId: MongooseSchema.Types.ObjectId): Promise<void> {
-    
+
     // 1. Đánh dấu trong ví user
     await this.userCouponModel.updateOne(
       { _id: userCouponId, isUsed: false }, // Đảm bảo chưa dùng
@@ -326,39 +351,35 @@ export class CouponService {
 
   /** Lọc và tính tổng giá trị các sản phẩm hợp lệ theo quy tắc */
   private calculateEligibleTotal(cartItems: CartItemDto[], coupon: CouponDocument): number {
-    let eligibleItems: CartItemDto[] = [];
+    const productIds = new Set(coupon.productIds.map(String));
+    const categoryIds = new Set(coupon.categoryIds.map(String));
+    const petTypeIds = new Set(coupon.petTypeIds.map(String));
 
-    switch (coupon.appliesTo) {
-      case CouponApplyType.ALL_PRODUCTS:
-        eligibleItems = cartItems;
-        break;
-
-      case CouponApplyType.SPECIFIC_PRODUCTS:
-        const productIds = coupon.productIds.map(String); // Chuyển ObjectId sang string để so sánh
-        eligibleItems = cartItems.filter((item) =>
-          productIds.includes(item.productId.toString()),
-        );
-        break;
-
-      case CouponApplyType.SPECIFIC_CATEGORIES:
-        const categoryIds = coupon.categoryIds.map(String);
-        eligibleItems = cartItems.filter((item) =>
-          categoryIds.includes(item.categoryId.toString()),
-        );
-        break;
-
-      case CouponApplyType.SPECIFIC_PET_TYPES:
-        const petTypeIds = coupon.petTypeIds.map(String);
-        eligibleItems = cartItems.filter((item) =>
-          petTypeIds.includes(item.petTypeId.toString()),
-        );
-        break;
-      
-      default:
-        return 0; // Trường hợp không xác định
+    if (productIds.size === 0 && categoryIds.size === 0 && petTypeIds.size === 0) {
+      return this.calculateCartTotal(cartItems);
     }
 
-    return this.calculateCartTotal(eligibleItems); // Tính tổng chỉ các item hợp lệ
+    const eligibleItems = cartItems.filter((item) => {
+      // Nếu mảng productIds có giá trị, item PHẢI khớp
+      if (productIds.size > 0 && !productIds.has(item.productId.toString())) {
+        return false; // Không khớp product
+      }
+
+      // Nếu mảng categoryIds có giá trị, item PHẢI khớp
+      if (categoryIds.size > 0 && !categoryIds.has(item.categoryId.toString())) {
+        return false; // Không khớp category
+      }
+
+      // Nếu mảng petTypeIds có giá trị, item PHẢI khớp
+      if (petTypeIds.size > 0 && !petTypeIds.has(item.petTypeId.toString())) {
+        return false; // Không khớp pet type
+      }
+
+      // Nếu item vượt qua tất cả các điều kiện (hoặc mảng rỗng)
+      return true;
+    });
+
+    return this.calculateCartTotal(eligibleItems);
   }
 
   /** Tính số tiền giảm cuối cùng */
@@ -367,7 +388,7 @@ export class CouponService {
 
     if (coupon.discountType === DiscountType.PERCENTAGE) {
       discountAmount = eligibleTotal * (coupon.discountValue / 100);
-      
+
       // Kiểm tra mức giảm tối đa
       if (coupon.maxDiscountValue > 0 && discountAmount > coupon.maxDiscountValue) {
         discountAmount = coupon.maxDiscountValue;

@@ -1,5 +1,6 @@
 import type { NextPage } from 'next';
 import type { ReactElement, ReactNode } from 'react';
+import { CouponFormSchema } from '../../libs/validations/coupon.schema';
 
 export type NextPageWithLayout<P = {}, IP = P> = NextPage<P, IP> & {
   getLayout?: (page: ReactElement) => ReactNode;
@@ -119,3 +120,53 @@ export interface UserQueryDto {
   sortBy?: string;
   sortOrder?: 'asc' | 'desc';
 }
+
+export interface Coupon {
+  _id: string;
+  code: string;
+  description?: string;
+  discountType: 'percentage' | 'fixed_amount';
+  discountValue: number;
+  maxDiscountValue?: number;
+  minOrderValue?: number;
+  startsAt: string;
+  expiresAt?: string;
+  isActive: boolean;
+  isPublic: boolean;
+  usesCount: number;
+  maxUses?: number;
+  usageLimitPerUser: number;
+  appliesTo: 'all_products' | 'specific_products' | 'specific_categories' | 'specific_pet_types';
+  productIds: string[];
+  categoryIds: string[];
+  petTypeIds: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CouponQueryDto {
+  page?: number;
+  limit?: number;
+  isActive?: boolean;
+  code?: string;
+}
+
+export interface CreateCouponDto {
+  code: string;
+  description?: string;
+  discountType: 'percentage' | 'fixed_amount';
+  discountValue: number;
+  maxDiscountValue?: number;
+  minOrderValue?: number;
+  startsAt?: string;
+  expiresAt?: string;
+  isActive?: boolean;
+  isPublic?: boolean;
+  maxUses?: number;
+  appliesTo?: 'all_products' | 'specific_products' | 'specific_categories' | 'specific_pet_types';
+  productIds?: string[];
+  categoryIds?: string[];
+  petTypeIds?: string[];
+}
+
+export type UpdateCouponDto = Partial<CreateCouponDto>;

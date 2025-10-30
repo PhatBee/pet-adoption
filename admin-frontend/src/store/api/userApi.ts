@@ -1,4 +1,3 @@
-// src/store/api/userApi.ts
 import axiosClient from '../../store/api/axiosClient';
 import { User, UserQueryDto, PaginatedResult } from '../../types/next';
 

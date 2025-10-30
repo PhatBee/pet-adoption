@@ -21,7 +21,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL;
  * @returns dữ liệu token và user nếu thành công
  */
 export const loginAdminApi = async (credentials: LoginCredentials): Promise<LoginResponse> => {
-  const response = await fetch(`${API_URL}/api/auth/admin/login`, {
+  const response = await fetch(`${API_URL}/auth/admin/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(credentials),

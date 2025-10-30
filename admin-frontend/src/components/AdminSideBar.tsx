@@ -9,7 +9,7 @@ const menuItems = [
   { icon: ShoppingBag, label: "Đơn hàng", href: "/admin/orders" },
   { icon: Package, label: "Sản phẩm", href: "/admin/products" },
   { icon: Users, label: "Người dùng", href: "/admin/users" },
-  { icon: Tag, label: "Khuyến mãi", href: "/admin/vouchers" },
+  { icon: Tag, label: "Khuyến mãi", href: "/admin/coupons" },
   { icon: Bell, label: "Thông báo", href: "/admin/notifications" },
 ];
 
