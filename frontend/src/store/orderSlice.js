@@ -3,7 +3,6 @@ import checkoutApi from "../api/checkoutApi";
 import orderApi from "../api/orderApi";
 import couponApi from "../api/couponApi";
 import { toast } from "react-toastify";
-import axiosClient from "../api/axiosClient";
 
 export const fetchCheckoutData = createAsyncThunk("order/fetchCheckoutData", async (_, { rejectWithValue }) => {
   try {
@@ -16,15 +15,29 @@ export const fetchCheckoutData = createAsyncThunk("order/fetchCheckoutData", asy
 
 export const applyCoupon = createAsyncThunk(
   "order/applyCoupon",
-  async ({ code, itemsTotal }, { rejectWithValue }) => {
+  async ({ code, items }, { rejectWithValue }) => {
     try {
-      const res = await couponApi.validate({ code, itemsTotal });
+      const res = await couponApi.validate({ code, items });
       toast.success(res.data.message);
-      return res.data.coupon; // Trả về object coupon nếu thành công
+      // Trả về cả coupon VÀ discountAmount
+      return res.data; // { coupon, discountAmount }
     } catch (err) {
       const errorMsg = err.response?.data?.message || "Áp dụng mã thất bại";
       toast.error(errorMsg);
       return rejectWithValue(errorMsg);
+    }
+  }
+);
+
+// THUNK MỚI: Lấy coupon đã lưu
+export const fetchSavedCoupons = createAsyncThunk(
+  "order/fetchSavedCoupons",
+  async (items, { rejectWithValue }) => {
+    try {
+      const res = await couponApi.getSavedForCheckout(items);
+      return res.data; // Mảng các coupon đã sắp xếp
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || "Lỗi khi tải mã đã lưu");
     }
   }
 );
@@ -93,6 +106,13 @@ const slice = createSlice({
     pointsToUse: 0,
     couponValidationStatus: 'idle', // 'idle' | 'loading' | 'succeeded' | 'failed'
     couponError: null,
+
+    couponDiscount: 0, // Lưu số tiền giảm
+    savedCoupons: { // Lưu coupon cho modal
+      items: [],
+      status: 'idle'
+    },
+
     availableItems: [],
     unavailableItems: [],
     loading: false,
@@ -111,6 +131,7 @@ const slice = createSlice({
       state.appliedCoupon = null;
       state.couponError = null;
       state.couponValidationStatus = 'idle';
+      state.couponDiscount = 0; // RESET
     },
 
     clearLastOrder: (state) => {
@@ -159,12 +180,25 @@ const slice = createSlice({
       })
       .addCase(applyCoupon.fulfilled, (state, action) => {
         state.couponValidationStatus = 'succeeded';
-        state.appliedCoupon = action.payload;
-      })
+        state.appliedCoupon = action.payload.coupon;
+        state.couponDiscount = action.payload.discountAmount; // LƯU SỐ TIỀN GIẢM      
+        })
       .addCase(applyCoupon.rejected, (state, action) => {
         state.couponValidationStatus = 'failed';
         state.appliedCoupon = null;
+        state.couponDiscount = 0; // RESET
         state.couponError = action.payload;
+      })
+      // CASE MỚI: Xử lý fetchSavedCoupons
+      .addCase(fetchSavedCoupons.pending, (state) => {
+        state.savedCoupons.status = 'loading';
+      })
+      .addCase(fetchSavedCoupons.fulfilled, (state, action) => {
+        state.savedCoupons.status = 'succeeded';
+        state.savedCoupons.items = action.payload;
+      })
+      .addCase(fetchSavedCoupons.rejected, (state) => {
+        state.savedCoupons.status = 'failed';
       })
       .addCase(requestCancelOrder.fulfilled, (state, action) => {
         const idx = state.items.findIndex(o => o._id === action.payload._id);

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 // 1. Thêm các icon mới
 import {
   FaCopy, FaCalendarAlt, FaDollarSign, FaCheckCircle, FaSave,
-  FaTags, FaPaw, FaBoxOpen, FaGlobeAsia
+  FaTags, FaPaw, FaBoxOpen
 } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 
@@ -18,7 +18,7 @@ const formatCurrency = (value) => {
 };
 
 // 2. Thêm prop onSave
-export default function CouponCard({ coupon, onSave, isAuthenticated }) {
+export default function CouponCard({ coupon, onSave }) {
   const {
     code,
     discountType,
@@ -68,153 +68,156 @@ export default function CouponCard({ coupon, onSave, isAuthenticated }) {
 
   // 3. Helper component để hiển thị danh sách áp dụng
   const renderAppliesTo = () => {
-    // chuẩn bị các section sẽ hiển thị
-    const sections = [];
+    let icon = null;
+    let title = "";
+    let items = []; // Mảng các đối tượng { _id, name }
 
-    // Nếu admin chọn ALL_PRODUCTS thì vẫn thêm một section "Tất cả" để hiển thị (nếu không có cụ thể nào thì chỉ show phần này)
-    if (appliesTo === 'all_products') {
-      sections.push({
-        key: 'all_products',
-        icon: <FaGlobeAsia className="text-blue-500" size={16} />,
-        title: 'Áp dụng cho:',
-        items: [{ _id: 'all', name: 'Tất cả sản phẩm' }],
-        showWhenEmpty: true, // hiện khi không có mục cụ thể
-      });
-    }
+    switch (appliesTo) {
+      case 'specific_products':
+        icon = <FaBoxOpen className="text-purple-500" size={16} />;
+        title = "Sản phẩm áp dụng:";
+        items = productIds;
+        break;
+      case 'specific_categories':
+        icon = <FaTags className="text-teal-500" size={16} />;
+        title = "Danh mục áp dụng:";
+        items = categoryIds;
+        break;
+      case 'specific_pet_types':
+        icon = <FaPaw className="text-orange-500" size={16} />;
+        title = "Loại thú cưng áp dụng:";
+        items = petTypeIds;
+        break;
 
-    // Nếu có categoryIds
-    if (Array.isArray(categoryIds) && categoryIds.length > 0) {
-      sections.push({
-        key: 'categories',
-        icon: <FaTags className="text-teal-500" size={16} />,
-        title: 'Danh mục áp dụng:',
-        items: categoryIds,
-      });
-    }
-
-    // Nếu có petTypeIds
-    if (Array.isArray(petTypeIds) && petTypeIds.length > 0) {
-      sections.push({
-        key: 'pet_types',
-        icon: <FaPaw className="text-orange-500" size={16} />,
-        title: 'Loại thú cưng áp dụng:',
-        items: petTypeIds,
-      });
-    }
-
-    // Nếu có productIds
-    if (Array.isArray(productIds) && productIds.length > 0) {
-      sections.push({
-        key: 'products',
-        icon: <FaBoxOpen className="text-purple-500" size={16} />,
-        title: 'Sản phẩm áp dụng:',
-        items: productIds,
-      });
-    }
-
-    // Nếu không có section nào (và appliesTo không phải all_products) -> không render
-    if (sections.length === 0) return null;
-
-    return (
-      <div className="space-y-3">
-        {sections.map((section) => {
-          // Nếu section là all_products và có các section khác tồn tại, muốn ẩn "Tất cả" khi có cụ thể ?
-          // Hiện logic: nếu đây là all_products và có items cụ thể khác (length > 1), ta vẫn hiển thị cả "Tất cả" + các mục cụ thể.
-          // Nếu bạn muốn ẩn "Tất cả" khi có cụ thể, uncomment đoạn kiểm tra dưới.
-          // if (section.key === 'all_products' && sections.length > 1) return null;
-
-          const items = Array.isArray(section.items) ? section.items : [];
-
-          // Nếu section đánh dấu chỉ hiển thị khi empty nhưng không empty -> ẩn
-          if (section.showWhenEmpty && items.length > 0) {
-            // nếu muốn vẫn hiển thị "Tất cả" kèm cụ thể, comment dòng này
-            // return null;
-          }
-
-          return (
-            <div key={section.key} className="flex items-start gap-3 text-gray-600">
-              <div className="mt-1 flex-shrink-0">{section.icon}</div>
-              <div>
-                <span className="font-semibold text-gray-700">{section.title}</span>
-                <div className="flex flex-wrap gap-1.5 mt-1">
-                  {items.map((item) => {
-                    // item có thể là object {_id, name} hoặc string
-                    const id = item?._id ?? item?.id ?? item;
-                    const name = item?.name ?? item?.title ?? String(item);
-                    return (
-                      <span
-                        key={id}
+      // --- THÊM MỚI TẠI ĐÂY ---
+      case 'specific_categories_and_pet_types':
+        // Vì đây là 2 điều kiện, ta return một khối JSX đặc biệt
+        // dùng React.Fragment (<>) để trả về hai khối riêng biệt
+        return (
+          <>
+            {/* Khối cho Danh mục */}
+            {categoryIds && categoryIds.length > 0 && (
+              <div className="flex items-start gap-3 text-gray-600">
+                <div className="mt-1 flex-shrink-0"><FaTags className="text-teal-500" size={16} /></div>
+                <div>
+                  <span className="font-semibold text-gray-700">Danh mục áp dụng:</span>
+                  <div className="flex flex-wrap gap-1.5 mt-1">
+                    {categoryIds.map(item => (
+                      <span 
+                        key={item._id} 
                         className="text-xs bg-gray-100 text-gray-800 px-2 py-0.5 rounded-full border border-gray-200"
                       >
-                        {name}
+                        {item.name}
                       </span>
-                    );
-                  })}
+                    ))}
+                  </div>
                 </div>
               </div>
-            </div>
-          );
-        })}
+            )}
+            {/* Khối cho Loại thú cưng */}
+            {petTypeIds && petTypeIds.length > 0 && (
+              <div className="flex items-start gap-3 text-gray-600">
+                <div className="mt-1 flex-shrink-0"><FaPaw className="text-orange-500" size={16} /></div>
+                <div>
+                  <span className="font-semibold text-gray-700">Loại thú cưng áp dụng:</span>
+                  <div className="flex flex-wrap gap-1.5 mt-1">
+                    {petTypeIds.map(item => (
+                      <span 
+                        key={item._id} 
+                        className="text-xs bg-gray-100 text-gray-800 px-2 py-0.5 rounded-full border border-gray-200"
+                      >
+                        {item.name}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+          </>
+        );
+      // --- KẾT THÚC THÊM MỚI ---
+      
+      default: // 'all_products'
+        return null; // Không hiển thị gì nếu áp dụng cho tất cả
+    }
+    // Nếu không có items (dù đã set appliesTo) thì cũng không hiển thị
+    if (!items || items.length === 0) return null;
+
+    return (
+      <div className="flex items-start gap-3 text-gray-600">
+        <div className="mt-1 flex-shrink-0">{icon}</div>
+        <div>
+          <span className="font-semibold text-gray-700">{title}</span>
+          {/* Hiển thị dưới dạng các tag nhỏ */}
+          <div className="flex flex-wrap gap-1.5 mt-1">
+            {items.map(item => (
+              <span 
+                key={item._id} 
+                className="text-xs bg-gray-100 text-gray-800 px-2 py-0.5 rounded-full border border-gray-200"
+              >
+                {item.name}
+              </span>
+            ))}
+          </div>
+        </div>
       </div>
     );
   };
 
-  return (
-    <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden flex flex-col md:flex-row">
-      {/* Phần màu bên trái */}
-      <div className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white p-6 flex flex-col justify-center items-center md:w-1/3">
-        <h3 className="text-2xl font-bold mb-2">{discountDescription}</h3>
-        <p className="text-sm">Cho đơn hàng</p>
-      </div>
-
-      {/* Phần thông tin bên phải */}
-      <div className="p-6 flex-1">
-        <div className="flex justify-between items-start mb-4">
-          <div>
-            <span className="text-xs font-semibold uppercase text-gray-500">Mã khuyến mãi</span>
-            <h4 className="text-xl font-bold text-gray-800">{code}</h4>
-          </div>
-          <button
-            onClick={handleCopyCode}
-            className="flex items-center gap-2 px-4 py-2 bg-indigo-100 text-indigo-700 rounded-lg hover:bg-indigo-200 transition-colors"
-          >
-            <FaCopy />
-            <span>Sao chép</span>
-          </button>
+    return (
+      <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden flex flex-col md:flex-row">
+        {/* Phần màu bên trái */}
+        <div className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white p-6 flex flex-col justify-center items-center md:w-1/3">
+          <h3 className="text-2xl font-bold mb-2">{discountDescription}</h3>
+          <p className="text-sm">Cho đơn hàng</p>
         </div>
 
-        {/* 6. Hiển thị mô tả (nếu có) */}
-        {description && (
-          <p className="text-sm text-gray-600 mb-3 italic">
-            "{description}"
-          </p>
-        )}
-
-        {/* 4. Cập nhật khối thông tin */}
-        <div className="space-y-3">
-          <div className="flex items-center gap-3 text-gray-600">
-            <FaDollarSign className="text-green-500" size={18} />
-            <span>
-              Áp dụng cho đơn hàng tối thiểu: <strong className="text-gray-800">{formatCurrency(minOrderValue)}</strong>
-            </span>
-          </div>
-          <div className="flex items-center gap-3 text-gray-600">
-            <FaCalendarAlt className="text-red-500" size={16} />
-            <span>
-              Hạn sử dụng: <strong className="text-gray-800">{formatDate(expiresAt)}</strong>
-            </span>
+        {/* Phần thông tin bên phải */}
+        <div className="p-6 flex-1">
+          <div className="flex justify-between items-start mb-4">
+            <div>
+              <span className="text-xs font-semibold uppercase text-gray-500">Mã khuyến mãi</span>
+              <h4 className="text-xl font-bold text-gray-800">{code}</h4>
+            </div>
+            <button
+              onClick={handleCopyCode}
+              className="flex items-center gap-2 px-4 py-2 bg-indigo-100 text-indigo-700 rounded-lg hover:bg-indigo-200 transition-colors"
+            >
+              <FaCopy />
+              <span>Sao chép</span>
+            </button>
           </div>
 
-          {renderAppliesTo()}
+          {/* 6. Hiển thị mô tả (nếu có) */}
+          {description && (
+            <p className="text-sm text-gray-600 mb-3 italic">
+              "{description}"
+            </p>
+          )}
 
-        </div>
+          {/* 4. Cập nhật khối thông tin */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-3 text-gray-600">
+              <FaDollarSign className="text-green-500" size={18} />
+              <span>
+                Áp dụng cho đơn hàng tối thiểu: <strong className="text-gray-800">{formatCurrency(minOrderValue)}</strong>
+              </span>
+            </div>
+            <div className="flex items-center gap-3 text-gray-600">
+              <FaCalendarAlt className="text-red-500" size={16} />
+              <span>
+                Hạn sử dụng: <strong className="text-gray-800">{formatDate(expiresAt)}</strong>
+              </span>
+            </div>
 
-        {/* 5. Thêm flex-grow để đẩy nút Lưu xuống dưới */}
-        <div className="flex-grow"></div>
+            {renderAppliesTo()}
 
-        {/* 7. Nút Lưu (phần chân card) */}
-        {/* 2. Bọc toàn bộ khối nút Lưu bằng điều kiện `isAuthenticated` */}
-        {isAuthenticated && (
+          </div>
+
+          {/* 5. Thêm flex-grow để đẩy nút Lưu xuống dưới */}
+          <div className="flex-grow"></div>
+
+          {/* 7. Nút Lưu (phần chân card) */}
           <div className="mt-5 pt-4 border-t border-gray-100 flex justify-end">
             {isSaved ? (
               <div className="flex items-center gap-2 px-4 py-2 text-green-600">
@@ -232,8 +235,7 @@ export default function CouponCard({ coupon, onSave, isAuthenticated }) {
               </button>
             )}
           </div>
-        )}
+        </div>
       </div>
-    </div>
-  );
+    );
 }

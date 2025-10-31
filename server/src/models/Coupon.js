@@ -8,6 +8,7 @@ const CouponApplyType = {
   SPECIFIC_PRODUCTS: 'specific_products',
   SPECIFIC_CATEGORIES: 'specific_categories',
   SPECIFIC_PET_TYPES: 'specific_pet_types',
+  SPECIFIC_CATEGORIES_AND_PET_TYPES: 'specific_categories_and_pet_types',
 };
 
 const DiscountType = {

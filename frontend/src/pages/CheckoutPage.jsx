@@ -23,7 +23,7 @@ export default function CheckoutPage() {
   const location = useLocation();
   const itemsFromCart = location.state?.itemsToCheckout;
   const { items: reorderItems } = useSelector((s) => s.reorder || { items: [] });
-  const { cart, addresses, isLoading, error, lastOrder, appliedCoupon, pointsToUse } = useSelector((s) => s.order || {});
+  const { cart, addresses, isLoading, error, lastOrder, appliedCoupon, pointsToUse, couponDiscount } = useSelector((s) => s.order || {});
   const user = useSelector(selectUser);
   const [selectedAddress, setSelectedAddress] = useState(null);
   const [paymentMethod, setPaymentMethod] = useState("COD");
@@ -48,19 +48,26 @@ export default function CheckoutPage() {
     dispatch(fetchCheckoutData());
   }, [dispatch]);
 
-  // --- TÍNH TOÁN SỐ TIỀN GIẢM GIÁ ---
-  let couponDiscount = 0;
-  if (appliedCoupon) {
-    if (appliedCoupon.discountType === 'percentage') {
-      couponDiscount = (itemsTotal * appliedCoupon.discountValue) / 100;
-    } else { // fixed_amount
-      couponDiscount = appliedCoupon.discountValue;
-    }
-    couponDiscount = Math.min(couponDiscount, itemsTotal); // Đảm bảo giảm giá không lớn hơn tổng tiền
-  }
+  // // --- TÍNH TOÁN SỐ TIỀN GIẢM GIÁ ---
+  // let couponDiscount = 0;
+  // if (appliedCoupon) {
+  //   if (appliedCoupon.discountType === 'percentage') {
+  //     couponDiscount = (itemsTotal * appliedCoupon.discountValue) / 100;
+  //   } else { // fixed_amount
+  //     couponDiscount = appliedCoupon.discountValue;
+  //   }
+  //   couponDiscount = Math.min(couponDiscount, itemsTotal); // Đảm bảo giảm giá không lớn hơn tổng tiền
+  // }
 
-  // Giả sử 1 xu = 1đ
-  let pointsDiscount = Math.min(pointsToUse, itemsTotal - couponDiscount);
+  // 3. Cập nhật logic tính pointsDiscount
+  // Đảm bảo số điểm sử dụng không làm đơn hàng bị âm
+  let pointsDiscount = Math.min(
+    pointsToUse, 
+    itemsTotal - (couponDiscount || 0) // Dùng couponDiscount từ slice
+  );
+  // Đảm bảo pointsDiscount không vượt quá điểm user có
+  pointsDiscount = Math.min(pointsDiscount, user?.loyaltyPoints || 0);
+  pointsDiscount = Math.max(0, pointsDiscount); // Không bị âm
 
   useEffect(() => {
     if (!lastOrder) return;
@@ -156,14 +163,16 @@ export default function CheckoutPage() {
         </div>
 
         {/* <-- 3. ĐẶT DISCOUNT --> */}
-        <DiscountSection
-          itemsTotal={itemsTotal}
-          userLoyaltyPoints={user?.loyaltyPoints}
-        />
+        {/* 4. CẬP NHẬT PROPS CHO DiscountSection */}
+          <DiscountSection
+            itemsToDisplay={itemsToDisplay} // Truyền toàn bộ items
+            userLoyaltyPoints={user?.loyaltyPoints}
+          />
 
         <PaymentMethod value={paymentMethod} onChange={setPaymentMethod} />
       </div>
 
+      
       <aside className="sticky top-6"> {/* Làm cho summary cố định khi cuộn */}
         <OrderSummary
           items={itemsToDisplay}

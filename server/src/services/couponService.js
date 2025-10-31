@@ -125,69 +125,89 @@ const saveCouponForUser = async (userId, couponId) => {
  * @returns {Object} { discountAmount, eligibleItemsTotal }
  */
 const calculateDiscountInternal = (coupon, items) => {
-    let eligibleItemsTotal = 0;
+  let eligibleItemsTotal = 0;
 
-    // Chuyển đổi các mảng ID thành Set<String> để tra cứu nhanh
-    const productIds = new Set(coupon.productIds.map(String));
-    const categoryIds = new Set(coupon.categoryIds.map(String));
-    const petTypeIds = new Set(coupon.petTypeIds.map(String));
+  // Chuyển đổi các mảng ID thành Set<String> để tra cứu nhanh
+  const productIds = new Set(coupon.productIds.map(id => id?._id?.toString() || id?.toString()));
+  const categoryIds = new Set(coupon.categoryIds.map(id => id?._id?.toString() || id?.toString()));
+  const petTypeIds = new Set(coupon.petTypeIds.map(id => id?._id?.toString() || id?.toString()));
 
-    // 1. Tính tổng tiền các sản phẩm hợp lệ
-    items.forEach(item => {
-        const product = item.product;
-        const lineTotal = (product.price || 0) * (item.quantity || 1);
-        let isEligible = false;
+  console.log("Coupon: ", coupon.code);  
+  console.log("ProductId: ", productIds);
+  console.log("categoryIds: ", categoryIds);
+  console.log("PettypeID: ", petTypeIds);
 
-        switch (coupon.appliesTo) {
-            case 'all_products':
-                isEligible = true;
-                break;
-            case 'specific_products':
-                if (productIds.has(product._id.toString())) isEligible = true;
-                break;
-            case 'specific_categories':
-                // Hỗ trợ cả trường hợp category là ID hoặc là object đã populate
-                const catId = product.category?._id?.toString() || product.category?.toString();
-                if (categoryIds.has(catId)) isEligible = true;
-                break;
-            case 'specific_pet_types':
-                const petTypeId = product.petType?._id?.toString() || product.petType?.toString();
-                if (petTypeIds.has(petTypeId)) isEligible = true;
-                break;
+  // 1. Tính tổng tiền các sản phẩm hợp lệ
+  items.forEach(item => {
+    const product = item.product;
+    console.log(product);
+    const lineTotal = (product.price || 0) * (item.quantity || 1);
+    let isEligible = false;
+
+     const catId = product.category?._id?.toString() || product.category?.toString();
+  const petTypeId = product.pet?._id?.toString() || product.pet.toString();
+
+  console.log("CatId: " , catId);
+  console.log("PetTypeId: ", petTypeId);
+
+    switch (coupon.appliesTo) {
+      case 'all_products':
+        isEligible = true;
+        break;
+      case 'specific_products':
+        if (productIds.has(product._id.toString())) isEligible = true;
+        break;
+      case 'specific_categories':
+        // Hỗ trợ cả trường hợp category là ID hoặc là object đã populate
+        if (categoryIds.has(catId)) isEligible = true;
+        break;
+      case 'specific_pet_types':
+        if (petTypeIds.has(petTypeId)) isEligible = true;
+        break;
+      case 'specific_categories_and_pet_types':
+        // Điều kiện VÀ (AND): Sản phẩm phải khớp CẢ hai danh sách
+        if (categoryIds.has(catId) && petTypeIds.has(petTypeId)) {
+          isEligible = true;
         }
-
-        if (isEligible) {
-            eligibleItemsTotal += lineTotal;
-        }
-    });
-
-    // 2. Kiểm tra điều kiện
-    if (eligibleItemsTotal === 0) {
-        throw { status: 400, message: "Mã giảm giá không áp dụng cho sản phẩm nào trong giỏ hàng." };
+        break;
+        
     }
 
-    if (coupon.minOrderValue > 0 && eligibleItemsTotal < coupon.minOrderValue) {
-        throw {
-            status: 400,
-            message: `Mã này yêu cầu tổng sản phẩm hợp lệ tối thiểu ${coupon.minOrderValue.toLocaleString()}đ.`
-        };
+    if (isEligible) {
+      eligibleItemsTotal += lineTotal;
     }
+  });
 
-    // 3. Tính toán chiết khấu
-    let discountAmount = 0;
-    if (coupon.discountType === 'percentage') {
-        discountAmount = (eligibleItemsTotal * coupon.discountValue) / 100;
-        if (coupon.maxDiscountValue) {
-            discountAmount = Math.min(discountAmount, coupon.maxDiscountValue);
-        }
-    } else { // fixed_amount
-        discountAmount = coupon.discountValue;
+  // 2. Kiểm tra điều kiện
+  if (eligibleItemsTotal === 0) {
+    throw { status: 400, message: "Mã giảm giá không áp dụng cho sản phẩm nào trong giỏ hàng." };
+  }
+
+  if (coupon.minOrderValue > 0 && eligibleItemsTotal < coupon.minOrderValue) {
+    throw { 
+      status: 400, 
+      message: `Mã này yêu cầu tổng sản phẩm hợp lệ tối thiểu ${coupon.minOrderValue.toLocaleString()}đ.` 
+    };
+  }
+
+  // 3. Tính toán chiết khấu
+  let discountAmount = 0;
+  if (coupon.discountType === 'percentage') {
+    discountAmount = (eligibleItemsTotal * coupon.discountValue) / 100;
+    if (coupon.maxDiscountValue) {
+      discountAmount = Math.min(discountAmount, coupon.maxDiscountValue);
     }
+  } else { // fixed_amount
+    discountAmount = coupon.discountValue;
+  }
 
-    // Đảm bảo chiết khấu không vượt quá tổng tiền của các sản phẩm hợp lệ
-    discountAmount = Math.min(discountAmount, eligibleItemsTotal);
+  // Đảm bảo chiết khấu không vượt quá tổng tiền của các sản phẩm hợp lệ
+  discountAmount = Math.min(discountAmount, eligibleItemsTotal);
 
-    return { discountAmount, eligibleItemsTotal };
+  // Làm tròn số tiền giảm giá đến số nguyên gần nhất
+  const finalDiscountAmount = Math.round(discountAmount);
+
+  return { discountAmount: finalDiscountAmount, eligibleItemsTotal };
 };
 
 /**
