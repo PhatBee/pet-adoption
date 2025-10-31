@@ -16,6 +16,7 @@ import { ProductModule } from './product/product.module';
 import { PetModule } from './pet/pet.module';
 import { CategoryModule } from './category/category.module';
 import { CouponModule } from './coupon/coupon.module';
+import { InventoryModule } from './inventory/inventory.module';
 
 @Module({
   imports: [
@@ -52,6 +53,7 @@ import { CouponModule } from './coupon/coupon.module';
     CategoryModule,
     PetModule,
     CouponModule,
+    InventoryModule,
   ],
   controllers: [],
   providers: [

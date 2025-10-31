@@ -6,12 +6,14 @@ import { useFormContext } from "react-hook-form";
 interface FormInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label: string;
   name: string;
+  inputClassName?: string;
 }
 
 const FormInput: React.FC<FormInputProps> = ({
   label,
   name,
   type = "text",
+  inputClassName = "",
   ...rest
 }) => {
   const {
@@ -22,7 +24,7 @@ const FormInput: React.FC<FormInputProps> = ({
   const errorMessage = errors?.[name]?.message as string | undefined;
 
   return (
-    <div className="mb-4">
+    <div className="space-y-1">
       <label
         htmlFor={name}
         className="block text-sm font-medium text-gray-700 mb-1"
@@ -38,8 +40,8 @@ const FormInput: React.FC<FormInputProps> = ({
         })}
         {...rest}
         className={`mt-1 block w-full rounded-md border ${
-          errorMessage ? "border-red-500" : "border-gray-300"
-        } shadow-sm p-2 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm transition duration-150`}
+          errorMessage ? "border-red-500" : "border-gray-300"
+        } shadow-sm p-2 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm transition duration-150 ${inputClassName}`}
       />
 
       {errorMessage && (

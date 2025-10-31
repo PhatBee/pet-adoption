@@ -83,6 +83,11 @@ export interface PaginatedResult<T> {
   currentPage: number;
 }
 
+export interface ComboboxOption {
+    value: string;
+    label: string;
+}
+
 //User
 export interface Address {
   _id?: string;

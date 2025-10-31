@@ -40,6 +40,11 @@ export class CreateCouponDto {
   minOrderValue?: number;
 
   @IsOptional()
+  @IsNumber()
+  @Min(1)
+  usageLimitPerUser?: number;
+
+  @IsOptional()
   @IsDateString()
   startsAt?: Date;
 

@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { useRouter } from 'next/router'; // Import useRouter
-import { ShoppingBag, Package, Users, Tag, Bell, LayoutDashboard } from "lucide-react";
+import { ShoppingBag, Package, Users, Tag, Bell, LayoutDashboard, Boxes } from "lucide-react";
 import LogoutButton from './LogoutButton';
 
 // Thêm Dashboard vào menu
@@ -8,9 +8,10 @@ const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/admin/dashboard" },
   { icon: ShoppingBag, label: "Đơn hàng", href: "/admin/orders" },
   { icon: Package, label: "Sản phẩm", href: "/admin/products" },
+  { icon: Boxes, label: "Kho hàng", href: "/admin/inventory" },
   { icon: Users, label: "Người dùng", href: "/admin/users" },
   { icon: Tag, label: "Khuyến mãi", href: "/admin/coupons" },
-  { icon: Bell, label: "Thông báo", href: "/admin/notifications" },
+  // { icon: Bell, label: "Thông báo", href: "/admin/notifications" },
 ];
 
 export default function AdminSidebar() {
