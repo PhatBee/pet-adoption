@@ -1,16 +1,12 @@
-import { Controller, Post, Body, Get, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, Get, Patch, Param, Delete, UseGuards, Query } from '@nestjs/common';
 import { PetService } from './pet.service';
 import { Pet } from '../product/schemas/product.schema';
+import { CreatePetDto, PetQueryDto, PetResponseDto } from './dto/pet.dto';
 import { IsString, IsNotEmpty } from 'class-validator';
 import { ParseMongoIdPipe } from '../common/pipes/parse-mongo-id.pipe';
 import { AuthGuard } from '../auth/guards/auth.guard';
 import { AdminGuard } from '../auth/guards/admin.guard';
-
-class SimpleCreateDto {
-    @IsString()
-    @IsNotEmpty()
-    name: string;
-}
+import { PaginatedResult } from '../common/dto/pagination.dto';
 
 @Controller('admin/pets')
 @UseGuards(AuthGuard, AdminGuard)
@@ -18,19 +14,21 @@ export class PetController {
   constructor(private readonly petService: PetService) {}
 
   @Post()
-  create(@Body() createDto: SimpleCreateDto): Promise<Pet> {
+  create(@Body() createDto: CreatePetDto): Promise<Pet> {
     return this.petService.create(createDto.name);
   }
 
   @Get()
-  findAll(): Promise<Pet[]> {
-    return this.petService.findAll();
+  findAll(
+    @Query() query: PetQueryDto
+  ): Promise<PaginatedResult<PetResponseDto>> {
+    return this.petService.findAll(query);
   }
 
   @Patch(':id')
   update(
     @Param('id', ParseMongoIdPipe) id: string, 
-    @Body() updateDto: SimpleCreateDto
+    @Body() updateDto: CreatePetDto 
   ): Promise<Pet> {
     return this.petService.update(id, updateDto.name);
   }
