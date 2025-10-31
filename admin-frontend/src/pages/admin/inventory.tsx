@@ -17,20 +17,24 @@ import useSWR from 'swr';
 import { fetchInventory, updateProductStock } from '../../store/slices/adminInventorySlice';
 import categoryApi from '../../store/api/categoryApi';
 import petApi from '../../store/api/petApi';
+import { QueryDto, PaginatedData } from '../../types/petCate.dto';
 
 interface StockForm { quantity: number; }
 
 const fetcher = async (url: string): Promise<ComboboxOption[]> => {
     let data: BaseRef[];
+    const queryAll: QueryDto = { page: 1, limit: 1000 };
+    let result: PaginatedData;
+
     if (url === '/admin/categories') {
-        data = await categoryApi.findAll();
+        result = await categoryApi.findAll(queryAll);
     } else if (url === '/admin/pets') {
-        data = await petApi.findAll();
+        result = await petApi.findAll(queryAll);
     } else {
-        return []; 
+        return Promise.reject(new Error('Unknown fetcher URL'));
     }
 
-    return data.map(item => ({
+    return result.data.map(item => ({
         value: item._id,
         label: item.name,
     }));

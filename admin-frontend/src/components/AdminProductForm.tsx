@@ -10,6 +10,7 @@ import { toast } from 'react-toastify';
 import FormSelect from './common/FormSelect';
 import categoryApi from '../store/api/categoryApi';
 import petApi from '../store/api/petApi';
+import { QueryDto } from '../types/petCate.dto';
 
 const productSchema = yup.object().shape({
     name: yup.string().required('Tên sản phẩm là bắt buộc.'),
@@ -103,12 +104,13 @@ const ProductForm: React.FC<ProductFormProps> = ({ isEditMode, productId, initia
         const fetchData = async () => {
             setIsLoading(true);
             try {
+                const queryAll: QueryDto = { page: 1, limit: 1000 };
                 const [catRes, petRes] = await Promise.all([
-                    categoryApi.findAll(),
-                    petApi.findAll(),
+                    categoryApi.findAll(queryAll), 
+                    petApi.findAll(queryAll),
                 ]);
-                setCategories(catRes);
-                setPets(petRes);
+                setCategories(catRes.data); 
+                setPets(petRes.data);
 
                 if (isEditMode && productId && !initialProduct) {
                     const product = await productApi.getProductById(productId);
