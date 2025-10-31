@@ -1,0 +1,21 @@
+@startuml UC05_FilterOnly
+
+title UC05: Tìm kiếm sản phẩm (Sử dụng bộ lọc không dùng tìm kiếm)
+
+actor User
+participant Frontend
+participant ProductController
+participant ProductService
+database ProductDB as "Product (DB)"
+
+User -> Frontend: open filters (category, price, sort)
+User -> Frontend: choose filters only (no searchTerm)
+User -> Frontend: click Apply
+Frontend -> ProductController: GET /products?category=...&minPrice=...&maxPrice=...
+ProductController -> ProductService: getAllProducts({...category, minPrice, maxPrice})
+ProductService -> ProductDB: find(queryConditions) // queryConditions contains filters + isActive:true
+ProductDB --> ProductService: products, totalCount
+ProductService --> ProductController: return results
+ProductController --> Frontend: 200 results
+Frontend -> User: update displayed list by filter
+@enduml

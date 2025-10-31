@@ -1,0 +1,27 @@
+@startuml UC09_UpdateAddress_Errors
+
+title UC09: Cập nhật địa chỉ (Luồng ngoại lệ)
+
+actor User
+participant Frontend
+participant UserController
+participant UserService
+
+User -> Frontend: edit address with invalid data (e.g., name has digits or phone has letters)
+User -> Frontend: click "Lưu"
+Frontend -> UserController: PUT /api/users/addresses/{addressId} { ... }
+UserController -> UserService: updateAddress(...)
+UserService -> UserService: validate fields
+alt name invalid
+  UserService -> UserController: throw 400 "Họ tên không được chứa chữ số"
+  UserController -> Frontend: 400 { message }
+  Frontend -> User: show error under name field
+else if phone invalid
+  UserService -> UserController: throw 400 "SĐT không được chứa chữ"
+  UserController -> Frontend: 400 { message }
+  Frontend -> User: show error under phone field
+else if required missing
+  UserService -> UserController: throw 400 "Vui lòng nhập đầy đủ thông tin"
+  UserController -> Frontend: 400 { message }
+end
+@enduml

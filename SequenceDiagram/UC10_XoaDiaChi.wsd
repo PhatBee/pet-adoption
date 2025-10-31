@@ -1,0 +1,25 @@
+@startuml UC10_DeleteAddress_Main
+
+title UC10: Xóa địa chỉ
+
+actor User
+participant Frontend as "Frontend (Address UI)"
+participant UserController as "UserController"
+participant UserService as "userService"
+database UserDB as "User (DB)"
+
+User -> Frontend: open "Quản lý địa chỉ"
+Frontend -> Frontend: choose an address and click "Xóa"
+Frontend -> Frontend: show confirm dialog (Are you sure?)
+User -> Frontend: confirm delete
+Frontend -> UserController: DELETE /api/users/addresses/{addressId}
+UserController -> UserService: deleteAddress(userId, addressId)
+UserService -> UserDB: findById(userId)
+UserDB --> UserService: user doc
+UserService -> UserService: user.addresses.pull({_id: addressId})
+UserService -> UserDB: save updated user
+UserDB --> UserService: updated user
+UserService --> UserController: updatedUser
+UserController -> Frontend: 200 { message: "Xóa địa chỉ thành công", addresses: [...] }
+Frontend -> User: remove address from list, show success
+@enduml

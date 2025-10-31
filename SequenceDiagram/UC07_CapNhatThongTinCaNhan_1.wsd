@@ -1,0 +1,31 @@
+@startuml UC07_MainFlow
+
+title UC07: Cập nhật thông tin cá nhân (Luồng chính)
+
+actor User
+participant Frontend as "Frontend (Profile page)"
+participant Multer as "Multer (middleware)"
+participant UserController as "UserController"
+participant Sharp as "Sharp (middleware)"
+participant FileSystem as "FS (middleware)"
+participant UserService as "userService"
+database UserDB as "User (DB)"
+
+User -> Frontend: open Profile page, edit fields (+ optional avatar file)
+User -> Frontend: click "Lưu"
+Frontend -> Frontend: prepare multipart/form-data (fields + file)
+Frontend -> Multer: POST /api/users/me (multipart/form-data)
+Multer -> UserController: pass req.file + req.body
+UserController -> UserService: validate & updateProfile(userId, { name, email, phone })
+alt req.file exists
+  UserController -> Sharp: resize image (e.g., 256x256) -> write tmp file
+  Sharp -> FileSystem: save resized file -> final file path
+  UserController -> UserService: updateAvatar(userId, fileRelativePath)
+end
+UserController -> UserService: getUserById(userId) // get safe profile
+UserService -> UserDB: findById & save
+UserDB --> UserService: updated user object
+UserService --> UserController: safe user object
+UserController -> Frontend: 200 { message: "Cập nhật thành công", user }
+Frontend -> User: show success message, update UI
+@enduml

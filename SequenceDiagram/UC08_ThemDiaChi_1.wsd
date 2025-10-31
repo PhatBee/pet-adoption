@@ -1,0 +1,25 @@
+@startuml UC08_AddAddress_Main
+
+title UC08: Thêm địa chỉ (luồng chính + luồng thay thế)
+
+actor User
+participant Frontend as "Frontend (Profile / Address UI)"
+participant UserController as "UserController"
+participant UserService as "userService"
+database UserDB as "User (DB)"
+
+User -> Frontend: open "Quản lý địa chỉ"
+Frontend -> UserController: GET /api/users/me/addresses (render list)
+User -> Frontend: click "Thêm địa chỉ"
+Frontend -> Frontend: show Add Address popup (name, phone, address, default?)
+User -> Frontend: fill form and click "Lưu"
+Frontend -> UserController: POST /api/users/me/addresses { name, phone, street,..., isDefault }
+UserController -> UserService: addAddress(userId, addressData)
+UserService -> UserDB: findById(userId)
+UserDB --> UserService: user
+UserService -> UserDB: save updated user (addresses)
+UserDB --> UserService: updated user object
+UserService --> UserController: updatedUser
+UserController -> Frontend: 201 { message: "Thêm địa chỉ thành công", addresses: [...] }
+Frontend -> User: show success + update address list
+@enduml

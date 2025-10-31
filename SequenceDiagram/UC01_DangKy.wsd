@@ -1,0 +1,44 @@
+@startuml
+
+title UC01: Đăng nhập
+
+actor User
+participant Frontend
+participant AuthController
+database UserDB as "User (DB)"
+database OtpDB as "Otp (DB)"
+participant EmailService
+participant SMTP
+
+User -> Frontend: click "Đăng ký"
+Frontend -> Frontend: show register popup
+User -> Frontend: submit {name,email,password}
+Frontend -> AuthController: POST /register {name,email,password}
+AuthController -> UserDB: findOne({email})
+alt email exists
+  AuthController -> Frontend: 400 "Email already exists"
+else
+  AuthController -> AuthController: validate payload
+  AuthController -> AuthController: bcrypt.hash(password)
+  AuthController -> UserDB: create User {name,email,hashed,isVerified:false}
+  AuthController -> AuthController: generateOtp()
+  AuthController -> OtpDB: create {email,otp,expiresAt}
+  AuthController -> EmailService: sendEmail(email, subject, body)
+  EmailService -> SMTP: send mail
+  AuthController -> Frontend: 201 "User registered successfully. Please check your email for OTP."
+  Frontend -> Frontend: show OTP popup
+  User -> Frontend: enter OTP
+  Frontend -> AuthController: POST /verify-otp {email,otp}
+  AuthController -> OtpDB: findOne({email,otp})
+  alt no entry
+    AuthController -> Frontend: 400 "Invalid OTP"
+  else if expired
+    AuthController -> Frontend: 400 "OTP has expired"
+  else
+    AuthController -> UserDB: updateOne({email},{isVerified:true})
+    AuthController -> OtpDB: deleteOne({_id})
+    AuthController -> Frontend: 200 "OTP verified successfully"
+    Frontend -> Frontend: show "Đăng ký thành công" -> open login popup
+  end
+end
+@enduml

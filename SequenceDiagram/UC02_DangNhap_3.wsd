@@ -1,0 +1,26 @@
+@startuml
+
+title UC02: Đăng nhập (RefreshToken)
+
+actor User
+participant Frontend
+participant Browser as "Browser (cookie)"
+participant AuthController as "AuthController"
+database RefreshTokenDB as "RefreshToken (DB)"
+participant TokenService as "TokenService"
+
+Frontend -> Browser: include cookies in request
+Frontend -> AuthController: POST /refresh-token (cookie contains refreshToken)
+AuthController -> Browser: read cookie refreshToken
+AuthController -> RefreshTokenDB: findOne({ token })
+alt not found
+  AuthController -> Browser: clearCookie(refreshToken)
+  AuthController -> Frontend: 403 "Refresh token không hợp lệ"
+else
+  AuthController -> TokenService: verifyRefreshToken(token)
+  TokenService -> AuthController: decoded
+  AuthController -> TokenService: signAccessToken({id,email,name,role})
+  TokenService -> AuthController: newAccessToken
+  AuthController -> Frontend: 200 { accessToken: newAccessToken }
+end
+@enduml

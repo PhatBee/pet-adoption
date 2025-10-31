@@ -1,0 +1,47 @@
+@startuml UC06_ProductDetail_Main
+
+title UC06: Xem Chi Tiết Sản Phẩm
+
+actor User
+participant Frontend as "Frontend (Product page)"
+participant ProductController as "ProductController"
+database ProductDB as "Product (DB)"
+participant ReviewService as "reviewService"
+participant ProductService as "productService"
+database ReviewDB as "Review (DB)"
+database CategoryDB as "Category (DB)"
+database PetDB as "Pet (DB)"
+
+
+User -> Frontend: click product (from list / search)
+Frontend -> ProductController: GET /products/:slug
+ProductController -> ProductDB: findOne({ slug, isActive: true }).populate(pet,category)
+alt product not found
+  ProductController -> Frontend: 404 "Không tìm thấy"
+else
+  ProductController -> ReviewService: getReviewsByProduct(product._id)
+  activate ReviewService
+  ReviewService -> ReviewDB: find({ product: productId }).populate(user)
+  ReviewDB --> ReviewService: reviews[]
+  ReviewService --> ProductController: reviews[]
+  deactivate ReviewService
+
+  alt product has category && pet
+    ProductController -> ProductService: getProductsByCategory(categoryId, 8, product._id)
+    ProductController -> ProductService: getNewestProducts(8, petId, product._id)
+    activate ProductService
+    ProductService -> CategoryDB: query for byCategory
+    CategoryDB --> ProductService: relatedByCategory[]
+    ProductService -> PetDB: query for byPet
+    PetDB --> ProductService: relatedByPet[]
+    ProductService --> ProductController: {relatedByCategory, relatedByPet}
+    deactivate ProductService
+  else
+    ProductController -> ProductController: set related arrays empty
+  end
+
+  ProductController -> ProductDB: updateOne({_id}, {$inc: {viewCount:1}}) // fire-and-forget
+  ProductController -> Frontend: 200 { product, reviews, reviewStats, relatedProducts }
+  Frontend -> User: render product detail (name, images, price, description, reviews, rating, related)
+end
+@enduml

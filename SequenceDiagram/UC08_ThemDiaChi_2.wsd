@@ -1,0 +1,27 @@
+@startuml UC08_AddAddress_Errors
+
+title UC08: Thêm địa chỉ (Luồng ngoại lệ)
+
+actor User
+participant Frontend
+participant UserController
+participant UserService
+database userDB as "User (DB)"
+
+User -> Frontend: fill form with missing required fields or invalid phone
+User -> Frontend: click "Lưu"
+Frontend -> UserController: POST /api/users/me/addresses { ... }
+UserController -> UserService: addAddress(...)
+UserService -> UserService: validate required fields (name, phone, address)
+alt validation fails
+  UserService -> UserController: throw { status:400, message: "Vui lòng nhập đầy đủ thông tin" / "Số điện thoại không hợp lệ" }
+  UserController -> Frontend: 400 { message: "..." }
+  Frontend -> User: show error message under field
+else
+  UserService -> userDB: save -> DB error (e.g., connection error)
+  userDB -> UserService: throw error
+  UserService -> UserController: throw { status:500, message: "Không thể lưu địa chỉ, vui lòng thử lại sau" }
+  UserController -> Frontend: 500 { message: "Không thể lưu địa chỉ, vui lòng thử lại sau" }
+  Frontend -> User: show error toast
+end
+@enduml

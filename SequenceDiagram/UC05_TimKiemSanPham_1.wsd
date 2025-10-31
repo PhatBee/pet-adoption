@@ -1,0 +1,27 @@
+@startuml UC05_MainFlow
+
+title UC05: Tìm kiếm sản phẩm (Luồng chính)
+
+actor User
+participant Frontend as "Frontend (UI)"
+participant ProductController as "ProductController"
+participant ProductService as "ProductService"
+database ProductDB as "Product (DB)"
+
+User -> Frontend: click search box
+User -> Frontend: input searchTerm, maybe choose filters
+User -> Frontend: click Search (or press Enter)
+Frontend -> ProductController: GET /products?searchTerm=...&category=...&minPrice=...&page=...
+ProductController -> ProductService: getAllProducts({searchTerm, category, pet, minPrice, maxPrice, sortBy, page, limit})
+ProductService -> ProductDB: query build & execute (find, sort, skip, limit)
+ProductDB --> ProductService: return products
+ProductService -> ProductDB: countDocuments(queryConditions)
+ProductDB --> ProductService: return totalCount
+ProductService --> ProductController: return { products, total, page, pages }
+ProductController --> Frontend: 200 { products, total, page, pages }
+Frontend -> Frontend: render product list
+Frontend -> User: show results
+User -> Frontend: apply filters or change page/sort
+Frontend -> ProductController: GET /products?... (new query)
+... repeat ...
+@enduml

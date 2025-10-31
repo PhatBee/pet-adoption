@@ -1,0 +1,41 @@
+@startuml
+
+title UC02: Đăng nhập (Luồng chính)
+
+actor User
+participant Frontend as "Frontend (UI)"
+participant AuthController as "AuthController (POST /login)"
+database UserDB as "User (DB)"
+participant PasswordService as "PasswordService (bcrypt)"
+participant TokenService as "TokenService (JWT)"
+database RefreshTokenDB as "RefreshToken (DB)"
+participant Browser as "Browser (Cookies)"
+
+User -> Frontend: click "Đăng nhập"
+Frontend -> Frontend: show login popup (email, password, forgot link)
+User -> Frontend: submit {email, password}
+Frontend -> AuthController: POST /login { email, password }
+AuthController -> UserDB: findOne({ email })
+alt user not found
+  AuthController -> Frontend: 400 "Không tìm thấy tài khoản"
+else if !user.isVerified
+  AuthController -> Frontend: 403 "Tài khoản chưa được xác thực"
+else if !user.isActive
+  AuthController -> Frontend: 403 "Tài khoản đã bị khóa"
+else
+  AuthController -> PasswordService: comparePassword(password, user.password)
+  alt password invalid
+    AuthController -> Frontend: 400 "Email hoặc Mật khẩu không đúng"
+  else
+    AuthController -> TokenService: signAccessToken(userObj)
+    TokenService -> AuthController: accessToken
+    AuthController -> TokenService: signRefreshToken(userObj)
+    TokenService -> AuthController: refreshToken
+    AuthController -> RefreshTokenDB: deleteMany({ userId })
+    AuthController -> RefreshTokenDB: create({ userId, token: refreshToken, expiresAt })
+    AuthController -> Browser: set-cookie refreshToken (HttpOnly, secure? sameSite)
+    AuthController -> Frontend: 200 { user, accessToken, message: "Đăng nhập thành công" }
+    Frontend -> Frontend: if role=='admin' navigate to Admin page else navigate to Home
+  end
+end
+@enduml

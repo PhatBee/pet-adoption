@@ -1,0 +1,37 @@
+@startuml UC09_UpdateAddress_Main
+
+title UC09: Cập nhật địa chỉ (luồng chính)
+
+actor User
+participant Frontend as "Frontend (Profile / Address UI)"
+participant UserController as "UserController"
+participant UserService as "userService"
+database UserDB as "User (DB)"
+
+User -> Frontend: open "Quản lý địa chỉ"
+Frontend -> Frontend: click "Sửa" on an address
+Frontend -> Frontend: show Edit Address popup (fields populated)
+User -> Frontend: edit fields and click "Lưu"
+Frontend -> UserController: PUT /api/users/addresses/{addressId} { recipientName, phone, street, isDefault, ... }
+UserController -> UserService: updateAddress(userId, addressId, addressData)
+UserService -> UserDB: findById(userId)
+UserDB --> UserService: user doc
+UserService -> UserService: find subdocument address by id
+alt address not found
+  UserService -> UserController: throw 404 "Không tìm thấy địa chỉ"
+  UserController -> Frontend: 404 error
+else
+  UserService -> UserService: validate recipientName, phone, required fields
+  alt validation fails
+    UserService -> UserController: throw 400 "Họ tên không hợp lệ" / "SĐT không được chứa chữ"
+    UserController -> Frontend: 400 error
+  else
+    UserService -> UserService: if isDefault true -> unset other defaults
+    UserService -> UserDB: save user
+    UserDB --> UserService: updated user
+    UserService --> UserController: updatedUser
+    UserController -> Frontend: 200 { message: "Cập nhật địa chỉ thành công", addresses: [...] }
+    Frontend -> User: show success, update UI
+  end
+end
+@enduml
