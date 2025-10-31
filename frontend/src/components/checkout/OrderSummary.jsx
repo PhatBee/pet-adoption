@@ -3,8 +3,7 @@ export default function OrderSummary({ items, couponDiscount = 0, pointsDiscount
   // shipping fee - nếu cần
   const shippingFee = 0;
   // Tính tổng cuối cùng sau khi đã trừ hết các khoản giảm giá
-  const total = itemsTotal + shippingFee - couponDiscount - pointsDiscount;
-
+  const total = Math.max(0, itemsTotal + shippingFee - couponDiscount - pointsDiscount);
 
   return (
     <div className="border rounded-lg p-5 bg-white shadow-sm">

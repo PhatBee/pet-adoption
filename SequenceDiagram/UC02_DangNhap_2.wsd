@@ -1,0 +1,25 @@
+@startuml
+
+title UC02: Đăng nhập (Luồng ngoại lệ)
+
+actor User
+participant Frontend
+participant AuthController
+database UserDB as "User (DB)"
+
+User -> Frontend: open login popup
+User -> Frontend: click "Đăng nhập" with empty fields
+Frontend -> Frontend: client-side validation -> show "Yêu cầu nhập email/mật khẩu"
+
+User -> Frontend: submit wrong email/password
+Frontend -> AuthController: POST /login
+AuthController -> UserDB: findOne({email})
+alt not found or bad password
+  AuthController -> Frontend: 400 "Email hoặc Mật khẩu không đúng"
+  Frontend -> Frontend: show error "Email hoặc mật khẩu không đúng"
+  
+    User -> Frontend: click "Quên mật khẩu?"
+    Frontend -> Frontend: navigate to Forgot Password page
+end
+
+@enduml

@@ -1,0 +1,34 @@
+@startuml UC03_Errors
+
+title UC03: Quên mật khẩu - Các trường hợp lỗi
+
+actor User
+participant Frontend
+participant AuthController
+database UserDB
+database OtpDB
+
+User -> Frontend: click "Gửi OTP" with empty email
+Frontend -> Frontend: block & show "Vui lòng nhập email"
+
+User -> Frontend: submit malformed email
+Frontend -> AuthController: POST /auth/request-password-reset { email: "bad" }
+AuthController -> AuthController: validate email format
+alt invalid format
+  AuthController -> Frontend: 400 "Email không hợp lệ"
+else
+  AuthController -> UserDB: findOne({ email })
+  alt not found
+    AuthController -> Frontend: 400 "Email chưa được đăng ký"
+  end
+end
+
+User -> Frontend: submit wrong OTP
+Frontend -> AuthController: POST /auth/reset-password { email, otp, newPassword }
+AuthController -> OtpDB: findOne({ email, otp })
+alt not found or expired
+  AuthController -> Frontend: 400 "OTP không chính xác hoặc đã hết hạn"
+else
+  AuthController -> Frontend: 200 "Đặt lại mật khẩu thành công"
+end
+@enduml

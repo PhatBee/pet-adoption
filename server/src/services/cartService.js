@@ -6,6 +6,7 @@ const User = require("../models/User");
 const Coupon = require('../models/Coupon')
 const notificationService = require('./notificationService');
 const { translateOrderStatus } = require('../utils/orderStatus'); // đường dẫn tuỳ project
+const { calculateDiscountInternal } = require("./couponService"); // 1. Import hàm helper
 
 
 // Lấy giỏ hàng của user hiện tại
@@ -138,21 +139,22 @@ const createOrderFromCart = async ({ userId, shippingAddress, paymentMethod, ite
 
       if (couponCode) {
         const coupon = await Coupon.findOne({ code: couponCode.toUpperCase() }).session(session);
-        // Xác thực lại coupon ngay tại thời điểm đặt hàng
-        if (!coupon || !coupon.isActive || coupon.expiresAt < new Date() || itemsTotal < coupon.minOrderValue) {
+        
+        if (!coupon || !coupon.isActive || (coupon.expiresAt && coupon.expiresAt < new Date())) {
           throw { status: 400, message: 'Mã giảm giá không hợp lệ hoặc đã hết hạn' };
         }
-        appliedCoupon = coupon; // Lưu lại để tăng usesCount sau
-
-        if (coupon.discountType === 'percentage') {
-          couponDiscount = (itemsTotal * coupon.discountValue) / 100;
-        } else { // fixed_amount
-          couponDiscount = coupon.discountValue;
+        
+        // 2.2. Dùng hàm helper để tính toán
+        try {
+            const { discountAmount } = calculateDiscountInternal(coupon, itemsWithDbPrice);
+            couponDiscount = discountAmount;
+            appliedCoupon = coupon; // Lưu lại để tăng usesCount
+        } catch (calcError) {
+            // Ném lỗi nếu tính toán thất bại (ví dụ: không đạt min)
+            throw { status: 400, message: calcError.message };
         }
-        // Đảm bảo giảm giá không vượt quá tổng tiền hàng
-        couponDiscount = Math.min(couponDiscount, itemsTotal);
       }
-
+      
       // --- 3. Xử lý điểm tích lũy (xu) ---
       let pointsDiscount = 0;
       const pointsToUseNum = Number(pointsToUse) || 0;

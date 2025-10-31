@@ -1,0 +1,25 @@
+@startuml UC03_ResendOTP
+
+title UC03: Quên mật khẩu - Gửi lại OTP
+
+actor User
+participant Frontend
+participant AuthController
+database OtpDB as "Otp (DB)"
+participant EmailService
+participant SMTP
+
+User -> Frontend: click "Gửi lại OTP"
+Frontend -> AuthController: POST /auth/resend-password-reset-otp { email }
+AuthController -> AuthController: find lastOtp = OtpDB.findOne({ email }).sort({ createdAt: -1 })
+alt lastOtp exists and (now - lastOtp.createdAt) < 30s
+  AuthController -> Frontend: 429 "Vui lòng chờ X giây trước khi gửi lại OTP"
+else
+  AuthController -> OtpDB: deleteMany({ email }) // optional: remove old OTPs
+  AuthController -> AuthController: generateOtp()
+  AuthController -> OtpDB: create({ email, otp, expiresAt })
+  AuthController -> EmailService: sendPasswordResetOtpEmail(email, otp, ttl)
+  EmailService -> SMTP: send mail
+  AuthController -> Frontend: 200 "OTP mới đã được gửi qua email"
+end
+@enduml

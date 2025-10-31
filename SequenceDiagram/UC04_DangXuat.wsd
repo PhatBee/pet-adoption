@@ -1,0 +1,25 @@
+@startuml UC04_Logout_Main
+
+title UC04: Đăng xuất
+
+actor User
+participant Frontend as "Frontend (UI)"
+participant Browser as "Browser (Cookies)"
+participant AuthController as "AuthController"
+database RefreshTokenDB as "RefreshToken (DB)"
+
+User -> Frontend: click "Đăng xuất" in menu
+Frontend -> Frontend: optionally show confirm dialog
+Frontend -> Browser: send POST /auth/logout (include cookies)
+Frontend -> AuthController: POST /auth/logout (cookie: refreshToken)
+AuthController -> Browser: read cookie refreshToken
+AuthController -> AuthController: res.clearCookie('refreshToken', {...})
+alt token exists
+  AuthController -> RefreshTokenDB: deleteOne({ token })
+  AuthController -> Frontend: 200 { message: "Đăng xuất thành công" }
+else token missing
+  AuthController -> Frontend: 200 { message: "Đăng xuất thành công" }
+end
+Frontend -> Frontend: remove accessToken from client storage (localStorage / memory)
+Frontend -> Frontend: redirect to home / show logged-out state
+@enduml

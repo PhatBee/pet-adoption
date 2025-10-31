@@ -1,0 +1,21 @@
+@startuml UC07_ValidationErrors
+
+title UC07: Cập nhật thông tin cá nhân (Validate)
+actor User
+participant Frontend
+participant Multer as "Multer (middleware)"
+participant UserController
+participant UserService
+
+User -> Frontend: edit fields invalid (e.g., name with digits)
+User -> Frontend: click "Lưu"
+Frontend -> Multer: POST /api/users/me
+Multer -> UserController: pass request
+UserController -> UserService: updateProfile(...)
+UserService -> UserService: validate name/email/phone
+alt validation fails
+  UserService -> UserController: throw { status:400, message: "Họ tên không hợp lệ" }
+  UserController -> Frontend: 400 { message: "Họ tên không hợp lệ" }
+  Frontend -> User: show error under the field
+end
+@enduml

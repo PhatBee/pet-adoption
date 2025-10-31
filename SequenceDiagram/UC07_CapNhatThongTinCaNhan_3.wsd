@@ -1,0 +1,24 @@
+@startuml UC07_FileErrors
+
+title UC07: Cập Nhật Thông Tin Cá Nhân (Xử Lý Lỗi File)
+
+actor User
+participant Frontend
+participant Multer as "Multer (Middleware)"
+participant UserController
+participant FileSystem as "FS (Middleware)"
+
+User -> Frontend: choose file with .exe or >2MB
+User -> Frontend: click "Lưu"
+Frontend -> Multer: POST /api/users/me
+alt fileFilter rejects (wrong mimetype)
+  Multer -> UserController: throws MulterError or custom Error "Chỉ chấp nhận ảnh .jpeg .png .webp"
+  UserController -> Frontend: 400 { message: "Chỉ chấp nhận ảnh .jpeg .png .webp" }
+else file too large (MulterError: LIMIT_FILE_SIZE)
+  UserController -> Frontend: 400 { message: "File ảnh upload không vượt quá 2MB" }
+else file accepted but subsequent validation fails
+  UserController -> FileSystem: remove uploaded file (cleanup)
+  UserController -> Frontend: 400 { message: "Validation error" }
+end
+Frontend -> User: show file error message
+@enduml

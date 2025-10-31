@@ -1,0 +1,18 @@
+@startuml UC05_NoResults
+
+title UC05: Tìm kiếm sản phẩm (Không có kết quả)
+
+actor User
+participant Frontend
+participant ProductController
+participant ProductService
+database ProductDB as "Product (DB)"
+
+User -> Frontend: searchTerm -> "nonexistent-term"
+Frontend -> ProductController: GET /products?searchTerm=nonexistent-term
+ProductController -> ProductService: getAllProducts({ searchTerm })
+ProductService -> ProductDB: query -> returns empty list, totalCount = 0
+ProductService --> ProductController: { products: [], total: 0, pages: 0 }
+ProductController --> Frontend: 200 { products: [], total: 0, pages: 0 }
+Frontend -> User: show "Không tìm thấy sản phẩm phù hợp"
+@enduml

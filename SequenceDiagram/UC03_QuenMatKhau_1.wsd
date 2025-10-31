@@ -1,0 +1,44 @@
+@startuml UC03_MainFlow
+
+title UC03: Quên mật khẩu (luồng chính)
+
+actor User
+participant Frontend as "Frontend (UI)"
+participant AuthController as "AuthController"
+database UserDB as "User (DB)"
+database OtpDB as "Otp (DB)"
+participant EmailService as "EmailService"
+participant SMTP as "SMTP (external)"
+
+User -> Frontend: click "Quên mật khẩu?" (from login)
+Frontend -> Frontend: show Forgot Password page (email + "Gửi OTP" button)
+User -> Frontend: enter email and click "Gửi OTP"
+Frontend -> AuthController: POST /auth/request-password-reset { email }
+AuthController -> UserDB: findOne({ email })
+alt user not found
+  AuthController -> Frontend: 400 "Không tìm thấy tài khoản"
+else
+  AuthController -> AuthController: generateOtp()
+  AuthController -> OtpDB: create({ email, otp, expiresAt })
+  AuthController -> EmailService: sendPasswordResetOtpEmail(email, otp, ttl)
+  EmailService -> SMTP: send mail
+  AuthController -> Frontend: 200 "Đã gửi OTP qua email"
+  Frontend -> Frontend: show Reset dialog (fields: OTP, newPassword, confirmNewPassword)
+  User -> Frontend: enter otp, newPassword, confirmPassword and click "Đặt lại mật khẩu"
+  Frontend -> AuthController: POST /auth/reset-password { email, otp, newPassword }
+  AuthController -> OtpDB: findOne({ email, otp })
+  alt no otp record
+    AuthController -> Frontend: 400 "OTP không hợp lệ"
+  else if otp expired
+    AuthController -> Frontend: 400 "OTP đã hết hạn"
+  else
+    AuthController -> UserDB: findOne({ email })
+    AuthController -> AuthController: user.password = hash(newPassword)
+    AuthController -> UserDB: save(user)
+    AuthController -> OtpDB: deleteOne({ email, otp })
+    AuthController -> RefreshTokenDB: deleteMany({ userId })
+    AuthController -> Frontend: 200 "Đặt lại mật khẩu thành công"
+    Frontend -> Frontend: show "Chuyển hướng đăng nhập"
+  end
+end
+@enduml
