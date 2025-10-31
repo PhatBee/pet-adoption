@@ -1,8 +1,9 @@
 import { Injectable, ConflictException, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { Category } from '../product/schemas/product.schema';
-import { Product } from '../product/schemas/product.schema'; 
+import { Category, Product } from '../product/schemas/product.schema';
+import { CategoryQueryDto, CategoryResponseDto } from './dto/category.dto';
+import { PaginatedResult } from 'src/common/dto/pagination.dto';
 
 @Injectable()
 export class CategoryService {
@@ -20,8 +21,64 @@ export class CategoryService {
     return createdCategory.save();
   }
 
-  async findAll(): Promise<Category[]> {
-    return this.categoryModel.find().exec();
+  async findAll(
+    query: CategoryQueryDto,
+  ): Promise<PaginatedResult<CategoryResponseDto>> {
+    const { page = 1, limit = 10, search } = query;
+    const skip = (page - 1) * limit;
+
+    const pipeline: any[] = [];
+
+    if (search) {
+      pipeline.push({
+        $match: { name: { $regex: search, $options: 'i' } },
+      });
+    }
+
+    pipeline.push({
+      $lookup: {
+        from: 'products',
+        localField: '_id',
+        foreignField: 'category',
+        as: 'products',
+      },
+    });
+
+    pipeline.push({
+      $addFields: {
+        productCount: { $size: '$products' },
+      },
+    });
+
+    pipeline.push({
+      $project: {
+        name: 1,
+        productCount: 1,
+      },
+    });
+
+    const facetPipeline = [
+      ...pipeline,
+      {
+        $facet: {
+          data: [{ $sort: { name: 1 } }, { $skip: skip }, { $limit: limit }],
+          totalItems: [{ $count: 'count' }],
+        },
+      },
+    ];
+
+    const result = await this.categoryModel.aggregate(facetPipeline);
+
+    const data = result[0].data;
+    const totalItems = result[0].totalItems[0]?.count || 0;
+    const totalPages = Math.ceil(totalItems / limit);
+
+    return {
+      data,
+      totalItems,
+      totalPages,
+      currentPage: page,
+    };
   }
   
   async update(id: string, newName: string): Promise<Category> {
