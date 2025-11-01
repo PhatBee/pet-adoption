@@ -1,76 +1,67 @@
-// InventoryFilter.tsx
-
 "use client";
 import React, { useEffect, useRef } from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
 import FormInput from '../common/FormInput';
 import FormSelect from '../common/FormSelect';
-import { InventoryQueryDto, InventorySortBy } from '../../types/inventory.dto';
+import { ProductQueryDto } from '../../types/next';
 import { ComboboxOption } from '../../types/next';
 
-interface InventoryFilterProps {
-    onFilterChange: (query: Partial<InventoryQueryDto>) => void;
+interface ProductFilterProps {
+    onQueryChange: (query: Partial<ProductQueryDto>) => void;
     categoryOptions: ComboboxOption[];
     petOptions: ComboboxOption[];
-    initialQuery: Partial<InventoryQueryDto>;
+    initialQuery: Partial<ProductQueryDto>;
 }
 
-const InventoryFilter: React.FC<InventoryFilterProps> = ({ 
-    onFilterChange, 
+const STATUS_OPTIONS: ComboboxOption[] = [
+    { value: "all", label: "Tất cả trạng thái" },
+    { value: "true", label: "Đang kinh doanh" },
+    { value: "false", label: "Đã vô hiệu hóa" }
+];
+
+interface ProductFilterForm {
+    search?: string;
+    categoryId?: string;
+    petId?: string;
+    isActive: string;
+}
+
+const ProductFilter: React.FC<ProductFilterProps> = ({ 
+    onQueryChange, 
     categoryOptions, 
     petOptions,
     initialQuery
 }) => {
-    const methods = useForm<Partial<InventoryQueryDto>>({
-        defaultValues: initialQuery,
+    const methods = useForm<ProductFilterForm>({
+        defaultValues: {
+            search: initialQuery.search || '',
+            categoryId: initialQuery.categoryId || '',
+            petId: initialQuery.petId || '',
+            isActive: initialQuery.isActive === undefined ? "all" : String(initialQuery.isActive),
+        },
     });
     const { watch } = methods;
 
     const isMounted = useRef(false);
-
     const watchedFields = watch();
-    const { sortBy, search, categoryId, petId } = watchedFields;
+    const { search, categoryId, petId, isActive } = watchedFields;
 
-    // Hàm xác định SortOrder ngầm định (dựa trên logic backend)
-    const getSortOrder = (sortByValue: InventorySortBy): 'asc' | 'desc' => {
-        switch (sortByValue) {
-            case InventorySortBy.OLDEST:
-            case InventorySortBy.LEAST_STOCK:
-            case InventorySortBy.NAME:
-                return 'asc';
-            case InventorySortBy.NEWEST:
-            case InventorySortBy.MOST_STOCK:
-            default:
-                return 'desc';
-        }
-    };
-
-    // Gửi query mới mỗi khi các trường thay đổi
     useEffect(() => {
-
         if (!isMounted.current) {
             isMounted.current = true;
             return; 
         }
 
-        const newQuery: Partial<InventoryQueryDto> = {
+        const newQuery: Partial<ProductQueryDto> = {
             search,
             categoryId: categoryId || undefined,
             petId: petId || undefined,
-            sortBy,
+            isActive: isActive === "all" ? undefined : (isActive === "true"),
         };
         
-        // Tự động thêm sortOrder dựa trên sortBy
-        if (sortBy) {
-             newQuery.sortOrder = getSortOrder(sortBy as InventorySortBy);
-        } else {
-             newQuery.sortOrder = undefined;
-        }
+        onQueryChange(newQuery);
 
-        // Gửi query lên page cha
-        onFilterChange(newQuery);
-
-    }, [search, categoryId, petId, sortBy, onFilterChange]);
+    }, [search, categoryId, petId, isActive, onQueryChange]);
 
 
     const categoryFilterOptions = [{ value: '', label: 'Tất cả Danh mục' }, ...categoryOptions];
@@ -88,7 +79,7 @@ const InventoryFilter: React.FC<InventoryFilterProps> = ({
                     />
                 </div>
 
-                {/* Lọc theo Category (Sử dụng FormSelect) */}
+                {/* Lọc theo Category */}
                 <div className="w-full sm:w-auto">
                     <FormSelect 
                         label="Lọc theo Danh mục"
@@ -97,7 +88,6 @@ const InventoryFilter: React.FC<InventoryFilterProps> = ({
                     />
                 </div>
                 
-                {/* Lọc theo Pet Type (Sử dụng FormSelect) */}
                 <div className="w-full sm:w-auto">
                     <FormSelect 
                         label="Lọc theo Loại Pet"
@@ -105,9 +95,17 @@ const InventoryFilter: React.FC<InventoryFilterProps> = ({
                         options={petFilterOptions}
                     />
                 </div>
+
+                <div className="w-full sm:w-auto">
+                    <FormSelect 
+                        label="Lọc theo Trạng thái"
+                        name="isActive"
+                        options={STATUS_OPTIONS}
+                    />
+                </div>
             </div>
         </FormProvider>
     );
 };
 
-export default InventoryFilter;
+export default ProductFilter;

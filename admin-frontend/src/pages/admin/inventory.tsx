@@ -1,7 +1,7 @@
 // InventoryManagementPage.tsx
 
 "use client";
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { toast } from 'react-hot-toast';
 import { useAppDispatch, useAppSelector } from '../../store/store';
 import { Product, BaseRef } from '../../types/next'; 

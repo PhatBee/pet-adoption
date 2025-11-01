@@ -17,13 +17,22 @@
     }
 
     async findAllUsers(queryDto: UserQueryDto): Promise<PaginatedUserResult<User>> {
-      const { page = 1, limit = 10, isActive, sortBy = 'createdAt', sortOrder = 'desc' } = queryDto;
+      const { page = 1, limit = 10, isActive, sortBy = 'createdAt', sortOrder = 'desc', search } = queryDto;
 
       const skip = (page - 1) * limit;
       const filter: any = { role: 'user' };
 
       if (isActive !== undefined) {
         filter.isActive = isActive;
+      }
+
+      if (search) {
+        const searchRegex = new RegExp(search, 'i');
+        filter.$or = [
+            { name: searchRegex },
+            { email: searchRegex },
+            { phone: searchRegex }
+        ];
       }
 
       const sort: { [key: string]: SortOrder } = { [sortBy]: sortOrder === 'asc' ? 1 : -1 };
