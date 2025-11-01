@@ -40,7 +40,7 @@ const ProductTable: React.FC<ProductTableProps> = ({ products, onDetailView, onE
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hình ảnh</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tên Sản Phẩm</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Giá</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tồn kho</th>
+                    {/* <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tồn kho</th> */}
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trạng Thái</th>
                     <th className="px-6 py-3"></th>
                 </tr>
@@ -56,11 +56,11 @@ const ProductTable: React.FC<ProductTableProps> = ({ products, onDetailView, onE
                             onClick={() => onDetailView(product._id)}
                         >
                             <div className="truncate">
-                                {product.name.split(" ").slice(0, 20).join(" ") + (product.name.split(" ").length > 20 ? "..." : "")}
+                                {product.name.split(" ").slice(0, 50).join(" ") + (product.name.split(" ").length > 50 ? "..." : "")}
                             </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{product.price.toLocaleString()} VNĐ</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{product.stock}</td>
+                        {/* <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{product.stock}</td> */}
                         <td className="px-6 py-4 whitespace-nowrap">
                             <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${product.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
                                 {product.isActive ? 'Kinh doanh' : 'Vô hiệu hóa'}

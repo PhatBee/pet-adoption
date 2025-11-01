@@ -183,7 +183,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ isEditMode, productId, initia
                 {/* 3. GIÁ CẢ & TỒN KHO */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <FormInput label="Giá bán (VNĐ)" name="price" type="number" placeholder="0" />
-                    <FormInput label="Tồn kho" name="stock" type="number" placeholder="0" />
+                    {/* <FormInput label="Tồn kho" name="stock" type="number" placeholder="0" /> */}
                 </div>
 
                 {/* 4. MÔ TẢ CHI TIẾT */}

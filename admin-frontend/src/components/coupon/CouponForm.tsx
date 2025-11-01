@@ -49,6 +49,7 @@ const defaultFormValues: CouponFormSchema = {
   maxDiscountValue: undefined,
   minOrderValue: 0,
   maxUses: undefined,
+  usageLimitPerUser: undefined,
   startsAt: formatToDateTimeLocal(), 
   expiresAt: undefined,
   productIds: '',       
@@ -120,7 +121,11 @@ const CouponForm: React.FC<CouponFormProps> = ({ defaultValues, onSubmit, isLoad
 
         <FormInput label="Mô tả" name="description" />
         <FormInput label="Đơn hàng tối thiểu" name="minOrderValue" type="number" />
-        <FormInput label="Tổng lượt sử dụng (Để trống = không giới hạn)" name="maxUses" type="number" />
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <FormInput label="Tổng lượt sử dụng" name="maxUses" type="number" placeholder="Toàn sàn có..."/>
+          <FormInput label="Giới hạn sử dụng" name="usageLimitPerUser" type="number" placeholder="Mỗi người có..." />
+        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormInput label="Ngày bắt đầu" name="startsAt" type="datetime-local" />

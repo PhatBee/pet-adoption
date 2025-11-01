@@ -13,6 +13,7 @@ export const couponSchema = z.object({
   maxDiscountValue: numericField(0).optional(),
   minOrderValue: numericField(0).default(0),
   maxUses: numericField(1, "Phải lớn hơn 0").optional(),
+  usageLimitPerUser: numericField(1, "Phải lớn hơn 0").optional(),
 
   startsAt: z.string().default(formatToDateTimeLocal()),
   expiresAt: z.string().optional(),

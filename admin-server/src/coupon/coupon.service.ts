@@ -165,7 +165,7 @@ export class CouponService {
 
     const updatedCoupon = await this.couponModel.findByIdAndUpdate(
       id,
-      {updateCouponDto, ...applyData},
+      {...updateCouponDto, ...applyData},
       { new: true },
     );
 

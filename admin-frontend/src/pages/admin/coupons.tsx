@@ -140,7 +140,10 @@ const CouponManagementPage = () => {
             {loading !== 'pending' && coupons?.map((coupon) => (
               <tr key={coupon._id} className="border-b border-gray-200 hover:bg-gray-50">
                 <td className="p-4 text-sm font-medium text-gray-900">{coupon.code}</td>
-                <td className="p-4 text-sm text-gray-700">{coupon.description || '...'}</td>
+                <td className="p-4 text-sm text-gray-700">{coupon.description
+                  ? (coupon.description.length > 50
+                    ? `${coupon.description.substring(0, 50)}...`
+                    : coupon.description) : '...'}</td>
                 <td className="p-4 text-sm text-gray-700">
                   {coupon.discountType === 'percentage'
                     ? `${coupon.discountValue}% (Tối đa ${coupon.maxDiscountValue?.toLocaleString('vi-VN')}đ)`
