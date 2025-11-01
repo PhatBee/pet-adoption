@@ -1,0 +1,41 @@
+@startuml
+title UC44: Thêm mã giảm giá (Luồng ngoại lệ)
+
+actor Admin
+participant ":NextJS (Client)" as Client
+participant ":CouponController" as Controller
+participant ":CouponService" as Service
+database ":MongoDB (CouponCollection)" as DB
+
+Admin -> Client: 1. Điền thông tin, Nhấn "Tạo mới"
+activate Client
+Client -> Controller: 2. Gửi Yêu cầu POST \n/admin/coupons \n(Body: createCouponDto)
+activate Controller
+Controller -> Service: 3. createCoupon(createCouponDto)
+activate Service
+
+alt Mã coupon đã tồn tại
+    Service -> DB: 4a. findOne({ code: uppercaseCode })
+    activate DB
+    DB --> Service: 5a. Trả về (existingCoupon)
+    deactivate DB
+    Service --> Controller: 6a. Throw ConflictException
+    deactivate Service
+    Controller --> Client: 7a. 409 Conflict (Error)
+else Ngày không hợp lệ
+    Service -> DB: 4b. findOne({ code: uppercaseCode })
+    activate DB
+    DB --> Service: 5b. Trả về (null)
+    deactivate DB
+    Service -> Service: 6b. (Logic) Kiểm tra \n(expiresAt <= startsAt) \n(Fail)
+    Service --> Controller: 7b. Throw BadRequestException
+    deactivate Service
+    Controller --> Client: 8b. 400 Bad Request (Error)
+end
+
+deactivate Controller
+Client -> Client: 9. (Logic) Hiển thị thông báo lỗi
+Client --> Admin: 10. Hiển thị lỗi
+deactivate Client
+
+@enduml

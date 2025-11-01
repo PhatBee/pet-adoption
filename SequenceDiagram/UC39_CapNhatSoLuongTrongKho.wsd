@@ -1,0 +1,34 @@
+@startuml
+title UC39: Cập nhật số lượng trong kho
+
+actor Admin
+participant ":NextJS (Client)" as Client
+participant ":InventoryController" as Controller
+participant ":InventoryService" as Service
+database ":MongoDB (ProductCollection)" as DB
+
+Admin -> Client: 1. Nhập số lượng (quantity),\nBấm "Nhập kho"
+activate Client
+
+Client -> Controller: 2. Gửi Yêu cầu PATCH\n/admin/inventory/:id/stock-in\n(Body: { quantity: ... })
+activate Controller
+
+Controller -> Service: 3. updateStock(id, updateStockDto)
+activate Service
+
+Service -> DB: 4. productModel.findByIdAndUpdate(id,\n{ $inc: { stock: quantity } }, { new: true })
+activate DB
+DB --> Service: 5. Trả về (updatedProduct)
+deactivate DB
+
+Service --> Controller: 6. Trả về (updatedProduct)
+deactivate Service
+
+Controller --> Client: 7. 200 OK (data)
+deactivate Controller
+
+Client -> Client: 8. (Logic) Cập nhật số lượng\ntồn kho trên UI
+Client --> Admin: 9. Hiển thị số lượng mới
+deactivate Client
+
+@enduml

@@ -1,0 +1,42 @@
+@startuml
+title UC46: Xem danh sách thú cưng (Luồng chính)
+
+actor Admin
+participant ":NextJS (Client)" as Client
+participant ":PetController" as Controller
+participant ":AuthGuard / :AdminGuard" as Guards
+participant ":PetService" as Service
+database ":MongoDB" as DB
+
+Admin -> Client: 1. Nhấn "Thú cưng"
+activate Client
+
+Client -> Controller: 2. Gửi Yêu cầu GET \n/admin/pets \n(query: ?page=1)
+activate Controller
+
+Controller -> Guards: 3. (NestJS) Xác thực Admin
+activate Guards
+Guards --> Controller: 4. Xác thực thành công
+deactivate Guards
+
+Controller -> Service: 5. findAll(query)
+activate Service
+
+Service -> Service: 6. (Logic) Xây dựng pipeline \n(không có $match)
+Service -> DB: 7. petModel.aggregate(facetPipeline) \n(Bao gồm $lookup, $addFields, $facet)
+activate DB
+DB --> Service: 8. Trả về kết quả \n(data, totalItems)
+deactivate DB
+
+Service -> Service: 9. (Logic) Tính toán phân trang
+Service --> Controller: 10. Trả về \nPaginatedResult<PetResponseDto>
+deactivate Service
+
+Controller --> Client: 11. 200 OK (data)
+deactivate Controller
+
+Client -> Client: 12. (Logic) Hiển thị \ndanh sách thú cưng
+Client --> Admin: 13. Hiển thị trang \n"Quản lý thú cưng"
+deactivate Client
+
+@enduml

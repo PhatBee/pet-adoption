@@ -1,0 +1,57 @@
+@startuml
+title UC51: Thêm mới thể loại
+
+actor Admin
+participant ":NextJS (Client)" as Client
+participant ":CategoryController" as Controller
+participant ":AuthGuard / :AdminGuard" as Guards
+participant ":CategoryService" as Service
+database ":MongoDB (CategoryCollection)" as DB
+
+Admin -> Client: 1. Nhấn "Thêm mới"
+activate Client
+Client -> Client: 2. Hiển thị form "Tạo thể loại"
+Client --> Admin: (Hiển thị form)
+
+Admin -> Client: 3. Điền thông tin (name), Nhấn "Lưu"
+Client -> Controller: 4. Gửi Yêu cầu POST /admin/categories (Body: {name: ...})
+activate Controller
+
+Controller -> Guards: 5. (NestJS) Xác thực Admin
+activate Guards
+Guards --> Controller: 6. Xác thực thành công
+deactivate Guards
+
+Controller -> Service: 7. create(createDto.name)
+activate Service
+
+Service -> DB: 8. findOne({ name: ... }) (Kiểm tra tồn tại)
+activate DB
+
+alt Tên thể loại đã tồn tại (Conflict)
+    DB --> Service: 9a. Trả về (existingCategory)
+    deactivate DB
+    Service --> Controller: 10a. Throw ConflictException
+    Controller --> Client: 11a. 409 Conflict (Error)
+    deactivate Service
+    Client -> Client: 12a. (Logic) Hiển thị lỗi "Tên đã tồn tại"
+    Client --> Admin: 13a. Hiển thị thông báo lỗi
+else Tên thể loại hợp lệ (Luồng chính)
+    DB --> Service: 9. Trả về (null)
+    
+    Service -> DB: 10. save(new categoryModel)
+    DB --> Service: 11. Trả về (createdCategory)
+    deactivate DB
+    
+    Service --> Controller: 12. Trả về (createdCategory)
+    deactivate Service
+    
+    Controller --> Client: 13. 201 Created (data)
+    deactivate Controller
+    
+    Client -> Client: 14. (Logic) Hiển thị thông báo thành công, cập nhật UI
+    Client --> Admin: 15. Hiển thị thể loại mới trong danh sách
+    deactivate Client
+end
+
+@enduml

@@ -1,0 +1,57 @@
+@startuml
+title UC52: Cập nhật thể loại
+
+actor Admin
+participant ":NextJS (Client)" as Client
+participant ":CategoryController" as Controller
+participant ":AuthGuard / :AdminGuard" as Guards
+participant ":CategoryService" as Service
+database ":MongoDB (CategoryCollection)" as DB
+
+Admin -> Client: 1. Nhấn "Sửa"
+activate Client
+Client -> Client: 2. Hiển thị form chỉnh sửa
+Client --> Admin: (Hiển thị form)
+
+Admin -> Client: 3. Chỉnh sửa thông tin, Nhấn "Cập nhật"
+Client -> Controller: 4. Gửi yêu cầu\nPATCH /admin/categories/:id (Body: {name: ...})
+activate Controller
+
+Controller -> Guards: 5. (NestJS) Xác thực Admin
+activate Guards
+Guards --> Controller: 6. Xác thực thành công
+deactivate Guards
+
+Controller -> Service: 7. update(id, updateDto.name)
+activate Service
+
+Service -> DB: 8. findOne({ name: newName, _id: { $ne: id } })\n(Kiểm tra conflict)
+activate DB
+
+alt Tên mới bị trùng (Conflict)
+    DB --> Service: 9a. Trả về (existingCategory)
+    deactivate DB
+    Service --> Controller: 10a. Throw ConflictException
+    Controller --> Client: 11a. 409 Conflict (Error)
+    deactivate Service
+else Tên mới hợp lệ
+    DB --> Service: 9. Trả về (null)
+    deactivate DB
+
+    Service -> DB: 10. findByIdAndUpdate(id, { name: newName })
+    activate DB
+    DB --> Service: 11. Trả về (updatedCategory)
+    deactivate DB
+
+    Service --> Controller: 12. Trả về (updatedCategory)
+    deactivate Service
+
+    Controller --> Client: 13. 200 OK (data)
+    deactivate Controller
+
+    Client -> Client: 14. (Logic) Hiển thị thông báo,\ncập nhật UI
+    Client --> Admin: 15. Hiển thị thể loại đã cập nhật
+end
+
+deactivate Client
+@enduml

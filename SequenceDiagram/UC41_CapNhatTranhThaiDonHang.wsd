@@ -1,0 +1,59 @@
+@startuml
+title UC41: Cập nhật trạng thái đơn hàng (Luồng chính)
+
+actor Admin
+participant ":NextJS (Client)" as Client
+participant ":AdminOrderController" as Controller
+participant ":AuthGuard / :AdminGuard" as Guards
+participant ":AdminOrderService" as Service
+database ":MongoDB (DB Transaction)" as DB
+participant ":UserBackend (API)" as UserAPI
+
+Admin -> Client: 1. Chọn đơn hàng, \nchọn trạng thái mới (toStatus)
+activate Client
+
+Client -> Controller: 2. Gửi Yêu cầu PATCH \n/admin/orders/:id/status \n(Body: { status: toStatus })
+activate Controller
+
+Controller -> Guards: 3. (NestJS) Xác thực Admin
+activate Guards
+Guards --> Controller: 4. Xác thực thành công
+deactivate Guards
+
+Controller -> Service: 5. updateStatus(id, toStatus)
+activate Service
+Service -> DB: 6. startSession()
+activate DB
+
+group DB Transaction [ session ]
+    Service -> DB: 7. findById(id).session().populate('user')
+    DB --> Service: 8. Trả về (order)
+    Service -> Service: 9. (Logic) Kiểm tra transition \n(isAllowedTransition(from, to) -> OK)
+    
+    alt toStatus === 'cancelled'
+      Service -> DB: 10a. restockItems() \n(Cập nhật stock sản phẩm)
+    end
+    
+    Service -> Service: 11. (Logic) Cập nhật: \norder.status = toStatus, \nthêm orderStatusHistory
+    Service -> DB: 12. order.save({ session })
+    DB --> Service: 13. Trả về (updatedOrder)
+    Service -> DB: 14. commitTransaction()
+end
+deactivate DB
+
+Service -> UserAPI: 15. (Async) Gửi POST \n/api/internal/notifications \n(sendNotificationToUserBackend)
+activate UserAPI
+UserAPI --> Service: 16. (Async) 201 Created (Hoặc 200 OK)
+deactivate UserAPI
+
+Service --> Controller: 17. Trả về (updatedOrder)
+deactivate Service
+
+Controller --> Client: 18. 200 OK (data)
+deactivate Controller
+
+Client -> Client: 19. (Logic) Hiển thị thông báo thành công
+Client --> Admin: 20. Hiển thị trạng thái đã cập nhật
+deactivate Client
+
+@enduml

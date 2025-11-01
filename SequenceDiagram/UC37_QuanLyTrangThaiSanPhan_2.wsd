@@ -1,0 +1,48 @@
+@startuml
+title UC37b: Kích hoạt sản phẩm
+
+actor Admin
+participant ":NextJS (Client)" as Client
+participant ":ProductController" as Controller
+participant ":AuthGuard / :AdminGuard" as Guards
+participant ":ProductService" as Service
+database ":MongoDB (ProductCollection)" as DB
+
+Admin -> Client: 1. Nhấn nút "Kích hoạt"
+activate Client
+
+Client -> Client: 2. Hiển thị modal xác nhận:\n"Bạn có chắc chắn muốn kích hoạt sản phẩm này?"
+Client --> Admin: (Hiển thị modal)
+
+alt Luồng thay thế 3a: Admin chọn "Hủy"
+    Admin -> Client: 4a. Nhấn "Hủy"
+    Client -> Client: 5a. Đóng modal
+    Client --> Admin: 6a. Quay lại trang (không thay đổi)
+    deactivate Client
+else Luồng chính: Admin chọn "Xác nhận"
+    Admin -> Client: 4. Nhấn "Xác nhận"
+    Client -> Controller: 5. PATCH /admin/products/:id/enable
+    activate Controller
+
+    Controller -> Guards: 6. (NestJS) Xác thực Admin
+    activate Guards
+    Guards --> Controller: 7. Xác thực thành công
+    deactivate Guards
+
+    Controller -> Service: 8. enable(id)
+    activate Service
+    Service -> DB: 9. findByIdAndUpdate(id, { isActive: true })
+    activate DB
+    DB --> Service: 10. (updatedProduct)
+    deactivate DB
+
+    Service --> Controller: 11. (updatedProduct)
+    deactivate Service
+    Controller --> Client: 12. 200 OK (data)
+    deactivate Controller
+
+    Client -> Client: 13. (Logic) Cập nhật trạng thái sản phẩm trên UI
+    Client --> Admin: 14. Hiển thị trạng thái "Đang hoạt động"
+    deactivate Client
+end
+@enduml

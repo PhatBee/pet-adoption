@@ -1,0 +1,63 @@
+@startuml
+title UC35: Thêm sản phẩm
+
+actor Admin
+participant ":NextJS (Client)" as Client
+participant ":ProductController" as Controller
+participant ":AuthGuard / :AdminGuard" as Guards
+participant ":ProductService" as Service
+database ":MongoDB" as DB
+
+Admin -> Client: 1. Nhấn "Thêm sản phẩm mới"
+activate Client
+Client -> Client: 2. Hiển thị form thêm sản phẩm
+Client --> Admin: (Hiển thị form)
+
+Admin -> Client: 3. Điền thông tin (createProductDto), \nNhấn "Tạo sản phẩm"
+Client -> Controller: 4. Gửi Yêu cầu POST /admin/products \n(Body: createProductDto)
+activate Controller
+
+Controller -> Guards: 5. (NestJS) Xác thực Admin
+activate Guards
+Guards --> Controller: 6. Xác thực thành công
+deactivate Guards
+
+Controller -> Service: 7. create(createProductDto)
+activate Service
+
+Service -> DB: 8. productModel.findOne({ name: ... })
+activate DB
+
+alt Tên sản phẩm đã tồn tại
+    DB --> Service: 9a. Trả về (existingProduct)
+    deactivate DB
+    Service --> Controller: 10a. Throw BadRequestException
+    deactivate Service
+    Controller --> Client: 11a. 400 Bad Request (Error: Tên đã tồn tại)
+    Client -> Client: 12a. Hiển thị lỗi
+else Tên hợp lệ
+    DB --> Service: 9. Trả về (null)
+    
+    Service -> DB: 10. categoryModel.findById(...)
+    DB --> Service: 11. Trả về (categoryExists)
+    
+    Service -> DB: 12. petModel.findById(...)
+    DB --> Service: 13. Trả về (petExists)
+    
+    Service -> Service: 14. (Logic) newSlug = slugify(name)
+    Service -> DB: 15. new productModel(...).save()
+    DB --> Service: 16. Trả về (createdProduct)
+    deactivate DB
+    
+    Service --> Controller: 17. Trả về (createdProduct)
+    deactivate Service
+    
+    Controller --> Client: 18. 201 Created (data)
+    deactivate Controller
+    
+    Client -> Client: 19. (Logic) Thông báo thành công, \ncập nhật danh sách
+    Client --> Admin: 20. Hiển thị sản phẩm mới
+end
+
+deactivate Client
+@enduml

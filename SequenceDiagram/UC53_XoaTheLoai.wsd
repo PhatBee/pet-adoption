@@ -1,0 +1,42 @@
+@startuml
+title UC53: Xóa thể loại
+
+actor Admin
+participant ":NextJS (Client)" as Client
+participant ":CategoryController" as Controller
+participant ":CategoryService" as Service
+database ":MongoDB (CategoryCollection)" as DB
+
+Admin -> Client: 1. Nhấn "Xóa" thể loại
+activate Client
+Client -> Client: 2. Hiển thị hộp thoại xác nhận\n"Bạn có chắc chắn muốn xóa?"
+Client --> Admin: (Hiển thị modal)
+
+alt Luồng thay thế 4a: Admin chọn "Hủy"
+    Admin -> Client: 3a. Nhấn "Hủy"
+    Client -> Client: 4a. Đóng hộp thoại
+    Client --> Admin: 5a. Quay lại danh sách (không thay đổi)
+    deactivate Client
+else Luồng chính: Admin chọn "Xác nhận"
+    Admin -> Client: 3. Nhấn "Xác nhận"
+    Client -> Controller: 4. Gửi yêu cầu DELETE /admin/categories/:id
+    activate Controller
+
+    Controller -> Service: 5. remove(id)
+    activate Service
+
+    Service -> DB: 6. Xóa thể loại theo ID
+    DB --> Service: 7. Kết quả (đã xóa)
+
+    Service --> Controller: 8. Trả về thông báo thành công
+    deactivate Service
+
+    Controller --> Client: 9. 200 OK (message)
+    deactivate Controller
+
+    Client -> Client: 10. Cập nhật UI, hiển thị thông báo thành công
+    Client --> Admin: 11. Danh sách thể loại đã cập nhật
+    deactivate Client
+end
+
+@enduml

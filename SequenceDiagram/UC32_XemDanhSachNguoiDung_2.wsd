@@ -1,0 +1,42 @@
+@startuml
+title UC32: Xem danh sách người dùng (Luồng thay thế: Lọc / Tìm kiếm / Sắp xếp)
+
+actor Admin
+participant ":NextJS (Client)" as Client
+participant ":UserController" as Controller
+participant ":AuthGuard / :AdminGuard" as Guards
+participant ":UserService" as Service
+database ":MongoDB (UserCollection)" as DB
+
+Admin -> Client: 1. Nhập tìm kiếm, chọn bộ lọc hoặc sắp xếp
+activate Client
+
+Client -> Controller: 2. Gửi Yêu cầu GET /admin/users (query: ?search=...&isActive=...&sortBy=...)
+activate Controller
+
+Controller -> Guards: 3. (NestJS) Xác thực Admin
+activate Guards
+Guards --> Controller: 4. Xác thực thành công
+deactivate Guards
+
+Controller -> Service: 5. findAllUsers(queryDto)
+activate Service
+
+Service -> Service: 6. (Logic) Xây dựng filter (với search, isActive) & sort
+Service -> DB: 7. Promise.all [ countDocuments(filter), find(filter) ]
+activate DB
+DB --> Service: 8. Trả về [ totalItems, users ]
+deactivate DB
+
+Service -> Service: 9. (Logic) Tính toán phân trang
+Service --> Controller: 10. Trả về PaginatedUserResult
+deactivate Service
+
+Controller --> Client: 11. 200 OK (data)
+deactivate Controller
+
+Client -> Client: 12. (Logic) Cập nhật lại danh sách và phân trang
+Client --> Admin: 13. Hiển thị danh sách đã lọc/sắp xếp
+deactivate Client
+
+@enduml

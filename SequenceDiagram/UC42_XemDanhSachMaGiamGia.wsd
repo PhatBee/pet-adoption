@@ -1,0 +1,42 @@
+@startuml
+title UC42: Xem danh sách mã giảm giá (Luồng chính)
+
+actor Admin
+participant ":NextJS (Client)" as Client
+participant ":CouponController" as Controller
+participant ":AuthGuard / :AdminGuard" as Guards
+participant ":CouponService" as Service
+database ":MongoDB (CouponCollection)" as DB
+
+Admin -> Client: 1. Nhấn "Khuyến mãi"
+activate Client
+
+Client -> Controller: 2. Gửi Yêu cầu GET \n/admin/coupons \n(query: ?page=1)
+activate Controller
+
+Controller -> Guards: 3. (NestJS) Xác thực Admin
+activate Guards
+Guards --> Controller: 4. Xác thực thành công
+deactivate Guards
+
+Controller -> Service: 5. findAllCoupons(query)
+activate Service
+
+Service -> Service: 6. (Logic) Xây dựng filter (mặc định)
+Service -> DB: 7. Promise.all [ \n  countDocuments(filter), \n  find(filter).sort().skip().limit() \n]
+activate DB
+DB --> Service: 8. Trả về [ totalItems, data ]
+deactivate DB
+
+Service -> Service: 9. (Logic) Tính toán phân trang
+Service --> Controller: 10. Trả về PaginatedResult<Coupon>
+deactivate Service
+
+Controller --> Client: 11. 200 OK (data)
+deactivate Controller
+
+Client -> Client: 12. (Logic) Hiển thị \ndanh sách và phân trang
+Client --> Admin: 13. Hiển thị trang \n"Quản lý Coupon"
+deactivate Client
+
+@enduml

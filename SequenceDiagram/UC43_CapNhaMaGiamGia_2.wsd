@@ -1,0 +1,44 @@
+@startuml
+title UC43: Cập nhật mã giảm giá (Luồng ngoại lệ)
+
+actor Admin
+participant ":NextJS (Client)" as Client
+participant ":CouponController" as Controller
+participant ":CouponService" as Service
+database ":MongoDB (CouponCollection)" as DB
+
+Admin -> Client: 1. Chỉnh sửa, Nhấn "Cập nhật"
+activate Client
+Client -> Controller: 2. Gửi Yêu cầu PATCH /admin/coupons/:id \n(Body: updateCouponDto)
+activate Controller
+Controller -> Service: 3. updateCoupon(id, updateCouponDto)
+activate Service
+
+alt Mã coupon bị trùng
+    Service -> DB: 4a. findOne({ code: ..., _id: { $ne: id } })
+    activate DB
+    DB --> Service: 5a. Trả về (existingCoupon)
+    deactivate DB
+    Service --> Controller: 6a. Throw ConflictException
+    deactivate Service
+    Controller --> Client: 7a. 409 Conflict (Error)
+else Không tìm thấy mã
+    Service -> DB: 4b. findOne(...) \n(Kiểm tra trùng lặp)
+    activate DB
+    DB --> Service: 5b. Trả về (null)
+    deactivate DB
+    Service -> DB: 6b. findByIdAndUpdate(id, ...)
+    activate DB
+    DB --> Service: 7b. Trả về (null)
+    deactivate DB
+    Service --> Controller: 8b. Throw NotFoundException
+    deactivate Service
+    Controller --> Client: 9b. 404 Not Found (Error)
+end
+
+deactivate Controller
+Client -> Client: 10. (Logic) Hiển thị thông báo lỗi
+Client --> Admin: 11. Hiển thị lỗi
+deactivate Client
+
+@enduml

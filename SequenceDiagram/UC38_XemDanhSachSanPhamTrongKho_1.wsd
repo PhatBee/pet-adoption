@@ -1,0 +1,42 @@
+@startuml
+title UC38: Xem danh sách sản phẩm trong kho (Luồng chính)
+
+actor Admin
+participant ":NextJS (Client)" as Client
+participant ":InventoryController" as Controller
+participant ":InventoryService" as Service
+database ":MongoDB (ProductCollection)" as DB
+
+Admin -> Client: 1. Nhấn "Quản lý kho"
+activate Client
+
+Client -> Controller: 2. Gửi Yêu cầu GET\n/admin/inventory \n(query: ?page=1)
+activate Controller
+
+Controller -> Service: 3. findAllProducts(query)
+activate Service
+
+Service -> Service: 4. (Logic) Xây dựng filter\n(mặc định: {isActive: true})\n& sort (mặc định: {name: 1})
+
+Service -> DB: 5. productModel.countDocuments(filter)
+activate DB
+DB --> Service: 6. Trả về (totalItems)
+deactivate DB
+
+Service -> DB: 7. productModel.find(filter).populate(...)\n.sort({name: 1}).skip().limit()
+activate DB
+DB --> Service: 8. Trả về [data] (danh sách sản phẩm)
+deactivate DB
+
+Service -> Service: 9. (Logic) Tính toán phân trang
+Service --> Controller: 10. Trả về PaginatedResult<Product>
+deactivate Service
+
+Controller --> Client: 11. 200 OK (data)
+deactivate Controller
+
+Client -> Client: 12. (Logic) Hiển thị danh sách sản phẩm
+Client --> Admin: 13. Hiển thị trang "Quản lý kho"
+deactivate Client
+
+@enduml

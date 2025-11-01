@@ -1,0 +1,48 @@
+@startuml
+title UC47: Thêm loại thú cưng (Luồng chính)
+
+actor Admin
+participant ":NextJS (Client)" as Client
+participant ":PetController" as Controller
+participant ":AuthGuard / :AdminGuard" as Guards
+participant ":PetService" as Service
+database ":MongoDB (PetCollection)" as DB
+
+Admin -> Client: 1. Nhấn "Thêm mới"
+activate Client
+Client -> Client: 2. Hiển thị form \n"Tạo thú cưng"
+Client --> Admin: (Hiển thị form)
+
+Admin -> Client: 3. Điền thông tin, \nNhấn "Lưu"
+Client -> Controller: 4. Gửi Yêu cầu POST \n/admin/pets \n(Body: {name: ...})
+activate Controller
+
+Controller -> Guards: 5. (NestJS) Xác thực Admin
+activate Guards
+Guards --> Controller: 6. Xác thực thành công
+deactivate Guards
+
+Controller -> Service: 7. create(createDto.name)
+activate Service
+
+Service -> DB: 8. findOne({ name: ... }) \n(Kiểm tra tồn tại)
+activate DB
+DB --> Service: 9. Trả về (null)
+deactivate DB
+
+Service -> DB: 10. new this.petModel({ name: ... }).save()
+activate DB
+DB --> Service: 11. Trả về (createdPet)
+deactivate DB
+
+Service --> Controller: 12. Trả về (createdPet)
+deactivate Service
+
+Controller --> Client: 13. 201 Created (data)
+deactivate Controller
+
+Client -> Client: 14. (Logic) Thông báo \nthành công
+Client --> Admin: 15. Hiển thị \nloại thú cưng mới
+deactivate Client
+
+@enduml

@@ -1,0 +1,47 @@
+@startuml
+title UC34: Xem danh sách sản phẩm (Luồng chính)
+
+actor Admin
+participant ":NextJS (Client)" as Client
+participant ":ProductController" as Controller
+participant ":AuthGuard / :AdminGuard" as Guards
+participant ":ProductService" as Service
+database ":MongoDB (ProductCollection)" as DB
+
+Admin -> Client: 1. Nhấn "Quản lý sản phẩm"
+activate Client
+
+Client -> Controller: 2. Gửi Yêu cầu GET /admin/products (query: ?page=1)
+activate Controller
+
+Controller -> Guards: 3. (NestJS) Xác thực Admin
+activate Guards
+Guards --> Controller: 4. Xác thực thành công
+deactivate Guards
+
+Controller -> Service: 5. findAll(query)
+activate Service
+
+Service -> Service: 6. (Logic) Xây dựng filter (mặc định: {})
+Service -> DB: 7. countDocuments(filter)
+activate DB
+DB --> Service: 8. Trả về (totalItems)
+deactivate DB
+
+Service -> DB: 9. find(filter).populate('category', 'pet').skip().limit()
+activate DB
+DB --> Service: 10. Trả về [products]
+deactivate DB
+
+Service -> Service: 11. (Logic) Tính toán phân trang
+Service --> Controller: 12. Trả về PaginatedResult<Product>
+deactivate Service
+
+Controller --> Client: 13. 200 OK (data)
+deactivate Controller
+
+Client -> Client: 14. (Logic) Hiển thị danh sách và phân trang
+Client --> Admin: 15. Hiển thị trang "Quản lý sản phẩm"
+deactivate Client
+
+@enduml

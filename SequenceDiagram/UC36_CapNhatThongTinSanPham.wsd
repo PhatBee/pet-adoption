@@ -1,0 +1,61 @@
+@startuml
+title UC36: Cập nhật thông tin sản phẩm
+
+actor Admin
+participant ":NextJS (Client)" as Client
+participant ":ProductController" as Controller
+participant ":AuthGuard / :AdminGuard" as Guards
+participant ":ProductService" as Service
+database ":MongoDB" as DB
+
+Admin -> Client: 1. Chọn sản phẩm, Nhấn "Sửa"
+activate Client
+
+Client -> Controller: 2. (Tải dữ liệu) GET\n/admin/products/:id
+activate Controller
+Controller -> Guards: 3. Xác thực
+activate Guards
+Guards --> Controller: 4. Thành công
+deactivate Guards
+Controller -> Service: 5. findOne(id)
+activate Service
+Service -> DB: 6. findById(id).populate(...)
+activate DB
+DB --> Service: 7. (productData)
+deactivate DB
+Service --> Controller: 8. (productData)
+deactivate Service
+Controller --> Client: 9. 200 OK (data)
+deactivate Controller
+Client -> Client: 10. Hiển thị form chỉnh sửa\nvới dữ liệu (productData)
+Client --> Admin: (Hiển thị form)
+
+Admin -> Client: 11. Chỉnh sửa thông tin,\nNhấn "Lưu thay đổi"
+Client -> Controller: 12. Gửi Yêu cầu PATCH\n/admin/products/:id \n(Body: updateProductDto)
+activate Controller
+
+Controller -> Guards: 13. (NestJS) Xác thực Admin
+activate Guards
+Guards --> Controller: 14. Xác thực thành công
+deactivate Guards
+
+Controller -> Service: 15. update(id, updateProductDto)
+activate Service
+
+Service -> Service: 16. (Logic) Kiểm tra/Cập nhật slug,\nKiểm tra Category/Pet (nếu có)
+Service -> DB: 17. findByIdAndUpdate(id, payload, ...).populate(...)
+activate DB
+DB --> Service: 18. (updatedProduct)
+deactivate DB
+
+Service --> Controller: 19. (updatedProduct)
+deactivate Service
+
+Controller --> Client: 20. 200 OK (data)
+deactivate Controller
+
+Client -> Client: 21. (Logic) Thông báo thành công,\ncập nhật UI
+Client --> Admin: 22. Hiển thị thông tin\nđã cập nhật
+
+deactivate Client
+@enduml
