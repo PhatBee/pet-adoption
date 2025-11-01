@@ -1,0 +1,41 @@
+@startuml
+title UC40: Xem danh sách đơn hàng (Luồng thay thế 2a: Lọc / Tìm kiếm)
+
+actor Admin
+participant ":NextJS (Client)" as Client
+participant ":AdminOrderController" as Controller
+participant ":AuthGuard / :AdminGuard" as Guards
+participant ":AdminOrderService" as Service
+database ":MongoDB (OrderCollection)" as DB
+
+Admin -> Client: 1. Nhập tìm kiếm (tên, SĐT) \nvà/hoặc chọn Trạng thái (status)
+activate Client
+
+Client -> Controller: 2. Gửi Yêu cầu GET \n/admin/orders \n(query: ?q=...&status=...)
+activate Controller
+
+Controller -> Guards: 3. (NestJS) Xác thực Admin
+activate Guards
+Guards --> Controller: 4. Xác thực thành công
+deactivate Guards
+
+Controller -> Service: 5. findAll(query)
+activate Service
+
+Service -> Service: 6. (Logic) Xây dựng filter \n(với q, status)
+Service -> DB: 7. Promise.all [ \n  find(filter).sort()..., \n  countDocuments(filter) \n]
+activate DB
+DB --> Service: 8. Trả về [ orders, total ]
+deactivate DB
+
+Service -> Controller: 9. Trả về { data: orders, meta: ... }
+deactivate Service
+
+Controller --> Client: 10. 200 OK (data)
+deactivate Controller
+
+Client -> Client: 11. (Logic) Hiển thị \ndanh sách đã lọc/tìm kiếm
+Client --> Admin: 12. Hiển thị kết quả
+deactivate Client
+
+@enduml

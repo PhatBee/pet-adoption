@@ -1,10 +1,11 @@
-import { Controller, Post, Body, Get, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, Get, Patch, Param, Delete, UseGuards, Query } from '@nestjs/common';
 import { CategoryService } from './category.service';
 import { Category } from '../product/schemas/product.schema';
-import { CreateCategoryDto } from './dto/create-category.dto';
+import { CreateCategoryDto, CategoryQueryDto, CategoryResponseDto } from './dto/category.dto';
 import { ParseMongoIdPipe } from 'src/common/pipes/parse-mongo-id.pipe';
 import { AuthGuard } from '../auth/guards/auth.guard';
 import { AdminGuard } from '../auth/guards/admin.guard';
+import { PaginatedResult } from 'src/common/dto/pagination.dto';
 
 @Controller('admin/categories')
 @UseGuards(AuthGuard, AdminGuard)
@@ -17,8 +18,10 @@ export class CategoryController {
   }
 
   @Get()
-  findAll(): Promise<Category[]> {
-    return this.categoryService.findAll();
+  findAll(
+    @Query() query: CategoryQueryDto,
+  ): Promise<PaginatedResult<CategoryResponseDto>> {
+    return this.categoryService.findAll(query);
   }
 
   @Patch(':id')

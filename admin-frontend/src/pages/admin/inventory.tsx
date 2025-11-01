@@ -1,7 +1,7 @@
 // InventoryManagementPage.tsx
 
 "use client";
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { toast } from 'react-hot-toast';
 import { useAppDispatch, useAppSelector } from '../../store/store';
 import { Product, BaseRef } from '../../types/next'; 
@@ -17,20 +17,24 @@ import useSWR from 'swr';
 import { fetchInventory, updateProductStock } from '../../store/slices/adminInventorySlice';
 import categoryApi from '../../store/api/categoryApi';
 import petApi from '../../store/api/petApi';
+import { QueryDto, PaginatedData } from '../../types/petCate.dto';
 
 interface StockForm { quantity: number; }
 
 const fetcher = async (url: string): Promise<ComboboxOption[]> => {
     let data: BaseRef[];
+    const queryAll: QueryDto = { page: 1, limit: 1000 };
+    let result: PaginatedData;
+
     if (url === '/admin/categories') {
-        data = await categoryApi.findAll();
+        result = await categoryApi.findAll(queryAll);
     } else if (url === '/admin/pets') {
-        data = await petApi.findAll();
+        result = await petApi.findAll(queryAll);
     } else {
-        return []; 
+        return Promise.reject(new Error('Unknown fetcher URL'));
     }
 
-    return data.map(item => ({
+    return result.data.map(item => ({
         value: item._id,
         label: item.name,
     }));
@@ -220,8 +224,8 @@ const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
                             <tr key={product._id} className="border-b border-gray-200 hover:bg-gray-50">
                                 <td className="p-4">
                                     {product.thumbnail && (
-                                        <Image
-                                            src={`${BACKEND_URL}${product.thumbnail}`}
+                                        <img
+                                            src={`${product.thumbnail}`}
                                             alt={product.name}
                                             width={40}
                                             height={40}

@@ -1,0 +1,52 @@
+@startuml
+title UC54: Xem biểu đồ thống kê danh thu (Luồng thay thế)
+
+actor Admin
+participant ":NextJS (Client)" as Client
+participant ":AdminSalesController" as Controller
+participant ":AuthGuard / :AdminGuard" as Guards
+participant ":AdminSalesService" as Service
+database ":MongoDB (OrderCollection)" as DB
+
+Admin -> Client: 1. Nhấn "Dashboard"
+activate Client
+
+group Luồng thay thế: Lọc theo khoảng ngày
+
+    Admin -> Client: 15. Chọn khoảng ngày (startDate, endDate)
+    activate Client
+    
+    Client -> Controller: 16. Gửi Yêu cầu GET\n /admin/stats/revenue?startDate=...&endDate=...
+    activate Controller
+    
+    Controller -> Guards: 17. (NestJS) Xác thực Admin
+    activate Guards
+    Guards --> Controller: 18. Xác thực thành công
+    deactivate Guards
+    
+    Controller -> Service: 19. getRevenueStats(query)
+    activate Service
+    
+    Service -> Service: 20. (Logic) Phân tích query (phát hiện có range)
+    Service -> Service: 21. getRevenueByRange(startDate, endDate)
+    
+    Service -> DB: 22. aggregate(Lọc theo range, status='delivered')
+    activate DB
+    DB --> Service: 23. Trả về ds (orders)
+    deactivate DB
+    
+    Service -> Service: 24. (Logic) Xử lý/định dạng (lấp đầy các ngày 0 revenue)
+    
+    Service --> Controller: 25. Trả về mảng revenue
+    deactivate Service
+    
+    Controller --> Client: 26. 200 OK (data)
+    deactivate Controller
+    
+    Client -> Client: 27. (Logic) Cập nhật/Hiển thị biểu đồ
+    Client --> Admin: 28. Hiển thị biểu đồ theo khoảng ngày
+    deactivate Client
+
+end
+
+@enduml

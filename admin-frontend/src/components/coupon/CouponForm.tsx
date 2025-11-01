@@ -14,6 +14,7 @@ import categoryApi from '../../store/api/categoryApi';
 import petApi from '../../store/api/petApi';
 import useSWR from 'swr';
 import { BaseRef } from '../../types/next';
+import { QueryDto, PaginatedData } from '../../types/petCate.dto';
 
 type Coupon = any;
 
@@ -25,17 +26,18 @@ interface CouponFormProps {
 
 const fetcher = async (url: string): Promise<ComboboxOption[]> => {
   let data: BaseRef[];
+  const queryAll: QueryDto = { page: 1, limit: 1000 };
+  let result: PaginatedData;
 
-  if (url.includes('categories')) {
-    data = await categoryApi.findAll();
-  } else if (url.includes('pet-types')) {
-    data = await petApi.findAll();
+  if (url === '/admin/categories') {
+    result = await categoryApi.findAll(queryAll);
+  } else if (url === '/admin/pets') {
+    result = await petApi.findAll(queryAll);
   } else {
     return Promise.reject(new Error('Unknown fetcher URL'));
   }
 
-  // *Phải* transform data ở đây
-  return data.map(item => ({
+  return result.data.map(item => ({
     value: item._id,
     label: item.name,
   }));

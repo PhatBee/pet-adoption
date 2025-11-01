@@ -49,6 +49,7 @@ export interface ProductQueryDto {
   petId?: string;
   page: number;
   limit: number;
+  isActive?: boolean | string;
 }
 
 export interface CreateProductDto {
@@ -124,6 +125,7 @@ export interface UserQueryDto {
   isActive?: boolean;
   sortBy?: string;
   sortOrder?: 'asc' | 'desc';
+  search?: string;
 }
 
 export interface Coupon {

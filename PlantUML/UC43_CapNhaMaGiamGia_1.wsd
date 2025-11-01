@@ -1,0 +1,66 @@
+@startuml
+title UC43: Cập nhật mã giảm giá (Luồng chính)
+
+actor Admin
+participant ":NextJS (Client)" as Client
+participant ":CouponController" as Controller
+participant ":AuthGuard / :AdminGuard" as Guards
+participant ":CouponService" as Service
+database ":MongoDB (CouponCollection)" as DB
+
+Admin -> Client: 1. Chọn mã, Nhấn "Sửa"
+activate Client
+
+Client -> Controller: 2. (Tải dữ liệu) GET \n/admin/coupons/:id
+activate Controller
+Controller -> Guards: 3. Xác thực
+activate Guards
+Guards --> Controller: 4. Thành công
+deactivate Guards
+Controller -> Service: 5. findOneCoupon(id)
+activate Service
+Service -> DB: 6. findById(id)
+activate DB
+DB --> Service: 7. (couponData)
+deactivate DB
+Service --> Controller: 8. (couponData)
+deactivate Service
+Controller --> Client: 9. 200 OK (data)
+deactivate Controller
+Client -> Client: 10. Hiển thị form chỉnh sửa \nvới dữ liệu (couponData)
+Client --> Admin: (Hiển thị form)
+
+Admin -> Client: 11. Chỉnh sửa thông tin, \nNhấn "Cập nhật"
+Client -> Controller: 12. Gửi Yêu cầu PATCH \n/admin/coupons/:id \n(Body: updateCouponDto)
+activate Controller
+
+Controller -> Guards: 13. Xác thực
+activate Guards
+Guards --> Controller: 14. Thành công
+deactivate Guards
+
+Controller -> Service: 15. updateCoupon(id, updateCouponDto)
+activate Service
+
+Service -> DB: 16. findOne({ code: ..., _id: { $ne: id } }) \n(Kiểm tra trùng lặp)
+activate DB
+DB --> Service: 17. Trả về (null)
+deactivate DB
+
+Service -> Service: 18. (Logic) determineApplyType(...)
+Service -> DB: 19. findByIdAndUpdate(id, payload, { new: true })
+activate DB
+DB --> Service: 20. Trả về (updatedCoupon)
+deactivate DB
+
+Service --> Controller: 21. Trả về (updatedCoupon)
+deactivate Service
+
+Controller --> Client: 22. 200 OK (data)
+deactivate Controller
+
+Client -> Client: 23. (Logic) Hiển thị \nthông báo thành công
+Client --> Admin: 24. Hiển thị thông tin \nđã cập nhật
+deactivate Client
+
+@enduml

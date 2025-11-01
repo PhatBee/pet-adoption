@@ -1,0 +1,48 @@
+@startuml
+title UC48: Cập nhật loại thú cưng (Luồng chính)
+
+actor Admin
+participant ":NextJS (Client)" as Client
+participant ":PetController" as Controller
+participant ":AuthGuard / :AdminGuard" as Guards
+participant ":PetService" as Service
+database ":MongoDB (PetCollection)" as DB
+
+Admin -> Client: 1. Chọn thú cưng, Nhấn "Sửa"
+activate Client
+Client -> Client: 2. Hiển thị form chỉnh sửa
+Client --> Admin: (Hiển thị form)
+
+Admin -> Client: 3. Chỉnh sửa, \nNhấn "Cập nhật"
+Client -> Controller: 4. Gửi Yêu cầu PATCH \n/admin/pets/:id \n(Body: {name: newName})
+activate Controller
+
+Controller -> Guards: 5. (NestJS) Xác thực Admin
+activate Guards
+Guards --> Controller: 6. Xác thực thành công
+deactivate Guards
+
+Controller -> Service: 7. update(id, newName)
+activate Service
+
+Service -> DB: 8. findOne({ name: newName, _id: { $ne: id } }) \n(Kiểm tra trùng lặp)
+activate DB
+DB --> Service: 9. Trả về (null)
+deactivate DB
+
+Service -> DB: 10. findByIdAndUpdate(id, { name: newName }, \n{ new: true })
+activate DB
+DB --> Service: 11. Trả về (updatedPet)
+deactivate DB
+
+Service --> Controller: 12. Trả về (updatedPet)
+deactivate Service
+
+Controller --> Client: 13. 200 OK (data)
+deactivate Controller
+
+Client -> Client: 14. (Logic) Thông báo thành công
+Client --> Admin: 15. Hiển thị thông tin đã cập nhật
+deactivate Client
+
+@enduml

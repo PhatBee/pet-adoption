@@ -1,20 +1,12 @@
 // InventoryFilter.tsx
 
 "use client";
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
 import FormInput from '../common/FormInput';
 import FormSelect from '../common/FormSelect';
 import { InventoryQueryDto, InventorySortBy } from '../../types/inventory.dto';
 import { ComboboxOption } from '../../types/next';
-
-const SORT_OPTIONS = [
-    { value: InventorySortBy.NEWEST, label: 'Sản phẩm mới nhất' },
-    { value: InventorySortBy.OLDEST, label: 'Sản phẩm cũ nhất' },
-    { value: InventorySortBy.MOST_STOCK, label: 'Tồn kho (Nhiều nhất)' },
-    { value: InventorySortBy.LEAST_STOCK, label: 'Tồn kho (Ít nhất)' },
-    { value: InventorySortBy.NAME, label: 'Tên sản phẩm (A-Z)' },
-];
 
 interface InventoryFilterProps {
     onFilterChange: (query: Partial<InventoryQueryDto>) => void;
@@ -33,6 +25,8 @@ const InventoryFilter: React.FC<InventoryFilterProps> = ({
         defaultValues: initialQuery,
     });
     const { watch } = methods;
+
+    const isMounted = useRef(false);
 
     const watchedFields = watch();
     const { sortBy, search, categoryId, petId } = watchedFields;
@@ -53,6 +47,11 @@ const InventoryFilter: React.FC<InventoryFilterProps> = ({
 
     // Gửi query mới mỗi khi các trường thay đổi
     useEffect(() => {
+
+        if (!isMounted.current) {
+            isMounted.current = true;
+            return; 
+        }
 
         const newQuery: Partial<InventoryQueryDto> = {
             search,
@@ -76,7 +75,6 @@ const InventoryFilter: React.FC<InventoryFilterProps> = ({
 
     const categoryFilterOptions = [{ value: '', label: 'Tất cả Danh mục' }, ...categoryOptions];
     const petFilterOptions = [{ value: '', label: 'Tất cả Loại Pet' }, ...petOptions];
-    const sortFilterOptions = [{ value: '', label: 'Mặc định (Ngày nhập)' }, ...SORT_OPTIONS];
 
     return (
         <FormProvider {...methods}> 

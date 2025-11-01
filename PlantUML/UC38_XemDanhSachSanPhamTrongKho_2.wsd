@@ -1,0 +1,42 @@
+@startuml
+title UC38: Xem danh sách kho (Luồng thay thế 2a, 2b: Lọc / Sắp xếp)
+
+actor Admin
+participant ":NextJS (Client)" as Client
+participant ":InventoryController" as Controller
+participant ":InventoryService" as Service
+database ":MongoDB (ProductCollection)" as DB
+
+Admin -> Client: 1. Áp dụng bộ lọc\n(search, category, pet)\nhoặc Sắp xếp (stock, date)
+activate Client
+
+Client -> Controller: 2. Gửi Yêu cầu GET\n/admin/inventory\n(query: ?search=...&sortBy=stock)
+activate Controller
+
+Controller -> Service: 3. findAllProducts(query)
+activate Service
+
+Service -> Service: 4. (Logic) Xây dựng filter \n(với search, categoryId...)\n& sort (với sortBy, sortOrder...)
+
+Service -> DB: 5. productModel.countDocuments(filter)
+activate DB
+DB --> Service: 6. Trả về (totalItems)
+deactivate DB
+
+Service -> DB: 7. productModel.find(filter).populate(...)\n.sort(sort).skip().limit()
+activate DB
+DB --> Service: 8. Trả về [data] (danh sách đã lọc)
+deactivate DB
+
+Service -> Service: 9. (Logic) Tính toán phân trang
+Service --> Controller: 10. Trả về PaginatedResult<Product>
+deactivate Service
+
+Controller -> Client: 11. 200 OK (data)
+deactivate Controller
+
+Client -> Client: 12. (Logic) Cập nhật danh sách sản phẩm
+Client --> Admin: 13. Hiển thị danh sách \nđã lọc/sắp xếp
+deactivate Client
+
+@enduml

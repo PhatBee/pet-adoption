@@ -1,0 +1,55 @@
+@startuml
+title UC49: Xóa loại thú cưng
+
+actor Admin
+participant ":NextJS (Client)" as Client
+participant ":PetController" as Controller
+participant ":AuthGuard / :AdminGuard" as Guards
+participant ":PetService" as Service
+database ":MongoDB" as DB
+
+Admin -> Client: 1. Chọn thú cưng, Nhấn "Xóa"
+activate Client
+
+Client -> Client: 2. Hiển thị modal xác nhận:\n"Bạn có chắc chắn muốn xóa?"
+Client --> Admin: (Hiển thị modal)
+
+alt Luồng thay thế 4a: Admin chọn "Hủy"
+    Admin -> Client: 3a. Nhấn "Hủy"
+    Client -> Client: 4a. Đóng modal
+    Client --> Admin: 5a. Quay lại trang (không đổi)
+    deactivate Client
+
+else Luồng chính: Admin chọn "Xác nhận"
+    Admin -> Client: 3. Nhấn "Xác nhận"
+    Client -> Controller: 4. Gửi Yêu cầu DELETE /admin/pets/:id
+    activate Controller
+
+    Controller -> Guards: 5. (NestJS) Xác thực Admin
+    activate Guards
+    Guards --> Controller: 6. Xác thực thành công
+    deactivate Guards
+
+    Controller -> Service: 7. remove(id)
+    activate Service
+
+    Service -> DB: 8. productModel.countDocuments({ pet: id }) \n(Kiểm tra điều kiện trước 3)
+    activate DB
+    DB --> Service: 9. Trả về (count = 0)
+    
+    Service -> DB: 10. petModel.deleteOne({ _id: id })
+    DB --> Service: 11. Trả về (result { deletedCount: 1 })
+    deactivate DB
+
+    Service --> Controller: 12. Trả về { message: ... }
+    deactivate Service
+
+    Controller --> Client: 13. 200 OK (message)
+    deactivate Controller
+
+    Client -> Client: 14. (Logic) Thông báo thành công, \nxóa khỏi UI
+    Client --> Admin: 15. Danh sách được cập nhật
+    deactivate Client
+end
+
+@enduml

@@ -1,0 +1,49 @@
+@startuml
+title UC33b: Kích hoạt người dùng
+
+actor Admin
+participant ":NextJS (Client)" as Client
+participant ":UserController" as Controller
+participant ":AuthGuard / :AdminGuard" as Guards
+participant ":UserService" as Service
+database ":MongoDB (UserCollection)" as DB
+
+Admin -> Client: 1. Nhấn nút "Kích hoạt"
+activate Client
+
+Client -> Client: 2. Hiển thị modal xác nhận\n"Bạn có chắc chắn muốn kích hoạt người dùng này?"
+Client --> Admin: (Hiển thị modal)
+
+alt Luồng thay thế 4a: Admin chọn "Hủy"
+    Admin -> Client: 3a. Nhấn "Hủy"
+    Client -> Client: 4a. Đóng modal
+    Client --> Admin: 5a. Quay lại trang (không thay đổi)
+    deactivate Client
+else Luồng chính: Admin chọn "Xác nhận"
+    Admin -> Client: 3. Nhấn "Xác nhận"
+    Client -> Controller: 4. Gửi yêu cầu PATCH\n/admin/users/:id/enable
+    activate Controller
+
+    Controller -> Guards: 5. (NestJS) Xác thực Admin
+    activate Guards
+    Guards --> Controller: 6. Xác thực thành công
+    deactivate Guards
+
+    Controller -> Service: 7. enableUser(id)
+    activate Service
+    Service -> DB: 8. findByIdAndUpdate(id, { isActive: true })
+    activate DB
+    DB --> Service: 9. Trả về (updatedUser)
+    deactivate DB
+
+    Service --> Controller: 10. Trả về (updatedUser)
+    deactivate Service
+
+    Controller --> Client: 11. 200 OK (data)
+    deactivate Controller
+
+    Client -> Client: 12. (Logic) Cập nhật\ntrạng thái người dùng trên UI
+    Client --> Admin: 13. Hiển thị "Đã kích hoạt"
+    deactivate Client
+end
+@enduml

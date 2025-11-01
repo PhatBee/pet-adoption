@@ -70,6 +70,10 @@ export class ProductService {
     if (query.petId) {
         filter.pet = query.petId;
     }
+
+    if (query.isActive !== undefined) {
+        filter.isActive = query.isActive;
+    }
     
     if (query.search) {
         const searchRegex = new RegExp(query.search, 'i');

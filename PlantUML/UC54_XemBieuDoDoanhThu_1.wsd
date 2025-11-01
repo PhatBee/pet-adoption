@@ -1,0 +1,57 @@
+@startuml
+title UC54: Xem biểu đồ thống kê danh thu
+
+actor Admin
+participant ":NextJS (Client)" as Client
+participant ":AdminSalesController" as Controller
+participant ":AuthGuard / :AdminGuard" as Guards
+participant ":AdminSalesService" as Service
+database ":MongoDB (OrderCollection)" as DB
+
+Admin -> Client: 1. Nhấn "Dashboard"
+activate Client
+
+group Luồng chính: Tải Dashboard (Mặc định)
+
+    Client -> Controller: 2. Gửi Yêu cầu GET /admin/stats/revenue (ví dụ: ?view=week)
+    activate Controller
+    
+    Controller -> Guards: 3. (NestJS) Xác thực Admin
+    activate Guards
+    Guards --> Controller: 4. Xác thực thành công
+    deactivate Guards
+    
+    Controller -> Service: 5. getRevenueStats(query)
+    activate Service
+    
+    Service -> Service: 6. (Logic) Phân tích query (không có range)
+    
+    alt view === 'week'
+        Service -> Service: 7a. getRevenueByWeek()
+        Service -> DB: 8a. aggregate(Lọc 7 ngày, status='delivered')
+        activate DB
+        DB --> Service: 9a. Trả về ds (orders)
+        deactivate DB
+        Service -> Service: 10a. (Logic) Xử lý/định dạng 7 ngày
+    else view === 'month' (hoặc mặc định)
+        Service -> Service: 7b. getRevenueByMonth()
+        Service -> DB: 8b. aggregate\n(Lọc trong tháng, status='delivered')
+        activate DB
+        DB --> Service: 9b. Trả về ds (orders)
+        deactivate DB
+        Service -> Service: 10b. (Logic) Xử lý/định dạng theo ngày
+    end
+    
+    Service --> Controller: 11. Trả về mảng revenue
+    deactivate Service
+    
+    Controller --> Client: 12. 200 OK (data)
+    deactivate Controller
+    
+    Client -> Client: 13. (Logic) Hiển thị biểu đồ
+    Client --> Admin: 14. Hiển thị trang Dashboard
+    deactivate Client
+
+end
+
+@enduml

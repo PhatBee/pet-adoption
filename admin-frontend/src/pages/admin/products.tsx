@@ -1,14 +1,19 @@
 // src/pages/admin/products/index.tsx
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useAppDispatch, useAppSelector } from '../../store/store';
 import { fetchProducts, setProductQuery } from '../../store/slices/adminProductSlice';
 import AdminLayout from '../../components/AdminLayout';
-import { NextPageWithLayout, Product, ProductQueryDto } from '../../types/next';
+import { NextPageWithLayout, Product, ProductQueryDto, ComboboxOption, BaseRef } from '../../types/next';
 import Head from 'next/head';
 import ProductModal from '../../components/product/ProductModal';
 import productApi from '../../store/api/productApi';
 import { toast } from 'react-toastify';
 import Pagination from '../../components/common/Pagination';
+import useSWR from 'swr';
+import categoryApi from '../../store/api/categoryApi';
+import petApi from '../../store/api/petApi';
+import { QueryDto, PaginatedData } from '../../types/petCate.dto';
+import ProductFilter from '../../components/product/ProductFilter';
 
 type ModalMode = 'create' | 'view' | 'edit' | null;
 
@@ -24,12 +29,6 @@ interface ProductTableProps {
     onEdit: (id: string) => void;
     onDisable: (id: string) => void;
     onEnable: (id: string) => void;
-}
-
-interface SearchAndFilterProps {
-    query: ProductQueryDto;
-    onSearchChange: (newParams: Partial<ProductQueryDto>) => void;
-    onAddProduct: () => void;
 }
 
 const ProductTable: React.FC<ProductTableProps> = ({ products, onDetailView, onEdit, onDisable, onEnable }) => (
@@ -96,25 +95,22 @@ const ProductTable: React.FC<ProductTableProps> = ({ products, onDetailView, onE
     </div>
 );
 
-const SearchAndFilter: React.FC<SearchAndFilterProps> = ({ query, onSearchChange, onAddProduct }) => (
-    <div className="flex justify-between items-center mb-6 p-4 bg-white shadow rounded-lg border border-gray-100">
-        <div className="flex space-x-4">
-            <input
-                type="text"
-                placeholder="Tìm kiếm theo tên/slug..."
-                value={query.search || ''}
-                onChange={(e) => onSearchChange({ search: e.target.value, page: 1 })}
-                className="p-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
-            />
-        </div>
-        <button
-            onClick={onAddProduct}
-            className="px-4 py-2 bg-indigo-600 text-white font-medium rounded-md hover:bg-indigo-700 transition duration-150 shadow-md"
-        >
-            + Thêm Sản Phẩm
-        </button>
-    </div>
-);
+const fetcher = async (url: string): Promise<ComboboxOption[]> => {
+    const queryAll: QueryDto = { page: 1, limit: 1000 };
+    let result: PaginatedData;
+
+    if (url === '/admin/categories') {
+        result = await categoryApi.findAll(queryAll);
+    } else if (url === '/admin/pets') {
+        result = await petApi.findAll(queryAll);
+    } else {
+        return Promise.reject(new Error('Unknown fetcher URL'));
+    }
+    return result.data.map(item => ({
+        value: item._id,
+        label: item.name,
+    }));
+};
 
 // --- TRANG CHÍNH ---
 const ProductManagementPage: NextPageWithLayout = () => {
@@ -126,6 +122,9 @@ const ProductManagementPage: NextPageWithLayout = () => {
         mode: null,
         productId: null,
     });
+
+    const { data: categoryOptions } = useSWR<ComboboxOption[]>('/admin/categories', fetcher);
+    const { data: petOptions } = useSWR<ComboboxOption[]>('/admin/pets', fetcher);
 
     useEffect(() => {
         dispatch(fetchProducts(query));
@@ -143,12 +142,12 @@ const ProductManagementPage: NextPageWithLayout = () => {
         }
     }
 
-    const handleQueryChange = (newParams: Partial<ProductQueryDto>) => {
-        dispatch(setProductQuery(newParams));
-    };
+    const handleQueryChange = useCallback((newParams: Partial<ProductQueryDto>) => {
+        dispatch(setProductQuery({ ...query, ...newParams, page: 1 }));
+    }, [dispatch]);
 
     const handlePageChange = (newPage: number) => {
-        handleQueryChange({ page: newPage });
+        dispatch(setProductQuery({ page: newPage }));
     };
 
     const handleAddProduct = () => {
@@ -194,12 +193,21 @@ const ProductManagementPage: NextPageWithLayout = () => {
                 <title>Quản lý Sản phẩm | Admin</title>
             </Head>
             <div className="p-8 bg-gray-50 min-h-screen">
-                <h1 className="text-3xl font-bold text-gray-800 mb-6 border-b pb-2">Quản Lý Sản Phẩm</h1>
+                <div className="flex justify-between items-center mb-6 border-b pb-2">
+                    <h1 className="text-3xl font-bold text-gray-800">Quản Lý Sản Phẩm</h1>
+                    <button
+                        onClick={handleAddProduct}
+                        className="px-4 py-2 bg-indigo-600 text-white font-medium rounded-md hover:bg-indigo-700 transition duration-150 shadow-md"
+                    >
+                        + Thêm Sản Phẩm
+                    </button>
+                </div>
 
-                <SearchAndFilter
-                    query={query}
-                    onSearchChange={handleQueryChange}
-                    onAddProduct={handleAddProduct}
+                <ProductFilter
+                    initialQuery={query}
+                    onQueryChange={handleQueryChange}
+                    categoryOptions={categoryOptions || []}
+                    petOptions={petOptions || []}
                 />
 
                 {loading && <p className="text-indigo-600">Đang tải...</p>}

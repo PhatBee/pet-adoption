@@ -1,4 +1,4 @@
-import React, { useEffect, useState, ReactElement } from 'react';
+import React, { useEffect, useState, ReactElement, useRef } from 'react';
 import { fetchOrders, setFilters, setPage  } from '../../store/slices/adminOrderSlice';
 import OrderList from '../../components/order/OrderList';
 import OrderDetailModal from '../../components/order/OrderDetailModal';
@@ -21,6 +21,8 @@ const AdminOrderPage: NextPageWithLayout = () => {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [searchValue, setSearchValue] = useState(filters.q || '');
 
+  const isMounted = useRef(false);
+
   useEffect(() => {
     dispatch(fetchOrders({ page, limit, ...filters }));
   }, [dispatch, filters, limit, page]);
@@ -40,11 +42,16 @@ const AdminOrderPage: NextPageWithLayout = () => {
   const canNext = page < lastPage;
 
   useEffect(() => {
+
+    if (!isMounted.current) {
+        isMounted.current = true;
+        return; 
+    }
     const timeout = setTimeout(() => {
       dispatch(setFilters({ q: searchValue }));
     }, 400);
     return () => clearTimeout(timeout);
-  }, [searchValue, dispatch]);
+  }, [searchValue, filters.q, dispatch]);
 
   const onFilterStatus = (status: string) => dispatch(setFilters({ status }));
 

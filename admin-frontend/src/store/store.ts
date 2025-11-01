@@ -10,6 +10,8 @@ import adminProductReducer from './slices/adminProductSlice';
 import adminUsersReducer from './slices/adminUserSlice';
 import adminCouponReducer from './slices/adminCouponSlice';
 import adminInventorySlice from './slices/adminInventorySlice';
+import adminCategorySlice from './slices/adminCategorySlice';
+import adminPetSlice from './slices/adminPetSlice';
 
 const persistConfig = {
   key: 'root',
@@ -25,6 +27,8 @@ const rootReducer = combineReducers({
   adminUsers: adminUsersReducer,
   adminCoupons: adminCouponReducer,
   adminInventory: adminInventorySlice,
+  adminCategories: adminCategorySlice,
+  adminPets: adminPetSlice,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

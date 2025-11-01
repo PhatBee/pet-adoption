@@ -1,0 +1,51 @@
+@startuml
+title UC50: Xem danh sách thể loại
+
+actor Admin
+participant ":NextJS (Client)" as Client
+participant ":CategoryController" as Controller
+participant ":AuthGuard / :AdminGuard" as Guards
+participant ":CategoryService" as Service
+database ":MongoDB" as DB
+
+Admin -> Client: 1. Nhấn "Thể loại"
+activate Client
+
+group Luồng chính: Tải danh sách
+
+    Client -> Controller: 2. Gửi Yêu cầu GET /admin/categories (ví dụ: ?page=1)
+    activate Controller
+    
+    Controller -> Guards: 3. (NestJS) Xác thực Admin
+    activate Guards
+    Guards --> Controller: 4. Xác thực thành công
+    deactivate Guards
+    
+    Controller -> Service: 5. findAll(query)
+    activate Service
+    
+    Service -> Service: 6. (Logic) Xây dựng pipeline (có $lookup, $addFields)
+    
+    alt Luồng thay thế 2a: Tìm kiếm
+        Service -> Service: 6a. (Logic) Thêm $match(name) vào pipeline
+    end
+    
+    Service -> DB: 7. aggregate(facetPipeline)
+    activate DB
+    DB --> Service: 8. Trả về kết quả (data, totalItems)
+    deactivate DB
+    
+    Service -> Service: 9. (Logic) Tính toán phân trang
+    Service --> Controller: 10. Trả về PaginatedResult<...>
+    deactivate Service
+    
+    Controller --> Client: 11. 200 OK (data)
+    deactivate Controller
+    
+    Client -> Client: 12. (Logic) Hiển thị danh sách và phân trang
+    Client --> Admin: 13. Hiển thị trang "Quản lý thể loại"
+    deactivate Client
+
+end
+
+@enduml
