@@ -18,7 +18,7 @@ const formatCurrency = (value) => {
 };
 
 // 2. Thêm prop onSave
-export default function CouponCard({ coupon, onSave }) {
+export default function CouponCard({ coupon, onSave, isAuthenticated }) {
   const {
     code,
     discountType,
@@ -218,23 +218,27 @@ export default function CouponCard({ coupon, onSave }) {
           <div className="flex-grow"></div>
 
           {/* 7. Nút Lưu (phần chân card) */}
-          <div className="mt-5 pt-4 border-t border-gray-100 flex justify-end">
-            {isSaved ? (
-              <div className="flex items-center gap-2 px-4 py-2 text-green-600">
-                <FaCheckCircle />
-                <span>Đã lưu</span>
-              </div>
-            ) : (
-              <button
-                onClick={handleSaveClick}
-                disabled={isSaving}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
-              >
-                <FaSave />
-                <span>{isSaving ? 'Đang lưu...' : 'Lưu mã'}</span>
-              </button>
-            )}
-          </div>
+          {/* 4. BỌC NÚT LƯU BẰNG `isAuthenticated` */}
+          {isAuthenticated && (
+            <div className="mt-5 pt-4 border-t border-gray-100 flex justify-end">
+              {isSaved ? (
+                <div className="flex items-center gap-2 px-4 py-2 text-green-600">
+                  <FaCheckCircle />
+                  <span>Đã lưu</span>
+                </div>
+              ) : (
+                <button
+                  onClick={handleSaveClick}
+                  disabled={isSaving}
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+                >
+                  <FaSave />
+                  <span>{isSaving ? 'Đang lưu...' : 'Lưu mã'}</span>
+                </button>
+              )}
+            </div>
+          )}
+          {/* --- KẾT THÚC BỌC --- */}
         </div>
       </div>
     );

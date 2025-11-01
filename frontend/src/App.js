@@ -39,6 +39,8 @@ import PaymentResultPage from './pages/PaymentResultPage';
 import PromotionsPage from './pages/PromotionsPage';
 import AboutPage from './pages/AboutPage';
 
+import ProtectedRoute from './components/ProtectedRoute';
+
 
 function App() {
   const dispatch = useDispatch();
@@ -63,38 +65,80 @@ function App() {
       <BrowserRouter>
         <Header />
         <Routes>
+
+          {/* --- CÁC ROUTE CÔNG KHAI (Public) --- */}
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-          {/* <Route path="*" element={<Dashboard />} /> */}
+          <Route path="/products" element={<ProductListPage />} />
+          <Route path="/products/:slug" element={<ProductDetailPage />} />
+          <Route path="/promotions" element={<PromotionsPage />} />
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="*" element={<ErrorPage />} />
 
-          {/* 2. Thay thế route profile cũ bằng cấu trúc lồng nhau này */}
-          <Route path="/profile" element={<ProfileLayout />}>
-            {/* Route con cho trang thông tin cá nhân (hiển thị mặc định) */}
+          {/* --- CÁC ROUTE CẦN ĐĂNG NHẬP (Protected) --- */}
+          <Route path="/profile" element={
+            <ProtectedRoute>
+              <ProfileLayout />
+            </ProtectedRoute>
+          }>
+            {/* Các route con này sẽ tự động được bảo vệ vì route cha đã được bọc */}
             <Route index element={<ProfileForm />} />
-
-            {/* Route con cho trang sổ địa chỉ */}
             <Route path="addresses" element={<AddressListPage />} />
-
-             {/* 2. Thêm route con mới cho trang bảo mật */}
             <Route path="security" element={<SecurityPage />} />
-
           </Route>
-        <Route path="/products" element={<ProductListPage />} />
-        <Route path="/products/:slug" element={<ProductDetailPage />} />
-        <Route path="/cart" element={<CartPage />} />
-        <Route path="/orders" element={<OrdersPage />} />
-        <Route path="/checkout" element={<CheckoutPage />} />
-        <Route path="/orders/:id" element={<OrderDetailPage />} />
-        <Route path="/orders/:orderId/item/:productId/snapshot" element={<ProductSnapshotDetail />} />
-        <Route path="/wishlist" element={<WishlistPage />} />
-        <Route path="/payment/result" element={<PaymentResultPage />} />
-        <Route path="/promotions" element={<PromotionsPage />} />
-        <Route path="/about" element={<AboutPage />} />
-        <Route path="/admin/dashboard" element={<Dashboard />} />
+
+          <Route path="/cart" element={
+            <ProtectedRoute>
+              <CartPage />
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/checkout" element={
+            <ProtectedRoute>
+              <CheckoutPage />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/orders" element={
+            <ProtectedRoute>
+              <OrdersPage />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/orders/:id" element={
+            <ProtectedRoute>
+              <OrderDetailPage />
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/orders/:orderId/item/:productId/snapshot" element={
+            <ProtectedRoute>
+              <ProductSnapshotDetail />
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/wishlist" element={
+            <ProtectedRoute>
+              <WishlistPage />
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/payment/result" element={
+            <ProtectedRoute>
+              <PaymentResultPage />
+            </ProtectedRoute>
+          } />
 
         {/* 2. Bọc route admin bằng AdminRoute */}
+
+        {/* Bạn có thể cũng muốn bọc Dashboard bằng AdminRoute */}
+          <Route path="/admin/dashboard" element={
+            <AdminRoute>
+              <Dashboard />
+            </AdminRoute>
+          } />
           <Route 
             path="/admin/orders" 
             element={
@@ -104,7 +148,6 @@ function App() {
             } 
           />
 
-        <Route path="*" element={<ErrorPage />} />
       </Routes>
     </BrowserRouter >
       <ToastContainer position="top-right" autoClose={3000} />

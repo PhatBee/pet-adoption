@@ -1,0 +1,193 @@
+@startuml
+!theme plain
+' CHỈ THỊ LAYOUT: Sắp xếp từ trái sang phải
+left to right direction
+
+skinparam classAttributeIconSize 0
+skinparam rectangle {
+    roundCorner 10
+}
+skinparam class {
+    BackgroundColor LightYellow
+    ArrowColor DarkSlateGray
+    BorderColor DarkSlateGray
+}
+' Style cho các schema con (embedded)
+skinparam class<<Struct>> {
+    BackgroundColor LightCyan
+    BorderColor Blue
+}
+
+' --- Các Model chính (Collections) ---
+class User {
+  +name: String
+  +email: String
+  +loyaltyPoints: Number
+  ---
+  +getUserById(id)
+  +getProfile(req, res)
+  +updateProfile(userId, data)
+  +removeFileIfExists(filePath)
+  +clearAvatar(userId)
+  +addAddress(userId, addressData)
+  +updateAddress(userId, addressId, addressData)
+  +deleteAddress(userId, addressId)
+  +changePassword(userId, oldPass, newPass)
+  +deleteAccount(userId)
+}
+class Product {
+  +name: String
+  +price: Number
+  +stock: Number
+  +soldCount: Number
+  ---
+  +getNewestProducts(limit, petId, excludeId)
+  +getMostViewedProducts(limit)
+  +getTopDiscountProducts(limit)
+  +getBestSellersByCounter(limit)
+  +getBestSellers(limit, mode)
+  +getProductsByCategory(categoryId, limit, excludeId)
+  +getAllProducts(...)
+}
+class Order {
+  +status: String
+  +total: Number
+  +couponCode: String
+  +pointsUsed: Number
+  ---
+  +fetchUserOrders(userId, page, limit, status)
+  +getUserOrderById(userId, orderId)
+  +cancelOrder(orderId, userId)
+  +getReorderInfo(orderId)
+  +cancelPendingOrderAndRestoreStock(order, reason)
+  +restockItems(items, session)
+}
+class Cart {
+  ' (Schema con "items" được đại diện bởi CartItem)
+  ---
+  +getCartByUser(userId)
+  +updateCartItem(userId, productId, quantity)
+  +removeCartItem(userId, productId)
+  +clearCart(userId)
+  +createOrderFromCart(...)
+}
+class Coupon {
+  +code: String
+  +discountType: String
+  +discountValue: Number
+  ---
+  +validateCoupon(code, items)
+  +getActiveCoupons(userId)
+  +saveCouponForUser(userId, couponId)
+  +calculateDiscountInternal(coupon, items)
+  +getSavedCouponsForCheckout(userId, items)
+}
+class Review {
+  +rating: Number
+  +comment: String
+  ---
+  +upsertReview(...)
+  +getReviewsByOrder(orderId)
+  +getReviewsByProduct(productId)
+}
+class Notification {
+  +title: String
+  +message: String
+  +isRead: Boolean
+}
+class RefreshToken {
+  +token: String
+  +expiresAt: Date
+}
+class Otp {
+  +email: String
+  +otp: String
+  +expiresAt: Date
+}
+class Pet {
+  +name: String
+}
+class Category {
+  +name: String
+}
+
+' --- Các "Bảng nối" (Association Classes) ---
+class UserCoupon {
+ +isUsed: Boolean
+ +usedAt: Date
+}
+class Wishlist {
+ +createdAt: Date
+ ---
+ +addWishlist(userId, productId)
+ +removeWishlist(userId, productId)
+ +getWishlist(userId)
+}
+
+' --- Các Schema con (Embedded Structs) ---
+class Address <<Struct>> {
+  +fullName: String
+  +phone: String
+  +street: String
+  +isDefault: Boolean
+}
+class CartItem <<Struct>> {
+  +quantity: Number
+}
+class OrderItem <<Struct>> {
+  +productSnapshot: Object
+  +quantity: Number
+}
+class PaymentInfo <<Struct>> {
+  +vnpTranNo: String
+  +momoTransId: String
+}
+class OrderStatusHistory <<Struct>> {
+  +status: String
+  +changedAt: Date
+}
+
+' --- Định nghĩa các mối quan hệ (Dùng mũi tên có hướng) ---
+
+' User
+User "1" --> "0..*" Order : "places"
+User "1" --> "1" Cart : "has"
+User "1" --> "0..*" Notification : "receives"
+User "1" --> "0..*" RefreshToken : "has"
+User "1" --> "0..*" Review : "writes"
+User "1" *--> "0..*" Address : "manages" ' Composition
+
+' Product
+Product "1" <-- "0..*" Review : "has" ' Đảo hướng mũi tên
+Category "1" --> "0..*" Product : "categorizes"
+Pet "1" --> "0..*" Product : "for pet type"
+
+' Cart (Composition)
+Cart "1" *--> "0..*" CartItem : "contains"
+CartItem "0..*" --> "1" Product : "references"
+
+' Order
+Order "1" --> "0..*" Review : "is for"
+Order "1" *--> "1..*" OrderItem : "contains" ' Composition
+Order "1" *--> "0..1" PaymentInfo : "has payment info" ' Composition
+Order "1" *--> "1" Address : "ships to" ' Composition (stores a copy)
+Order "1" *--> "1..*" OrderStatusHistory : "tracks" ' Composition
+OrderItem "0..*" --> "1" Product : "references"
+
+' Coupon (dùng nét đứt ..> cho quan hệ "applies to" linh hoạt)
+Coupon "0..*" ..> "0..*" Product : "applies to"
+Coupon "0..*" ..> "0..*" Category : "applies to"
+Coupon "0..*" ..> "0..*" Pet : "applies to"
+
+' Association Classes (Many-to-Many relationships)
+(User, Coupon) .. UserCoupon
+UserCoupon "0..*" ..> "1" User
+UserCoupon "0..*" ..> "1" Coupon
+
+(User, Product) .. Wishlist
+Wishlist "0..*" ..> "1" User
+Wishlist "0..*" ..> "1" Product
+
+' Mối quan hệ yếu
+Otp ..> User : "(validates email)"
+@enduml

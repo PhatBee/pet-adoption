@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchProductBySlug, clearProduct } from "../store/productDetailSlice";
 import ImageCarousel from "../components/product/ImageCarousel";
@@ -13,11 +13,14 @@ import ReviewList from "../components/product/ReviewList";
 import ProductSpecs from "../components/product/ProductSpecs";
 import ProductSlider from "../components/product/ProductSlider";
 import ErrorPage from "./ErrorPage"; // 1. Import trang lỗi
+import { selectIsAuthenticated } from "../store/authSlice";
 
 export default function ProductDetailPage() {
   const { slug } = useParams();
   const dispatch = useDispatch();
+  const location = useLocation(); // 3. Lấy vị trí hiện tại
   const navigate = useNavigate(); // 2. Khởi tạo hook useNavigate
+  const isAuthenticated = useSelector(selectIsAuthenticated);
   const { product, reviews, reviewStats, relatedProducts, isLoading, error } = useSelector((s) => s.productDetail || {});
   const [qty, setQty] = useState(1);
   const [activeTab, setActiveTab] = useState('description');
@@ -37,6 +40,16 @@ export default function ProductDetailPage() {
 
   const handleAddToCart = () => {
     if (!product) return;
+
+    // --- ⭐ KIỂM TRA XÁC THỰC TẠI ĐÂY ---
+    if (!isAuthenticated) {
+      toast.info("Vui lòng đăng nhập để tiếp tục");
+      // Chuyển hướng đến trang đăng nhập và lưu lại trang này
+      navigate('/login', { state: { from: location } });
+      return; 
+    }
+    // --- KẾT THÚC KIỂM TRA ---
+
     if (product.stock <= 0) {
       toast.error("Sản phẩm đã hết hàng");
       return;
@@ -51,6 +64,17 @@ export default function ProductDetailPage() {
   // --- 3. TẠO HÀM MỚI handleBuyNow ---
   const handleBuyNow = () => {
     if (!product) return;
+
+
+    // --- ⭐ KIỂM TRA XÁC THỰC TẠI ĐÂY ---
+    if (!isAuthenticated) {
+      toast.info("Vui lòng đăng nhập để tiếp tục");
+      // Chuyển hướng đến trang đăng nhập và lưu lại trang này
+      navigate('/login', { state: { from: location } });
+      return; 
+    }
+    // --- KẾT THÚC KIỂM TRA ---
+
     if (product.stock <= 0) {
       toast.error("Sản phẩm đã hết hàng");
       return;
