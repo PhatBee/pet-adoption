@@ -224,8 +224,8 @@ const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
                             <tr key={product._id} className="border-b border-gray-200 hover:bg-gray-50">
                                 <td className="p-4">
                                     {product.thumbnail && (
-                                        <Image
-                                            src={`${BACKEND_URL}${product.thumbnail}`}
+                                        <img
+                                            src={`${product.thumbnail}`}
                                             alt={product.name}
                                             width={40}
                                             height={40}
