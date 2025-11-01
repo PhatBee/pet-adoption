@@ -1,0 +1,35 @@
+@startuml UC19_CreateOrUpdateReview_Main
+
+title UC19: Đánh giá sản phẩm (luồng chính)
+
+actor User
+participant Frontend as "Frontend (Order detail -> Review area)"
+participant Auth as "Auth middleware"
+participant ReviewController as "ReviewController"
+participant OrderDB as "Order (DB)"
+participant ReviewService as "reviewService"
+participant ReviewDB as "Review (DB)"
+participant ProductDB as "Product (DB)"
+
+User -> Frontend: open delivered order detail, click "Đánh giá" on product
+Frontend -> Auth: POST /api/orders/{orderId}/reviews \n { productId, rating, comment }
+Auth -> ReviewController: pass req.user
+ReviewController -> OrderDB: findOne({ _id: orderId, user: userId }).lean()
+alt order not found
+  ReviewController -> Frontend: 404 "Đơn hàng không tìm thấy"
+else if order.status !== "delivered"
+  ReviewController -> Frontend: 400 "Chỉ được đánh giá khi đơn hàng đã giao thành công"
+else if product not in order.items
+  ReviewController -> Frontend: 400 "Sản phẩm không thuộc đơn hàng này"
+else
+  ReviewController -> ReviewService: upsertReview({ userId, productId, orderId, rating, comment })
+  activate ReviewService
+  ReviewService -> ReviewDB: findOneAndUpdate({ user, product, order },\n { rating, comment }, { upsert, new })
+  ReviewDB --> ReviewService: reviewDoc
+  ReviewService -> ProductDB: (optional) recalc average rating / reviewCount
+  ReviewService --> ReviewController: reviewDoc
+  deactivate ReviewService
+  ReviewController -> Frontend: 200 { message: "Đã lưu đánh giá", review }
+  Frontend -> User: show "Đánh giá thành công"
+end
+@enduml

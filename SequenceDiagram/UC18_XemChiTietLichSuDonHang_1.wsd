@@ -1,0 +1,31 @@
+@startuml UC18_GetOrderDetail_Main
+
+title UC18: Xem chi tiết lịch sử đơn hàng
+
+actor User
+participant Frontend as "Frontend (Order list / Order detail page)"
+participant Auth as "Auth middleware"
+participant OrderController as "OrderController"
+participant OrderService as "orderService"
+database OrderDB as "Order (DB)"
+database ReviewDB as "Review (DB)"
+
+User -> Frontend: open "Quản lý đơn hàng" -> click an order
+Frontend -> Auth: GET /api/orders/{orderId}
+Auth -> OrderController: pass req.user
+OrderController -> OrderService: getOrderDetail(orderId, userId)
+activate OrderService
+OrderService -> OrderDB: findOne({ _id: orderId, user: userId }) \n// include product snapshots
+alt order not found
+  OrderService --> OrderController: null
+  OrderController -> Frontend: 404 { message: "Đơn hàng không tồn tại" }
+else
+  OrderService -> ReviewDB: find({ order: orderId, user: userId })
+  ReviewDB --> OrderService: reviews[]
+  OrderService -> OrderService: build reviewMap by productId
+  OrderService --> OrderController: { orderDTO, reviewMap }
+  OrderController -> Frontend: 200 { order, reviews: reviewMap }
+  Frontend -> User: render order detail (code, date, items, \nshipping, payment, status)
+end
+deactivate OrderService
+@enduml

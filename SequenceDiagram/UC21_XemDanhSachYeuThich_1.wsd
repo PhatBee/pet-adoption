@@ -1,0 +1,28 @@
+@startuml UC21_Wishlist_Main
+
+title UC21: Xem danh sách yêu thích (luồng chính)
+
+actor User
+participant Frontend as "Frontend (Navbar -> Wishlist page)"
+participant Auth as "Auth middleware"
+participant WishlistController as "WishlistController"
+participant WishlistService as "wishlistService"
+database WishlistDB as "Wishlist (DB)"
+database ProductDB as "Product (DB)"
+
+User -> Frontend: click "Yêu thích"
+Frontend -> Auth: GET /api/wishlist
+Auth -> WishlistController: pass req.user
+WishlistController -> WishlistService: getWishlist(userId)
+WishlistService -> WishlistDB: find/populate products
+WishlistDB --> WishlistService: wishlist items (product docs)
+alt items exist
+  WishlistService --> WishlistController: [{ product, addedAt }, ...]
+  WishlistController -> Frontend: 200 { items: [...] }
+  Frontend -> User: render list (image, name, price, add-to-cart, remove)
+else no items
+  WishlistService --> WishlistController: []
+  WishlistController -> Frontend: 200 { items: [] }
+  Frontend -> User: show "Bạn chưa có sản phẩm yêu thích"
+end
+@enduml

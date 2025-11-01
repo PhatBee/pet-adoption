@@ -1,0 +1,18 @@
+@startuml UC20_CancelOrder_Exception_AdminApproval
+
+title UC20: Hủy đơn hàng (luồng ngoại lệ)
+
+actor User
+participant Frontend
+participant OrderController
+participant OrderService
+database OrderDB
+
+User -> Frontend: click "Hủy" on order not eligible \n(status shipping/delivered or >30min)
+Frontend -> OrderController: DELETE /api/orders/{orderId}/cancel
+OrderController -> OrderService: cancelOrder(...)
+OrderService -> OrderDB: set status = "cancel_requested" (session)
+OrderService --> OrderController: { pendingApproval }
+OrderController -> Frontend: 200 { message: "Đơn hàng của bạn đang chờ Admin xét duyệt" }
+Frontend -> User: show "Đơn hàng đang chờ Admin xét duyệt"
+@enduml
