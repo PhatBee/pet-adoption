@@ -1,0 +1,43 @@
+@startuml UC15_PlaceOrder_COD
+
+title UC15: Đặt hàng (luồng chính)
+
+actor Customer
+participant Frontend as "Frontend (Checkout)"
+participant Auth as "Auth middleware"
+participant CartController as "CartControlle"
+participant CartService as "cartService"
+database UserDB as "User (DB)"
+database ProductDB as "Product (DB)"
+database OrderDB as "Order (DB)"
+database CartDB as "Cart (DB)"
+participant Notification as "notificationService"
+participant EmailService as "emailService"
+
+Customer -> Frontend: open Checkout, fill shippingAddress, choose COD
+Frontend -> Auth: POST /api/checkout/orders\n{ shippingAddress, items, paymentMethod: "COD", \ncouponCode, pointsToUse }
+Auth -> CartController: pass req.user
+CartController -> CartService: createOrderFromCart({ userId, shippingAddress,\npaymentMethod, items, couponCode, pointsToUse })
+activate CartService
+CartService -> UserDB: findById(userId) (session)
+CartService -> ProductDB: find products by ids (session)
+CartService -> ProductDB: check stock for each product
+alt any product out of stock
+  CartService -> CartController: throw error "Sản phẩm ... không đủ hàng"
+  CartController -> Frontend: 400 error
+else
+  CartService -> OrderDB: create Order (status: pending) (session)
+  CartService -> ProductDB: updateOne stock -= qty, soldCount += qty (session)
+  CartService -> UserDB: update loyaltyPoints (session)
+  CartService -> CouponDB: update usesCount if coupon applied (session)
+  CartService -> CartDB: remove purchased items from cart (session)
+  CartService -> OrderDB: commit transaction
+  CartService --> CartController: { order }
+  deactivate CartService
+
+  CartController -> Frontend: 200 { order, orderId }
+  Frontend -> Customer: show "Đơn hàng của bạn đã được đặt thành công"\n + redirect to order tracking
+  CartController -> Notification: createAndSendNotification(userId, ... )
+  Notification -> EmailService: sendEmail(...)
+end
+@enduml

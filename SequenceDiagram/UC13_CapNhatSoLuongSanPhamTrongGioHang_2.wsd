@@ -1,0 +1,22 @@
+@startuml UC13_UpdateCart_AdjustToStock
+
+title UC13: Cập nhật số lượng sản phẩm trong giỏ hàng (luồng thay thế)
+
+actor User
+participant Frontend
+participant CartController
+participant CartService
+database ProductDB
+database CartDB
+
+User -> Frontend: set qty = 10 (but stock = 6)
+Frontend -> CartController: PUT /api/cart/update { productId, quantity: 10 }
+CartController -> CartService: updateCartItem(...)
+CartService -> ProductDB: findById(productId) => product.stock = 6
+CartService -> CartDB: findOne cart; get existingQty maybe 2
+CartService -> CartService: compute allowed = product.stock
+CartService -> CartDB: update item quantity = allowed
+CartService --> CartController: return { adjusted: true, newQty: allowed }
+CartController -> Frontend: 200 { adjusted: true, newQty: allowed, cart }
+Frontend -> User: show "Số lượng đã được điều chỉnh thành 6 theo tồn kho"
+@enduml

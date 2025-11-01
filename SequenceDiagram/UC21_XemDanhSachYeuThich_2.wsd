@@ -1,0 +1,18 @@
+@startuml UC21_Wishlist_Error
+
+title UC21: Xem danh sách yêu thích (luồng ngoại lệ)
+
+actor User
+participant Frontend
+participant WishlistController
+participant WishlistService
+database WishlistDB
+
+User -> Frontend: click "Yêu thích"
+Frontend -> WishlistController: GET /api/wishlist
+WishlistController -> WishlistService: getWishlist(userId)
+WishlistService -> WishlistDB: query -> DB error
+WishlistService --> WishlistController: throw error
+WishlistController -> Frontend: 500 { message: "Không thể tải danh sách yêu thích, vui lòng thử lại sau" }
+Frontend -> User: show error toast
+@enduml

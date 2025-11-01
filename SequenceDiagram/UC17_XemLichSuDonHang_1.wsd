@@ -1,0 +1,28 @@
+@startuml
+
+title UC17: Xem lịch sử đơn hàng (luồng chính)
+
+actor User
+participant Frontend as "Frontend (Profile -> Order history)"
+participant Auth as "Auth middleware"
+participant OrderController as "OrderController"
+participant OrderService as "orderService"
+database OrderDB as "Order (DB)"
+
+User -> Frontend: open Profile -> click "Lịch sử đơn hàng"
+Frontend -> Auth: GET /api/orders?page=1&limit=10
+Auth -> OrderController: pass req.user
+OrderController -> OrderService: fetchUserOrders(userId, page, limit, null)
+OrderService -> OrderDB: countDocuments(queryConditions)
+OrderService -> OrderDB: find(queryConditions).sort(...).skip(...).limit(...)
+OrderDB --> OrderService: total, items[]
+alt success
+  OrderService --> OrderController: { items, total, page, limit }
+  OrderController -> Frontend: 200 { items, total, page, limit }
+  Frontend -> User: render list (orderId, date, total, status)
+else db error
+  OrderService --> OrderController: throw error
+  OrderController -> Frontend: 500 { message: "Không thể tải dữ liệu..." }
+  Frontend -> User: show error toast
+end
+@enduml

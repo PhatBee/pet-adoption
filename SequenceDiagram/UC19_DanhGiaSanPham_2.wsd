@@ -1,0 +1,20 @@
+@startuml
+
+title UC19: Đánh giá sản phẩm (luồng ngoại lệ)
+
+actor User
+participant Frontend
+participant Auth
+participant ReviewController
+
+User -> Frontend: click "Đánh giá" without selecting stars (rating missing)
+Frontend -> Auth: POST /api/orders/{orderId}/reviews { productId, rating: null, comment }
+Auth -> ReviewController: pass req.user
+ReviewController -> ReviewController: validate rating (Number)
+alt rating invalid or missing
+  ReviewController -> Frontend: 400 { message: "Rating phải từ 1 đến 5" }
+  Frontend -> User: show inline error "Nhập nội dung đánh giá và không thể bỏ trống sao"
+else valid
+  ... continue main flow ...
+end
+@enduml

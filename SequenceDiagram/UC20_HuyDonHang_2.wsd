@@ -1,0 +1,11 @@
+@startuml UC20_CancelOrder_CancelledByUser
+
+title UC20: Hủy đơn hàng (luồng thay thế)
+
+actor User
+participant Frontend
+User -> Frontend: open confirm dialog
+User -> Frontend: click "Hủy" (cancel action)
+Frontend -> Frontend: close dialog; do nothing
+Frontend -> User: show unchanged cart/order list
+@enduml

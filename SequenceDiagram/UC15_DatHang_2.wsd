@@ -1,0 +1,28 @@
+@startuml UC15_PlaceOrder_VnPay_Momo
+
+title UC15: Đặt hàng (luồng thay thế)
+
+actor Customer
+participant Frontend
+participant CartController
+participant CartService
+database OrderDB
+participant VnPayService
+participant MomoService
+
+Customer -> Frontend: choose paymentMethod = VNPAY or MOMO
+Frontend -> CartController: POST /api/checkout/orders { ... , paymentMethod }
+CartController -> CartService: createOrderFromCart(...)  // order created (status: pending) inside transaction
+CartService --> CartController: { order }
+alt paymentMethod == "VNPAY"
+  CartController -> VnPayService: createPaymentUrl(ip, order.total, order._id, desc)
+  VnPayService --> CartController: vnpayUrl
+  CartController -> Frontend: 200 { orderId, redirectUrl: vnpayUrl } 
+  Frontend -> Customer: redirect browser to vnpayUrl
+else if paymentMethod == "MOMO"
+  CartController -> MomoService: createPaymentRequest(orderId, order.total, ...)
+  MomoService --> CartController: momoResponse (payUrl)
+  CartController -> Frontend: 200 { orderId, redirectUrl: momoResponse.payUrl }
+  Frontend -> Customer: redirect browser to momo payUrl
+end
+@enduml

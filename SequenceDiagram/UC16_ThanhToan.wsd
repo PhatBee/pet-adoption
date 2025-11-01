@@ -1,0 +1,27 @@
+@startuml UC16_Payment_Callback
+
+title UC16: Thanh toán
+
+actor PaymentGateway
+participant Frontend
+participant PaymentController as "Payment webhook / return handler"
+participant PaymentService as "vnpayService/momoService"
+participant OrderService as "orderService"
+database OrderDB
+
+PaymentGateway -> PaymentController: callback (IPN) / redirect with params
+PaymentController -> PaymentService: verifySignature(params)
+alt signature invalid
+  PaymentController -> PaymentGateway: respond invalid / log
+  PaymentController -> Frontend: show payment failed
+else signature valid
+  PaymentController -> OrderDB: find order by orderId
+  alt order not found or already paid
+    PaymentController -> Frontend: show error
+  else
+    PaymentController -> OrderDB: update order.status = "paid", paidAt, paymentInfo
+    PaymentController -> PaymentController: (optional) emit notification / send email
+    PaymentController -> Frontend: redirect to order detail / success page
+  end
+end
+@enduml

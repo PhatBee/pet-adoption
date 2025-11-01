@@ -1,6 +1,6 @@
 @startuml
 
-title UC01: Đăng nhập
+title UC01: Đăng ký 
 
 actor User
 participant Frontend

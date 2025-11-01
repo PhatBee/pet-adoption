@@ -1,0 +1,24 @@
+@startuml UC17_ListOrders_EmptyOrError
+
+title UC17: Xem lịch sử đơn hàng (luồng ngoại lệ)
+
+actor User
+participant Frontend
+participant OrderController
+participant OrderService
+database OrderDB
+
+User -> Frontend: open Order history
+Frontend -> OrderController: GET /api/orders
+OrderController -> OrderService: fetchUserOrders(...)
+OrderService -> OrderDB: find(...) -> returns []
+alt no orders
+  OrderService --> OrderController: { items: [], total: 0, page, limit }
+  OrderController -> Frontend: 200 { items: [], total: 0 }
+  Frontend -> User: show "Bạn chưa có đơn hàng nào"
+else db error
+  OrderService --> OrderController: throw
+  OrderController -> Frontend: 500 { message: "Không thể tải dữ liệu đơn hàng, vui lòng thử lại sau" }
+  Frontend -> User: show error
+end
+@enduml

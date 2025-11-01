@@ -1,0 +1,42 @@
+@startuml UC20_CancelOrder_Main
+
+title UC20: Hủy đơn hàng (luồng chính)
+
+actor User
+participant Frontend as "Frontend (Order management UI)"
+participant Auth as "Auth middleware"
+participant OrderController as "OrderController"
+participant OrderService as "orderService"
+database OrderDB as "Order (DB)"
+database ProductDB as "Product (DB)"
+database UserDB as "User (DB)"
+participant Notification as "notificationService"
+participant EmailService as "emailService"
+
+User -> Frontend: click "Hủy đơn" on an eligible order
+Frontend -> Auth: DELETE /api/orders/{orderId}/cancel
+Auth -> OrderController: pass req.user
+OrderController -> OrderService: cancelOrder(userId, orderId)
+activate OrderService
+OrderService -> OrderDB: find order (session) and verify \nownership & status & cancellableUntil
+alt eligible for immediate cancel (status pending/confirmed && within 30min)
+  OrderService -> OrderDB: update order.status = "cancelled", \npush history (session)
+  OrderService -> ProductDB: restore stock & decrement soldCount for each item (session)
+  OrderService -> UserDB: adjust loyaltyPoints (deduct penalty) (session)
+  OrderService -> OrderDB: save (session)
+  OrderService --> OrderController: { success, order }
+  deactivate OrderService
+
+  OrderController -> Notification: createAndSendNotification(userId, { title: 'Đơn hàng đã được huỷ', ... })
+  Notification -> EmailService: sendEmail(...)
+  OrderController -> Frontend: 200 { message: "Hủy đơn thành công", order }
+else not eligible for immediate cancel
+  OrderService -> OrderDB: set order.status = "cancel_requested" (session)
+  OrderService -> OrderDB: push history (session)
+  OrderService --> OrderController: { pendingApproval, order }
+  deactivate OrderService
+
+  OrderController -> Notification: createAndSendNotification(userId, { title: 'Đã gửi yêu cầu huỷ đơn', ... })
+  OrderController -> Frontend: 200 { message: "Đã gửi yêu cầu hủy đơn.", order }
+end
+@enduml

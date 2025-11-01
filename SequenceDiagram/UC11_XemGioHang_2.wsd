@@ -1,0 +1,26 @@
+@startuml UC11_GetCart_Empty
+
+title UC11: Xem giỏ hàng (luồng thay thế)
+
+actor User
+participant Frontend
+participant AuthMiddleware
+participant CartController
+participant CartService
+database CartDB
+
+User -> Frontend: click "Giỏ hàng"
+Frontend -> AuthMiddleware: GET /api/cart
+AuthMiddleware -> CartController: pass user
+CartController -> CartService: getCartByUser(userId)
+CartService -> CartDB: findOne({ user: userId })
+alt cart exists with items
+  CartService -> CartController: return cart
+  CartController -> Frontend: 200 cart
+  Frontend -> User: render items
+else cart not found or items.length == 0
+  CartService -> CartController: return null or { user, items: [] }
+  CartController -> Frontend: 200 { user, items: [] }
+  Frontend -> User: show "Giỏ hàng của bạn đang trống"
+end
+@enduml

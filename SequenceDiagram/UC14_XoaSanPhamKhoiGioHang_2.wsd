@@ -1,0 +1,12 @@
+@startuml UC14_RemoveItem_Cancel
+
+title UC14: Xóa sản phẩm khỏi giỏ hàng (luồng thay thế)
+
+actor User
+participant Frontend
+User -> Frontend: click "Xóa" on item
+Frontend -> Frontend: show confirm dialog
+User -> Frontend: click "Hủy"
+Frontend -> Frontend: do nothing (cart unchanged)
+Frontend -> User: show cart unchanged
+@enduml
