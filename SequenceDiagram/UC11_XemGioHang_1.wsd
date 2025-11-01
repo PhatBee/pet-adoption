@@ -1,0 +1,24 @@
+@startuml
+
+title UC11: Xem giỏ hàng (luồng chính)
+
+actor User
+participant Frontend as "Frontend (Header / Cart page)"
+participant AuthMiddleware as "Auth middleware"
+participant CartController as "CartController"
+participant CartService as "cartService"
+database CartDB as "Cart (DB)"
+database ProductDB as "Product (DB)"
+
+User -> Frontend: click Avatar -> select "Giỏ hàng"
+Frontend -> AuthMiddleware: request GET /api/cart (with access token)
+AuthMiddleware -> CartController: pass req.user
+CartController -> CartService: getCartByUser(userId)
+CartService -> CartDB: findOne({ user: userId }).populate("items.product")
+CartDB --> CartService: cart doc { items: [ { product, qty } ] }
+CartService -> ProductDB: (implicit via populate: product docs)
+CartService -> CartService: compute lineTotals and cartTotal (qty * product.price)
+CartService --> CartController: return { user, items: [ { product, qty, lineTotal } ], total }
+CartController -> Frontend: 200 { cart object }
+Frontend -> User: render list: name, qty, lineTotal, total
+@enduml

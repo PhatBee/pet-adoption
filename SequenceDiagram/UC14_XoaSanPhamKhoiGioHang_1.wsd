@@ -1,0 +1,31 @@
+@startuml UC14_RemoveItem_Main
+
+title UC14: Xóa sản phẩm khỏi giỏ hàng (luồng chính)
+
+actor User
+participant Frontend as "Frontend (Cart page)"
+participant Auth as "Auth middleware"
+participant CartController as "CartController"
+participant CartService as "cartService"
+database CartDB as "Cart (DB)"
+
+User -> Frontend: open Cart page
+Frontend -> Auth: GET /api/cart (auth)
+Auth -> Frontend: pass user (render list)
+User -> Frontend: click "Xóa" on an item
+Frontend -> Frontend: show confirm dialog
+User -> Frontend: confirm deletion
+Frontend -> CartController: DELETE /api/cart/{productId}
+CartController -> CartService: removeCartItem(userId, productId)
+CartService -> CartDB: findOne({ user: userId })
+alt cart not found
+  CartService --> CartController: throw CART_NOT_FOUND
+else
+  CartService -> CartService: find itemIndex & remove subdoc
+  CartService -> CartDB: save updated cart
+  CartDB --> CartService: updated cart
+  CartService --> CartController: updated cart DTO
+  CartController -> Frontend: 200 { cart }
+  Frontend -> User: update UI (if empty -> show "Giỏ hàng của bạn đang trống")
+end
+@enduml

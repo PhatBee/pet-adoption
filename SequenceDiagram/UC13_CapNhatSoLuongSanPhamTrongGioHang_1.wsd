@@ -1,0 +1,33 @@
+@startuml UC13_UpdateCart_Main
+
+title UC13: Cập nhật số lượng sản phẩm trong giỏ hàng (luồng chính)
+
+actor User
+participant Frontend as "Frontend (Cart page)"
+participant Auth as "Auth middleware"
+participant CartController as "CartController"
+participant CartService as "cartService"
+database CartDB as "Cart (DB)"
+database ProductDB as "Product (DB)"
+
+User -> Frontend: mở trang Giỏ hàng
+Frontend -> Auth: GET /api/cart (auth)
+Auth -> Frontend: pass user
+Frontend -> Frontend: hiển thị danh sách items
+User -> Frontend: chỉnh số lượng item (input hoặc + / -)
+Frontend -> CartController: PUT /api/cart/update { productId, quantity }
+CartController -> CartService: updateCartItem(userId, productId, quantity)
+CartService -> ProductDB: findById(productId)
+alt product not found
+  CartService --> CartController: throw NOT_FOUND
+else
+  CartService -> CartDB: findOne({ user })
+  CartDB --> CartService: cart
+  CartService -> CartService: validate & clamp quantity (<= product.stock)
+  CartService -> CartDB: save updated cart
+  CartDB --> CartService: updated cart
+  CartService --> CartController: { cartDto, adjusted, addedQty/oldQty/newQty }
+  CartController -> Frontend: 200 { cartDto, adjusted }
+  Frontend -> User: render updated cart, show message if adjusted
+end
+@enduml

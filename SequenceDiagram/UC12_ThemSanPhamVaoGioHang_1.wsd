@@ -1,0 +1,29 @@
+@startuml UC12_AddToCart_Main
+
+title UC12: Thêm sản phẩm vào giỏ hàng (luồng chính + không có sản phẩm)
+
+actor User
+participant Frontend as "Frontend (Product Detail)"
+participant Auth as "Auth Middleware"
+participant CartController as "CartController"
+participant CartService as "cartService"
+database ProductDB as "Product (DB)"
+database CartDB as "Cart (DB)"
+
+User -> Frontend: on product detail choose qty and click "Thêm vào giỏ"
+Frontend -> Auth: request POST /api/cart { productId, qty }
+Auth -> CartController: pass req.user
+CartController -> CartService: addProductToCart(userId, productId, qty)
+CartService -> ProductDB: Product.findById(productId)
+alt product not found
+  CartService --> CartController: throw NOT_FOUND
+else product exists and stock sufficient
+  CartService -> CartDB: findOne cart
+  CartDB --> CartService: cart or null
+  CartService -> CartDB: save updated cart (push/update item)
+  CartDB --> CartService: updated cart
+  CartService --> CartController: cartDto
+  CartController -> Frontend: 200 { cartDto, message: "Đã thêm vào giỏ hàng" }
+  Frontend -> User: show toast "Đã thêm vào giỏ hàng"
+end
+@enduml

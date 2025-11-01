@@ -1,0 +1,29 @@
+@startuml UC12_AddToCart_AdjustToStock
+
+title UC12: Thêm sản phẩm vào giỏ hàng (luồng thay thế)
+
+actor User
+participant Frontend
+participant Auth
+participant CartController
+participant CartService
+database ProductDB
+database CartDB
+
+User -> Frontend: input qty > availableStock (or after increment existing item it would exceed)
+Frontend -> Auth: POST /api/cart { productId, qtyRequested }
+CartController -> CartService: addProductToCart(userId, productId, qtyRequested)
+CartService -> ProductDB: findById(productId)
+ProductDB --> CartService: product { stock: 5 }
+CartService -> CartDB: findOne cart
+CartDB --> CartService: cart with existing qty 2
+CartService --> CartService: compute avaliable 
+alt available == 0
+  CartService --> CartController: return { adjustedQty: 0, message: "OUT_OF_STOCK" } // or 400
+else available < qtyRequested
+  CartService -> CartDB: update item qty += available (clamped)
+  CartService --> CartController: return { adjustedTo: available, message: "Đã điều chỉnh số lượng theo tồn kho" }
+  CartController -> Frontend: 200 { cart, adjusted: true, available }
+  Frontend -> User: show "Số lượng được điều chỉnh theo tồn kho: 3"
+end
+@enduml
