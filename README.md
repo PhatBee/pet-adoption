@@ -152,17 +152,25 @@ Luồng hoạt động:
 
 ### 1️⃣ Use Case Tổng Quan
 
-![Use Case Chung](./docs/All.png)
+![Use Case Chung](./docs/UseCaseDiagram/All.png)
 
 ### 2️⃣ Use Case Khách hàng
 
-![Use Case User](./docs/User.png)
+![Use Case User](./docs/UseCaseDiagram/User.png)
 
 ### 3️⃣ Use Case Admin
 
-![Use Case Admin](./docs/Admin.png)
+![Use Case Admin](./docs/UseCaseDiagram/Admin.png)
 
 ---
+
+## Class Diagram
+
+![Class Diagram](./docs/ClassDiagram/ClassDiagram.png)
+
+
+---
+
 
 ## 🛠 Công nghệ sử dụng
 
