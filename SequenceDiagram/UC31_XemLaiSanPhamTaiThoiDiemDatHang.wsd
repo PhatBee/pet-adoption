@@ -1,0 +1,32 @@
+@startuml UC31_ProductSnapshot_Main
+
+title UC31: Xem lại sản phẩm đã mua tại thời điểm đặt hàng (luồng chính)
+
+actor User
+participant Frontend as "Frontend (Order Detail)"
+participant Auth as "Auth middleware"
+participant OrderController as "OrderController"
+participant OrderService as "orderService"
+database OrderDB as "Order (DB)"
+
+User -> Frontend: click product in order detail
+Frontend -> Auth: GET /api/orders/{orderId}/products/{productId}/snapshot
+Auth -> OrderController: attach req.user
+OrderController -> OrderService: getProductSnapshot\n(orderId, productId, req.user.id)
+activate OrderService
+OrderService -> OrderDB: findById(orderId)
+OrderDB --> OrderService: order doc
+OrderService -> OrderService: verify order exists \nbelongs to user
+alt product item found in order
+  OrderService -> OrderService: read item.productSnapshot
+  OrderService --> OrderController: { snapshot: item.productSnapshot,\n currentProductId: item.product }
+  deactivate OrderService
+  OrderController -> Frontend: 200 { snapshot, currentProductId }
+  Frontend -> User: render snapshot page (name, price at purchase, \nimages, description snapshot...)
+else item not in order
+  OrderService --> OrderController: throw 404 { "Product not found in order" }
+  deactivate OrderService
+  OrderController -> Frontend: 404 { message }
+  Frontend -> User: show "Sản phẩm không tồn tại trong đơn"
+end
+@enduml

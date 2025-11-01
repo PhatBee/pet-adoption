@@ -1,0 +1,31 @@
+@startuml UC22_AddToWishlist_Main
+
+title UC22: Thêm sản phẩm vào danh sách yêu thích (luồng chính)
+
+actor User
+participant Frontend as "Frontend (Product detail / List)"
+participant Auth as "Auth middleware"
+participant WishlistController as "WishlistController"
+participant WishlistService as "wishlistService"
+database ProductDB as "Product (DB)"
+database WishlistDB as "Wishlist (DB)"
+
+User -> Frontend: click "heart" (yêu thích) on product
+Frontend -> Auth: POST /api/wishlist { productId } \n(with access token)
+Auth -> WishlistController: pass req.user
+WishlistController -> ProductDB: Product.findById(productId)   // check exists
+alt product not found
+  WishlistController -> Frontend: 404 { message: "Sản phẩm không tồn tại" }
+else product exists
+  WishlistController -> WishlistService: addWishlist(userId, productId)
+  WishlistService -> WishlistDB: check duplicate (e.g., findOne or $addToSet)
+  alt already in wishlist
+    WishlistService --> WishlistController: { message: "Sản phẩm đã có trong wishlist" }
+    WishlistController -> Frontend: 200 { message: "Sản phẩm đã có trong wishlist" }
+  else inserted
+    WishlistService --> WishlistController: { message: "Đã thêm sản phẩm vào wishlist" }
+    WishlistController -> Frontend: 201 { message: "Đã thêm sản phẩm vào wishlist" }
+    Frontend -> User: show toast "Đã thêm sản phẩm vào danh sách yêu thích"
+  end
+end
+@enduml

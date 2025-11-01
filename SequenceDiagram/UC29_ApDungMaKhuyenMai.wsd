@@ -1,0 +1,49 @@
+@startuml UC29_ApplyCoupon_Main
+
+title UC29: Áp dụng mã khuyến mãi
+
+actor User
+participant Frontend as "Frontend (Checkout)"
+participant Auth as "Auth middleware"
+participant CouponController as "CouponController"
+participant CouponService as "couponService"
+database UserCouponDB as "UserCoupon (DB)"
+database CouponDB as "Coupon (DB)"
+
+User -> Frontend: open Checkout page
+Frontend -> Auth: ensure logged in
+User -> Frontend: click "Chọn mã"
+Frontend -> CouponController: POST /api/coupons/saved_for_checkout { items }
+Auth -> CouponController: attach req.user
+CouponController -> CouponService: getSavedCouponsForCheckout(userId, items)
+activate CouponService
+CouponService -> UserCouponDB: find({ userId }) -> list of couponIds
+UserCouponDB --> CouponService: savedCouponIds
+CouponService -> CouponDB: find({ _id: {$in: savedCouponIds},\n isActive:true, expiresAt>now }) .populate(...)
+CouponDB --> CouponService: couponDocs
+CouponService -> CouponService: for each coupon \n-> calculateDiscountInternal(coupon, items)
+CouponService -> CouponService: sort coupons by discountAmount desc
+CouponService --> CouponController: couponsSortedWithPreview
+deactivate CouponService
+CouponController -> Frontend: 200 { coupons: [{coupon, discountPreview}, ...] }
+Frontend -> User: render list (best coupons on top)
+
+User -> Frontend: click "Áp dụng" on coupon CODE
+Frontend -> CouponController: POST /api/coupons/validate { code, items }
+CouponController -> CouponService: validateCoupon(code, items)
+activate CouponService
+CouponService -> CouponDB: findOne({ code }) .populate(...)
+CouponDB --> CouponService: coupon
+CouponService -> CouponService: calculateDiscountInternal(coupon, items)
+alt coupon valid & applicable
+  CouponService --> CouponController: { coupon, discountAmount }
+  deactivate CouponService
+  CouponController -> Frontend: 200 { coupon, discountAmount }
+  Frontend -> User: update total = subtotal - discountAmount; \nshow applied coupon
+else coupon invalid or not applicable
+  CouponService --> CouponController: throw {status, message}
+  deactivate CouponService
+  CouponController -> Frontend: 400/404 { message }
+  Frontend -> User: show error toast
+end
+@enduml

@@ -1,0 +1,17 @@
+@startuml UC30_Reorder_AllUnavailable
+
+title UC30: Mua lại sản phẩm từ đơn hàng (luồng thay thế)
+
+actor User
+participant Frontend
+participant OrderController
+participant OrderService
+
+User -> Frontend: click "Mua lại"
+Frontend -> OrderController: GET /api/orders/{orderId}/reorder
+OrderController -> OrderService: getReorderInfo(...)
+OrderService -> OrderDB: findById(...)
+OrderService --> OrderController: throw { message: "Tất cả các sản phẩm\n trong đơn đã hết hàng" }
+OrderController -> Frontend: 400 { message }
+Frontend -> User: show error toast "Tất cả sản phẩm\n trong đơn đã hết hàng"
+@enduml

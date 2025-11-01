@@ -1,0 +1,31 @@
+@startuml UC25_ClearCart_Main
+
+title UC25: Xóa tất cả sản phẩm khỏi giỏ hàng
+
+actor User
+participant Frontend as "Frontend (Cart page)"
+participant Auth as "Auth middleware"
+participant CartController as "CartController"
+participant CartService as "cartService"
+database CartDB as "Cart (DB)"
+
+User -> Frontend: open Cart page
+Frontend -> Auth: GET /api/cart (render items)
+Frontend -> User: show items (n >= 1)
+User -> Frontend: click "Xóa giỏ" (clear cart)
+Frontend -> CartController: DELETE /api/cart/clear
+Auth -> CartController: pass req.user
+CartController -> CartService: clearCart(userId)
+CartService -> CartDB: findOne({ user: userId })
+alt cart exists
+  CartService -> CartDB: cart.items = []; save()
+  CartDB --> CartService: savedCart (items: [])
+  CartService --> CartController: cartDto
+  CartController -> Frontend: 200 { message: "Xóa tất cả sản phẩm \nkhỏi giỏ hàng thành công", cart }
+  Frontend -> User: show toast + "Giỏ hàng của bạn đang trống"
+else cart not exists
+  CartService --> CartController: throw "CART_NOT_FOUND"
+  CartController -> Frontend: 404 { message: "Giỏ hàng không tồn tại" }
+  Frontend -> User: show message (or prompt to create cart)
+end
+@enduml

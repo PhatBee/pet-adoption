@@ -1,0 +1,18 @@
+@startuml UC23_RemoveFromWishlist_Error
+
+title UC23: Xóa sản phẩm khỏi danh yêu thích (luồng ngoại lệ)
+
+actor User
+participant Frontend
+participant WishlistController
+participant WishlistService
+database WishlistDB
+
+User -> Frontend: confirm delete
+Frontend -> WishlistController: DELETE /api/wishlist/{productId}
+WishlistController -> WishlistService: removeWishlist(...)
+WishlistService -> WishlistDB: delete/update -> DB error (e.g. connection fail)
+WishlistService --> WishlistController: throw error
+WishlistController -> Frontend: 500 { message: "Không thể xóa sản phẩm khỏi danh sách yêu thích" }
+Frontend -> User: show error toast
+@enduml

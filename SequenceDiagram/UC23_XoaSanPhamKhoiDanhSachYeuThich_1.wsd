@@ -1,0 +1,29 @@
+@startuml UC23_RemoveFromWishlist_Main
+
+title UC23: Xóa sản phẩm khỏi danh sách yêu thích (luồng chính)
+
+actor User
+participant Frontend as "Frontend (Wishlist page)"
+participant Auth as "Auth middleware"
+participant WishlistController as "WishlistController"
+participant WishlistService as "wishlistService"
+database WishlistDB as "Wishlist (DB)"
+
+User -> Frontend: open Wishlist page
+Frontend -> Auth: GET /api/wishlist (render list)
+Auth -> Frontend: pass user, render items
+User -> Frontend: click "Xóa" on an item
+Frontend -> Frontend: show confirm dialog
+User -> Frontend: confirm delete
+Frontend -> WishlistController: DELETE /api/wishlist/{productId}
+WishlistController -> WishlistService: removeWishlist(userId, productId)
+alt using one-doc-per-user (items array)
+  WishlistService -> WishlistDB: findOneAndUpdate({ user },\n { $pull: { items: { product: productId } } })
+else using many-docs (each entry doc)
+  WishlistService -> WishlistDB: findOneAndDelete({ user, product: productId })
+end
+WishlistDB --> WishlistService: updated doc / deletion result
+WishlistService --> WishlistController: { message: "Đã xóa sản phẩm khỏi wishlist", \nwishlistDto? }
+WishlistController -> Frontend: 200 { message, wishlist }
+Frontend -> User: show toast "Xóa thành công" \nand update UI
+@enduml

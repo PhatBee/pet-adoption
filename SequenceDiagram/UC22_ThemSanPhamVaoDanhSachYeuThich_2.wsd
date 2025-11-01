@@ -1,0 +1,18 @@
+@startuml UC22_AddToWishlist_DBError
+
+title UC22: Thêm sản phẩm vào danh sách yêu thích (luồng ngoại lệ)
+
+actor User
+participant Frontend
+participant WishlistController
+participant WishlistService
+database WishlistDB
+
+User -> Frontend: click heart
+Frontend -> WishlistController: POST /api/wishlist { productId }
+WishlistController -> WishlistService: addWishlist(...)
+WishlistService -> WishlistDB: create(...) -> DB error (e.g. connection fail\n / duplicate constraint)
+WishlistService --> WishlistController: throw error
+WishlistController -> Frontend: 500 { message: "Không thể thêm sản phẩm vào danh sách yêu thích, \nvui lòng thử lại sau" }
+Frontend -> User: show error toast
+@enduml

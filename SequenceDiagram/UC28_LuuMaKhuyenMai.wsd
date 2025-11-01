@@ -1,0 +1,52 @@
+@startuml UC28_SaveCoupon_Main
+
+title UC28: Lưu mã giảm giá
+
+actor User
+participant Frontend as "Frontend (Header -> Promotions page)"
+participant Auth as "Auth middleware"
+participant CouponController as "couponController"
+participant CouponService as "couponService"
+database CouponDB as "Coupon (DB)"
+database UserCouponDB as "UserCoupon (DB)"
+
+User -> Frontend: click "Khuyến mãi" trên header
+Frontend -> CouponController: GET /api/coupons (may include token)
+opt logged in
+  Auth -> CouponController: attach req.user
+end
+CouponController -> CouponService: getActiveCoupons(userId?)
+CouponService -> CouponDB: find({ isActive:true, isPublic:true,\n expiresAt > now }).populate(...)
+CouponDB --> CouponService: coupons[]
+CouponService -> UserCouponDB: if userId then find({ userId, couponId in coupons })
+UserCouponDB --> CouponService: savedCouponIds
+CouponService --> CouponController: couponObjects (with isSaved flag)
+CouponController -> Frontend: 200 { coupons: [...] }
+Frontend -> User: render list (show saved state)
+
+User -> Frontend: click "Lưu mã" on coupon X
+Frontend -> Auth: POST /api/coupons/save { couponId }
+Auth -> CouponController: pass req.user
+CouponController -> CouponService: saveCouponForUser(userId, couponId)
+activate CouponService
+CouponService -> CouponDB: findOne({ _id: couponId, isActive:true,\n isPublic:true, expiresAt > now })
+alt coupon not found/invalid
+  CouponService --> CouponController: throw 404
+  deactivate CouponService
+  CouponController -> Frontend: 404 { message: "Mã giảm giá không hợp lệ hoặc đã hết hạn." }
+else coupon exists
+  CouponService -> UserCouponDB: create({ userId, couponId })
+  alt create success
+    UserCouponDB --> CouponService: savedDoc
+    CouponService --> CouponController: success
+    deactivate CouponService
+    CouponController -> Frontend: 201 { message: "Lưu mã giảm giá thành công!" }
+    Frontend -> User: show "Đã lưu" (change UI)
+  else create fails (duplicate)
+    UserCouponDB --> CouponService: duplicate key error
+    CouponService --> CouponController: throw 400 "Bạn đã lưu mã này rồi."
+    deactivate CouponService
+    CouponController -> Frontend: 400 { message: "Bạn đã lưu mã này rồi." }
+  end
+end
+@enduml

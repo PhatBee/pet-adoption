@@ -1,0 +1,42 @@
+@startuml UC27_DeleteAccount_Main
+
+title UC27: Xóa tài khoản (luồng chính)
+
+actor User
+participant Frontend as "Frontend (Profile → Security)"
+participant Auth as "Auth middleware"
+participant UserController as "UserController"
+participant UserService as "userService"
+database UserDB as "User (DB)"
+database RefreshTokenDB as "RefreshToken (DB)"
+database CartDB as "Cart (DB)"
+database WishlistDB as "Wishlist (DB)"
+database ReviewDB as "Review (DB)"
+database OrderDB as "Order (DB)"
+participant FileStorage as "File system (avatar, uploads)"
+
+User -> Frontend: open Profile → Security \n-> click "Xóa tài khoản"
+Frontend -> Frontend: show confirm dialog
+User -> Frontend: confirm delete
+Frontend -> Auth: DELETE /api/users/profile
+Auth -> UserController: pass req.user
+UserController -> UserService: deleteAccount(userId)
+activate UserService
+UserService -> RefreshTokenDB: deleteMany({ userId }) (session)
+UserService -> CartDB: deleteOne({ user: userId }) (session)
+UserService -> WishlistDB: deleteMany({ user: userId }) (session)
+UserService -> ReviewDB: deleteMany({ user: userId }) (session)
+UserService -> OrderDB: [option] anonymize orders or keep for records (session)
+UserService -> FileStorage: remove avatar file
+UserService -> UserDB: deleteOne({ _id: userId }) (session)
+alt all ops success
+  UserService --> UserController: success
+  deactivate UserService
+  UserController -> Frontend: 200 { message: "Tài khoản đã bị xóa" }\n+ clearCookie('refreshToken')
+  Frontend -> User: redirect to Login page, \nshow toast "Tài khoản đã được xóa"
+else error during deletion
+  UserService --> UserController: throw error
+  deactivate UserService
+  UserController -> Frontend: 500 { message: "Không thể xóa tài khoản,\n thử lại" }
+end
+@enduml

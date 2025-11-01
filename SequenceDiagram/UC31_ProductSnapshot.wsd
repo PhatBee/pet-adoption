@@ -1,0 +1,15 @@
+@startuml UC31_ProductSnapshot_ViewCurrent
+
+title UC31: Xem lại sản phẩm đã mua tại thời điểm đặt hàng (luồng thay thế)
+
+actor User
+participant Frontend
+participant OrderController
+participant OrderService
+database OrderDB
+
+User -> Frontend: click "Xem sản phẩm hiện tại"
+Frontend -> Auth: GET /api/products:slug (optional)
+Frontend -> Frontend: navigate to /products/{currentProductId} \n(client route)
+Frontend -> User: open Product Detail (current store data)
+@enduml

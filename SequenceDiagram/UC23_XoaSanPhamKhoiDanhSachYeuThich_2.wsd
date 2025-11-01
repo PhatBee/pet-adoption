@@ -1,0 +1,13 @@
+@startuml UC23_RemoveFromWishlist_Cancel
+
+title UC23: Xóa sản phẩm khỏi danh sách yêu thích (luồng thay thế)
+
+actor User
+participant Frontend
+
+User -> Frontend: click "Xóa" on wishlist item
+Frontend -> Frontend: show confirm dialog
+User -> Frontend: click "Hủy"
+Frontend -> Frontend: close dialog, do nothing
+Frontend -> User: show wishlist unchanged
+@enduml

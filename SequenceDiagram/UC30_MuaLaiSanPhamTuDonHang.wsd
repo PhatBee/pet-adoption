@@ -1,0 +1,34 @@
+@startuml UC30_Reorder_Main
+
+title UC30: Mua lại sản phẩm từ đơn hàng
+
+actor User
+participant Frontend as "Frontend (Order history / Order detail)"
+participant Auth as "Auth middleware"
+participant OrderController as "OrderController"
+participant OrderService as "orderService"
+database OrderDB as "Order (DB)"
+database ProductDB as "Product (DB)"
+
+User -> Frontend: open order detail / click "Mua lại"
+Frontend -> Auth: GET /api/orders/{orderId}/reorder
+Auth -> OrderController: attach req.user
+OrderController -> OrderService: getReorderInfo(orderId, req.user.id)
+activate OrderService
+OrderService -> OrderDB: findById(orderId) \n// validate ownership inside service
+OrderDB --> OrderService: order
+OrderService -> ProductDB: find({ _id: { $in: [productIds...] } }) // batch fetch
+ProductDB --> OrderService: products[]
+OrderService -> OrderService: compare stock & isActive for each item
+alt product(s) available
+  OrderService --> OrderController: { available: [...], unavailable: [...] }
+  deactivate OrderService
+  OrderController -> Frontend: 200 { available, unavailable }
+  Frontend -> User: navigate to Checkout \nwith available items (pre-fill)
+else none available
+  OrderService --> OrderController: throw { status:400, \nmessage: "Tất cả sản phẩm đã hết hàng" }
+  deactivate OrderService
+  OrderController -> Frontend: 400 { message }
+  Frontend -> User: show "Tất cả các sản phẩm \ntrong đơn đã hết hàng"
+end
+@enduml

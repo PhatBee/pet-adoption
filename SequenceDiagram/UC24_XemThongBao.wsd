@@ -1,0 +1,42 @@
+@startuml UC24_Notifications_FullFlow
+
+title UC24: Xem thông báo
+
+actor User
+participant Frontend as "Frontend (client)"
+participant SocketIO as "Socket.IO Client"
+participant SocketHandler as "Server Socket Handler (io)"
+participant AuthMiddleware as "Socket Auth Middleware"
+participant NotificationService as "notificationService"
+database NotificationDB as "Notification (DB)"
+
+== Socket Connect & Auth ==
+User -> Frontend: open site (or already logged)
+Frontend -> SocketIO: connect({ auth: { token } })
+SocketIO -> SocketHandler: connection attempt (handshake)
+SocketHandler -> AuthMiddleware: verifyAccessToken(token)
+alt token valid
+  AuthMiddleware -> SocketHandler: attach socket.user
+  SocketHandler -> SocketHandler: socket.join(userId) // join user's room
+  SocketHandler -> Frontend: connection established (ack)
+else invalid token
+  SocketHandler -> Frontend: connection error (auth)
+end
+
+== User opens bell -> fetch notifications ==
+User -> Frontend: click bell
+Frontend -> SocketIO: emit "get_my_notifications"\n (ack callback)
+SocketHandler -> NotificationDB: find({ user: socket.user.id }).sort(createdAt:-1).limit(20)
+NotificationDB --> SocketHandler: notifications[]
+SocketHandler -> Frontend: callback({ status: 'ok', \ndata: notifications })
+
+== User clicks a notification (view) ==
+User -> Frontend: click notification item (with id + targetUrl)
+Frontend -> SocketIO: emit "mark_as_read", \nnotificationId (ack callback)
+SocketHandler -> NotificationDB: updateOne({ _id: id, user: socket.user.id }, { isRead: true })
+SocketHandler -> NotificationDB: findOne({ _id: id, user: socket.user.id }) // return updated
+NotificationDB --> SocketHandler: updatedNotification
+SocketHandler -> SocketHandler: emit to user's room "notification_updated"\n (updatedNotification, unreadCount)
+SocketHandler -> Frontend: callback({ status: 'ok', data: updatedNotification })
+Frontend -> User: navigate to updatedNotification.link (client-side)
+@enduml

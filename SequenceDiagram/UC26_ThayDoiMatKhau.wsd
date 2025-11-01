@@ -1,0 +1,45 @@
+@startuml UC26_ChangePassword_Main
+
+title UC26: Thay đổi mật khẩu
+
+actor User
+participant Frontend as "Frontend (Profile → Security)"
+participant Auth as "Auth middleware"
+participant UserController as "UserController"
+participant UserService as "userService"
+database UserDB as "User (DB)"
+database RefreshTokenDB as "RefreshToken (DB)"
+
+User -> Frontend: open Profile → Security
+User -> Frontend: fill oldPassword, newPassword, \nconfirmNewPassword -> click Save
+Frontend -> Auth: PUT /api/users/password \n{ oldPassword, newPassword }
+Auth -> UserController: pass req.user
+UserController -> UserService: changePassword(userId, \noldPassword, newPassword)
+activate UserService
+UserService -> UserDB: findById(userId)
+alt user not found
+  UserDB --> UserService: null
+  UserService --> UserController: throw 404
+  UserController -> Frontend: 404 { "Không tìm thấy người dùng." }
+else user found
+  UserService -> UserService: comparePassword(oldPassword, \nuser.password)
+  alt old password mismatch
+    UserService --> UserController: throw 400 { "Mật khẩu cũ không chính xác." }
+    UserController -> Frontend: 400 { "Mật khẩu cũ không chính xác." }
+  else match
+    UserService -> UserService: if oldPassword === newPassword\n -> throw 400
+    alt new equals old
+      UserService --> UserController: throw 400 { "Mật khẩu mới không được \ntrùng với mật khẩu cũ." }
+      UserController -> Frontend: 400 { "Mật khẩu mới không được trùng..." }
+    else proceed
+      UserService -> UserService: hashPassword(newPassword)
+      UserService -> UserDB: save new hashed password (user.save())
+      UserService -> RefreshTokenDB: deleteMany({ userId })  // invalidate refresh tokens (logout)
+      UserService --> UserController: success
+      UserController -> Frontend: 200 { message: "Đổi mật khẩu thành công!" }
+      Frontend -> User: show toast "Đổi mật khẩu thành công"
+    end
+  end
+end
+deactivate UserService
+@enduml
