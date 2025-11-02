@@ -1,0 +1,1688 @@
+{
+	"info": {
+		"_postman_id": "162b36a7-469a-4449-9b74-dcc113bcbebc",
+		"name": "PetShop Admin API",
+		"description": "Tài liệu API cho Admin Dashboard của PetShop",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "41327432"
+	},
+	"item": [
+		{
+			"name": "Users",
+			"item": [
+				{
+					"name": "Active User",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{bearerToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/admin/users/:id/enable",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"users",
+								":id",
+								"enable"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "string",
+									"description": "ID người dùng (MongoID)"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Disable User",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{bearerToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/admin/users/:id/disable",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"users",
+								":id",
+								"disable"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "string",
+									"description": "ID người dùng (MongoID)"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Users (Filter/Paginate)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{bearerToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/admin/users?page=1&limit=10&isActive=true&search=string&sortBy=createdAt&sortOrder=desc",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"users"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1",
+									"description": "Số trang"
+								},
+								{
+									"key": "limit",
+									"value": "10",
+									"description": "Số lượng mỗi trang"
+								},
+								{
+									"key": "isActive",
+									"value": "true",
+									"description": "Lọc theo trạng thái active (true/false)"
+								},
+								{
+									"key": "search",
+									"value": "string",
+									"description": "Tìm kiếm theo tên, email, SĐT"
+								},
+								{
+									"key": "sortBy",
+									"value": "createdAt",
+									"description": "Sắp xếp theo trường"
+								},
+								{
+									"key": "sortOrder",
+									"value": "desc",
+									"description": "Thứ tự (asc/desc)"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Stats",
+			"item": [
+				{
+					"name": "Stat Revenue",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{bearerToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/admin/stats/revenue?view=2025-10-01&startDate=2025-10-31",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"stats",
+								"revenue"
+							],
+							"query": [
+								{
+									"key": "view",
+									"value": "2025-10-01",
+									"description": "Chế độ xem: 7 ngày, theo tháng, hoặc tùy chỉnh"
+								},
+								{
+									"key": "startDate",
+									"value": "2025-10-31",
+									"description": "Ngày kết thúc (dùng cho view=custom)"
+								}
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Trả về mảng dữ liệu doanh thu theo nhãn.",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer <token>",
+										"description": "Added as a part of security scheme: bearer"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/api/admin/stats/revenue?view=2025-10-01&startDate=2025-10-31",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"admin",
+										"stats",
+										"revenue"
+									],
+									"query": [
+										{
+											"key": "view",
+											"value": "2025-10-01",
+											"description": "Chế độ xem: 7 ngày, theo tháng, hoặc tùy chỉnh"
+										},
+										{
+											"key": "startDate",
+											"value": "2025-10-31",
+											"description": "Ngày kết thúc (dùng cho view=custom)"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "[\n  {\n    \"label\": \"Ngày 15\",\n    \"revenue\": 1500000\n  },\n  {\n    \"label\": \"Ngày 15\",\n    \"revenue\": 1500000\n  }\n]"
+						},
+						{
+							"name": "Chưa xác thực (Thiếu token)",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer <token>",
+										"description": "Added as a part of security scheme: bearer"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/api/admin/stats/revenue?view=2025-10-01&startDate=2025-10-31",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"admin",
+										"stats",
+										"revenue"
+									],
+									"query": [
+										{
+											"key": "view",
+											"value": "2025-10-01",
+											"description": "Chế độ xem: 7 ngày, theo tháng, hoặc tùy chỉnh"
+										},
+										{
+											"key": "startDate",
+											"value": "2025-10-31",
+											"description": "Ngày kết thúc (dùng cho view=custom)"
+										}
+									]
+								}
+							},
+							"status": "Unauthorized",
+							"code": 401,
+							"_postman_previewlanguage": "text",
+							"header": [],
+							"cookie": [],
+							"body": ""
+						},
+						{
+							"name": "Không có quyền Admin",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer <token>",
+										"description": "Added as a part of security scheme: bearer"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/api/admin/stats/revenue?view=2025-10-01&startDate=2025-10-31",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"admin",
+										"stats",
+										"revenue"
+									],
+									"query": [
+										{
+											"key": "view",
+											"value": "2025-10-01",
+											"description": "Chế độ xem: 7 ngày, theo tháng, hoặc tùy chỉnh"
+										},
+										{
+											"key": "startDate",
+											"value": "2025-10-31",
+											"description": "Ngày kết thúc (dùng cho view=custom)"
+										}
+									]
+								}
+							},
+							"status": "Forbidden",
+							"code": 403,
+							"_postman_previewlanguage": "text",
+							"header": [],
+							"cookie": [],
+							"body": ""
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Orders",
+			"item": [
+				{
+					"name": "Update Order Status",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{bearerToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"status\": \"confirmed\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/admin/orders/:id/status",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"orders",
+								":id",
+								"status"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "string",
+									"description": "ID của đơn hàng (MongoID)"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Orders (Paignate/Filter))",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{bearerToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/admin/orders?page=1&limit=20&status=pending&q=0987654321",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"orders"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1",
+									"description": "Số trang"
+								},
+								{
+									"key": "limit",
+									"value": "20",
+									"description": "Số lượng mỗi trang"
+								},
+								{
+									"key": "status",
+									"value": "pending",
+									"description": "Lọc theo trạng thái đơn hàng"
+								},
+								{
+									"key": "q",
+									"value": "0987654321",
+									"description": "Tìm kiếm theo tên hoặc SĐT người nhận"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Products",
+			"item": [
+				{
+					"name": "Disable Product",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{bearerToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/admin/products/:id/disable",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"products",
+								":id",
+								"disable"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "string",
+									"description": "MongoID sản phẩm"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add Product",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{bearerToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Hạt Mềm Cho Mèo\",\n  \"price\": 150000,\n  \"category\": {},\n  \"pet\": {},\n  \"shortDescription\": \"Hạt mềm vị cá ngừ\",\n  \"description\": \"<p>Chi tiết...</p>\",\n  \"compareAtPrice\": 200000,\n  \"images\": [\n    \"/uploads/products/img1.jpg\"\n  ],\n  \"thumbnail\": \"/uploads/products/thumb.jpg\",\n  \"stock\": 100,\n  \"brand\": \"Royal Canin\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/admin/products",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"products"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Products (Paignate/Filter))",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{bearerToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/admin/products?search=string&categoryId=string&petId=string&page=1&limit=10&isActive=true",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"products"
+							],
+							"query": [
+								{
+									"key": "search",
+									"value": "string",
+									"description": "Từ khóa tìm kiếm (tên, mô tả, slug)"
+								},
+								{
+									"key": "categoryId",
+									"value": "string",
+									"description": "Lọc theo ID Category (MongoID)"
+								},
+								{
+									"key": "petId",
+									"value": "string",
+									"description": "Lọc theo ID Pet (MongoID)"
+								},
+								{
+									"key": "page",
+									"value": "1",
+									"description": "Số trang"
+								},
+								{
+									"key": "limit",
+									"value": "10",
+									"description": "Số lượng mỗi trang"
+								},
+								{
+									"key": "isActive",
+									"value": "true",
+									"description": "Lọc theo trạng thái (true/false)"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Categories",
+			"item": [
+				{
+					"name": "Update Category",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{bearerToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Thức ăn hạt\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/admin/categories/:id",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"categories",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "string",
+									"description": "ID thể loại (MongoID)"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Category",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{bearerToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/admin/categories/:id",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"categories",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "string",
+									"description": "ID thể loại (MongoID)"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add Category",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{bearerToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Thức ăn hạt\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/admin/categories",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"categories"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Categories (Search/Paginate)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{bearerToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/admin/categories?search=string",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"categories"
+							],
+							"query": [
+								{
+									"key": "search",
+									"value": "string",
+									"description": "Tìm kiếm theo tên thể loại"
+								}
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Untitled Response",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer <token>",
+										"description": "Added as a part of security scheme: bearer"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/api/admin/categories?search=string",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"admin",
+										"categories"
+									],
+									"query": [
+										{
+											"key": "search",
+											"value": "string",
+											"description": "Tìm kiếm theo tên thể loại"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"data\": [\n    {\n      \"_id\": \"60f7e1b9a9d7b4001f8e8f8b\",\n      \"name\": \"Thức ăn hạt\",\n      \"productCount\": 15\n    },\n    {\n      \"_id\": \"60f7e1b9a9d7b4001f8e8f8b\",\n      \"name\": \"Thức ăn hạt\",\n      \"productCount\": 15\n    }\n  ],\n  \"totalItems\": 100,\n  \"totalPages\": 10,\n  \"currentPage\": 1\n}"
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Pets",
+			"item": [
+				{
+					"name": "Update Pet",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{bearerToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Chó\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/admin/pets/:id",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"pets",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "string",
+									"description": "ID thú cưng (MongoID)"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Pet",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{bearerToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/admin/pets/:id",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"pets",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "string",
+									"description": "ID thú cưng (MongoID)"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add Pet",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{bearerToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Chó\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/admin/pets",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"pets"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Pets (Paginate/Search)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{bearerToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/admin/pets?search=string",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"pets"
+							],
+							"query": [
+								{
+									"key": "search",
+									"value": "string",
+									"description": "Tìm kiếm theo tên thú cưng"
+								}
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Untitled Response",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer <token>",
+										"description": "Added as a part of security scheme: bearer"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/api/admin/pets?search=string",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"admin",
+										"pets"
+									],
+									"query": [
+										{
+											"key": "search",
+											"value": "string",
+											"description": "Tìm kiếm theo tên thú cưng"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"data\": [\n    {\n      \"_id\": \"60f7e1b9a9d7b4001f8e8f8a\",\n      \"name\": \"Chó\",\n      \"productCount\": 50\n    },\n    {\n      \"_id\": \"60f7e1b9a9d7b4001f8e8f8a\",\n      \"name\": \"Chó\",\n      \"productCount\": 50\n    }\n  ],\n  \"totalItems\": 100,\n  \"totalPages\": 10,\n  \"currentPage\": 1\n}"
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Coupons",
+			"item": [
+				{
+					"name": "Update Coupons",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{bearerToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"code\": \"SALE10\",\n  \"discountType\": \"percentage\",\n  \"discountValue\": 10,\n  \"maxDiscountValue\": 50000,\n  \"minOrderValue\": 100000,\n  \"usageLimitPerUser\": 1,\n  \"startsAt\": \"2025-10-01T00:00:00Z\",\n  \"expiresAt\": \"2025-10-31T23:59:59Z\",\n  \"isActive\": true,\n  \"isPublic\": false,\n  \"description\": \"Giảm 10% cho đơn hàng\",\n  \"maxUses\": 1000,\n  \"productIds\": [\n    \"string\",\n    \"string\"\n  ],\n  \"categoryIds\": [\n    \"string\",\n    \"string\"\n  ],\n  \"petTypeIds\": [\n    \"string\",\n    \"string\"\n  ]\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/admin/coupons/:id",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"coupons",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "string",
+									"description": "ID mã giảm giá (MongoID)"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Coupons",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{bearerToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/admin/coupons/:id",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"coupons",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "string",
+									"description": "ID mã giảm giá (MongoID)"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Coupon",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{bearerToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/admin/coupons/:id",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"coupons",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "string",
+									"description": "ID mã giảm giá (MongoID)"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Disable Coupon",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{bearerToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/admin/coupons/:id/disable",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"coupons",
+								":id",
+								"disable"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "string",
+									"description": "ID mã giảm giá (MongoID)"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add Coupon",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{bearerToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"code\": \"SALE10\",\n  \"discountType\": \"percentage\",\n  \"discountValue\": 10,\n  \"maxDiscountValue\": 50000,\n  \"minOrderValue\": 100000,\n  \"usageLimitPerUser\": 1,\n  \"startsAt\": \"2025-10-01T00:00:00Z\",\n  \"expiresAt\": \"2025-10-31T23:59:59Z\",\n  \"isActive\": true,\n  \"isPublic\": false,\n  \"description\": \"Giảm 10% cho đơn hàng\",\n  \"maxUses\": 1000,\n  \"productIds\": [\n    \"string\",\n    \"string\"\n  ],\n  \"categoryIds\": [\n    \"string\",\n    \"string\"\n  ],\n  \"petTypeIds\": [\n    \"string\",\n    \"string\"\n  ]\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/admin/coupons",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"coupons"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Coupons (Paginate)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{bearerToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/admin/coupons?page=1&limit=10&code=string&isActive=true",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"coupons"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1",
+									"description": "Số trang"
+								},
+								{
+									"key": "limit",
+									"value": "10",
+									"description": "Số lượng mỗi trang"
+								},
+								{
+									"key": "code",
+									"value": "string",
+									"description": "Tìm theo mã coupon"
+								},
+								{
+									"key": "isActive",
+									"value": "true",
+									"description": "Lọc theo trạng thái active (true/false)"
+								}
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Untitled Response",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer <token>",
+										"description": "Added as a part of security scheme: bearer"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/api/admin/coupons?page=1&limit=10&code=string&isActive=true",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"admin",
+										"coupons"
+									],
+									"query": [
+										{
+											"key": "page",
+											"value": "1",
+											"description": "Số trang"
+										},
+										{
+											"key": "limit",
+											"value": "10",
+											"description": "Số lượng mỗi trang"
+										},
+										{
+											"key": "code",
+											"value": "string",
+											"description": "Tìm theo mã coupon"
+										},
+										{
+											"key": "isActive",
+											"value": "true",
+											"description": "Lọc theo trạng thái active (true/false)"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"data\": [],\n  \"totalItems\": 100,\n  \"totalPages\": 10,\n  \"currentPage\": 1\n}"
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Inventory",
+			"item": [
+				{
+					"name": "Add Stock",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{bearerToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"quantity\": 100\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/admin/inventory/:id/stock-in",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"inventory",
+								":id",
+								"stock-in"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "string",
+									"description": "ID sản phẩm (MongoID)"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Stock (Filter/Paginate)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{bearerToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/admin/inventory?page=1&limit=10&search=string&categoryId=string&petId=string&sortBy=stock&sortOrder=desc",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"inventory"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1",
+									"description": "Số trang"
+								},
+								{
+									"key": "limit",
+									"value": "10",
+									"description": "Số lượng mỗi trang"
+								},
+								{
+									"key": "search",
+									"value": "string",
+									"description": "Tìm kiếm theo tên sản phẩm"
+								},
+								{
+									"key": "categoryId",
+									"value": "string",
+									"description": "Lọc theo ID Category"
+								},
+								{
+									"key": "petId",
+									"value": "string",
+									"description": "Lọc theo ID Pet"
+								},
+								{
+									"key": "sortBy",
+									"value": "stock",
+									"description": "Sắp xếp theo"
+								},
+								{
+									"key": "sortOrder",
+									"value": "desc",
+									"description": "Thứ tự sắp xếp"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "RefreshToken",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{bearerToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/refresh",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"refresh"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"supersecretpassword\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/admin/login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"admin",
+								"login"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "/"
+		}
+	]
+}
