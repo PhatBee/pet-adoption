@@ -1,0 +1,1227 @@
+{
+	"info": {
+		"_postman_id": "c1f7a8b3-b4c2-4f3f-9e7d-3d2b1a0e9c8f",
+		"name": "PetShop API Collection",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "PhatTam"
+	},
+	"item": [
+		{
+			"name": "1. Auth (Public)",
+			"item": [
+				{
+					"name": "Register",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Test User\",\n    \"email\": \"test@example.com\",\n    \"password\": \"password123\"\n}"
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/api/auth/register",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Verify OTP",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"test@example.com\",\n    \"otp\": \"123456\"\n}"
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/api/auth/verify-otp",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"verify-otp"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Resend OTP",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"test@example.com\"\n}"
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/api/auth/resend-otp",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"resend-otp"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"test@example.com\",\n    \"password\": \"password123\"\n}"
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/api/auth/login",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Refresh Token",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/api/auth/refresh",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"refresh"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Logout",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/api/auth/logout",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"logout"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Forgot Password",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"test@example.com\"\n}"
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/api/auth/forgot-password",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"forgot-password"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Reset Password",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"test@example.com\",\n    \"otp\": \"123456\",\n    \"newPassword\": \"newpassword123\"\n}"
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/api/auth/reset-password",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"reset-password"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "2. Auth (Authenticated)",
+			"item": [
+				{
+					"name": "Get Me",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/api/auth/me",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"me"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"auth": {
+				"type": "bearer",
+				"bearer": [
+					{
+						"key": "token",
+						"value": "{{ACCESS_TOKEN}}",
+						"type": "string"
+					}
+				]
+			}
+		},
+		{
+			"name": "3. User",
+			"item": [
+				{
+					"name": "Get Profile",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/api/users/profile",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"profile"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Profile (FormData)",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "name",
+									"value": "New Name",
+									"type": "text"
+								},
+								{
+									"key": "phone",
+									"value": "0123456789",
+									"type": "text"
+								},
+								{
+									"key": "email",
+									"value": "new-email@example.com",
+									"type": "text"
+								},
+								{
+									"key": "avatar",
+									"type": "file",
+									"src": "/C:/Users/test/avatar.jpg"
+								},
+								{
+									"key": "removeAvatar",
+									"value": "true",
+									"type": "text",
+									"description": "(Gửi 'true' để xóa avatar hiện tại)"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/api/users/profile",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"profile"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add Address",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"fullName\": \"Nguoi Nhan\",\n    \"phone\": \"0987654321\",\n    \"street\": \"123 Duong ABC\",\n    \"ward\": \"Phuong 4\",\n    \"district\": \"Quan Tan Binh\",\n    \"city\": \"TP. Ho Chi Minh\",\n    \"isDefault\": true\n}"
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/api/users/addresses",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"addresses"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Address",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"fullName\": \"Nguoi Nhan (Updated)\",\n    \"phone\": \"0987654321\",\n    \"street\": \"123 Duong XYZ\",\n    \"ward\": \"Phuong 5\",\n    \"district\": \"Quan Binh Thanh\",\n    \"city\": \"TP. Ho Chi Minh\",\n    \"isDefault\": false\n}"
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/api/users/addresses/68e9b54969562a16a28bc301",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"addresses",
+								"68e9b54969562a16a28bc301"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Address",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/api/users/addresses/68e9b54969562a16a28bc301",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"addresses",
+								"68e9b54969562a16a28bc301"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Change Password",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"oldPassword\": \"password123\",\n    \"newPassword\": \"newpassword123\"\n}"
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/api/users/password",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"password"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Account",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/api/users/profile",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"profile"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"auth": {
+				"type": "bearer",
+				"bearer": [
+					{
+						"key": "token",
+						"value": "{{ACCESS_TOKEN}}",
+						"type": "string"
+					}
+				]
+			}
+		},
+		{
+			"name": "4. Products (Public)",
+			"item": [
+				{
+					"name": "Get Home Sections",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/api/products/home",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"products",
+								"home"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Products (Filter/Paginate)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/api/products?page=1&limit=12&sortBy=newest&pet=60f7e1b9a9d7b4001f8e8f8a&category=60f7e1b9a9d7b4001f8e8f8b&minPrice=10000&maxPrice=500000&searchTerm=food",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"products"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "12"
+								},
+								{
+									"key": "sortBy",
+									"value": "newest"
+								},
+								{
+									"key": "pet",
+									"value": "60f7e1b9a9d7b4001f8e8f8a"
+								},
+								{
+									"key": "category",
+									"value": "60f7e1b9a9d7b4001f8e8f8b"
+								},
+								{
+									"key": "minPrice",
+									"value": "10000"
+								},
+								{
+									"key": "maxPrice",
+									"value": "500000"
+								},
+								{
+									"key": "searchTerm",
+									"value": "food"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Filter Options",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/api/products/filters",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"products",
+								"filters"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Product by Slug",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/api/products/ten-san-pham-abc",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"products",
+								"ten-san-pham-abc"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "5. Cart",
+			"item": [
+				{
+					"name": "Get Cart",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/api/cart",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"cart"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add to Cart",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"productId\": \"68bdcb8d2b8edcb296c4ac1f\",\n    \"quantity\": 1\n}"
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/api/cart/add",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"cart",
+								"add"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Cart Item",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"productId\": \"68bdcb8d2b8edcb296c4ac1f\",\n    \"quantity\": 3\n}"
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/api/cart/update",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"cart",
+								"update"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Remove Cart Item",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/api/cart/remove/68bdcb8d2b8edcb296c4ac1f",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"cart",
+								"remove",
+								"68bdcb8d2b8edcb296c4ac1f"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Clear Cart",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/api/cart/clear",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"cart",
+								"clear"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"auth": {
+				"type": "bearer",
+				"bearer": [
+					{
+						"key": "token",
+						"value": "{{ACCESS_TOKEN}}",
+						"type": "string"
+					}
+				]
+			}
+		},
+		{
+			"name": "6. Checkout",
+			"item": [
+				{
+					"name": "Get Checkout Info",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/api/checkout",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"checkout"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Place Order",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"shippingAddress\": {\n        \"_id\": \"68e9b54969562a16a28bc301\",\n        \"fullName\": \"Nguoi Nhan\",\n        \"phone\": \"0987654321\",\n        \"street\": \"123 Duong ABC\",\n        \"ward\": \"Phuong 4\",\n        \"district\": \"Quan Tan Binh\",\n        \"city\": \"TP. Ho Chi Minh\"\n    },\n    \"paymentMethod\": \"COD\",\n    \"items\": [\n        {\n            \"product\": \"68bdcb8d2b8edcb296c4ac1f\",\n            \"quantity\": 1,\n            \"price\": 120000,\n            \"category\": \"60f7e1b9a9d7b4001f8e8f8b\",\n            \"pet\": \"60f7e1b9a9d7b4001f8e8f8a\"\n        }\n    ],\n    \"couponCode\": \"SALE10\",\n    \"pointsToUse\": 100\n}"
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/api/checkout/orders",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"checkout",
+								"orders"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"auth": {
+				"type": "bearer",
+				"bearer": [
+					{
+						"key": "token",
+						"value": "{{ACCESS_TOKEN}}",
+						"type": "string"
+					}
+				]
+			}
+		},
+		{
+			"name": "7. Orders",
+			"item": [
+				{
+					"name": "Get My Orders",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/api/orders/my?status=pending&page=1&limit=10",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"orders",
+								"my"
+							],
+							"query": [
+								{
+									"key": "status",
+									"value": "pending"
+								},
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Order Detail",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/api/orders/68cdd5dfc589c000556bf209",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"orders",
+								"68cdd5dfc589c000556bf209"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Request Cancel Order",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/api/orders/68cdd5dfc589c000556bf209/cancel-request",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"orders",
+								"68cdd5dfc589c000556bf209",
+								"cancel-request"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create/Update Review",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"productId\": \"68bdcb8d2b8edcb296c4ac1f\",\n    \"rating\": 5,\n    \"comment\": \"Sản phẩm rất tốt!\"\n}"
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/api/orders/68cdd5dfc589c000556bf209/reviews",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"orders",
+								"68cdd5dfc589c000556bf209",
+								"reviews"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Reorder Info",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/api/orders/68cdd5dfc589c000556bf209/reorder-info",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"orders",
+								"68cdd5dfc589c000556bf209",
+								"reorder-info"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Product Snapshot",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/api/orders/68cdd5dfc589c000556bf209/item/68bdcb8d2b8edcb296c4ac1f/snapshot",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"orders",
+								"68cdd5dfc589c000556bf209",
+								"item",
+								"68bdcb8d2b8edcb296c4ac1f",
+								"snapshot"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"auth": {
+				"type": "bearer",
+				"bearer": [
+					{
+						"key": "token",
+						"value": "{{ACCESS_TOKEN}}",
+						"type": "string"
+					}
+				]
+			}
+		},
+		{
+			"name": "8. Payment Callbacks (Public)",
+			"item": [
+				{
+					"name": "VNPAY Return",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/api/orders/vnpay_return?vnp_Amount=1000000",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"orders",
+								"vnpay_return"
+							],
+							"query": [
+								{
+									"key": "vnp_Amount",
+									"value": "1000000"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "VNPAY IPN",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/api/orders/vnpay_ipn",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"orders",
+								"vnpay_ipn"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "MoMo Return",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/api/orders/momo_return?amount=10000",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"orders",
+								"momo_return"
+							],
+							"query": [
+								{
+									"key": "amount",
+									"value": "10000"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "MoMo IPN",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/api/orders/momo_ipn",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"orders",
+								"momo_ipn"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "9. Wishlist",
+			"item": [
+				{
+					"name": "Get Wishlist",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/api/wishlist",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"wishlist"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add Wishlist",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"productId\": \"68bdcb8d2b8edcb296c4ac1f\"\n}"
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/api/wishlist",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"wishlist"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Remove Wishlist",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/api/wishlist/68bdcb8d2b8edcb296c4ac1f",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"wishlist",
+								"68bdcb8d2b8edcb296c4ac1f"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"auth": {
+				"type": "bearer",
+				"bearer": [
+					{
+						"key": "token",
+						"value": "{{ACCESS_TOKEN}}",
+						"type": "string"
+					}
+				]
+			}
+		},
+		{
+			"name": "10. Coupons",
+			"item": [
+				{
+					"name": "Get Active Coupons (Public/Optional Auth)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/api/coupons",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"coupons"
+							]
+						},
+						"description": "Nếu gửi kèm token (Auth tab), sẽ trả về (isSaved: true/false) cho mỗi coupon."
+					},
+					"response": []
+				},
+				{
+					"name": "Validate Coupon",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"code\": \"SALE10\",\n    \"items\": [\n        {\n            \"product\": \"68bdcb8d2b8edcb296c4ac1f\",\n            \"quantity\": 1,\n            \"price\": 120000,\n            \"category\": \"60f7e1b9a9d7b4001f8e8f8b\",\n            \"pet\": \"60f7e1b9a9d7b4001f8e8f8a\"\n        }\n    ]\n}"
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/api/coupons/validate",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"coupons",
+								"validate"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Save Coupon",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"couponId\": \"60f7e1b9a9d7b4001f8e8f9e\"\n}"
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/api/coupons/save",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"coupons",
+								"save"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Saved Coupons (for checkout)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"items\": [\n         {\n            \"product\": \"68bdcb8d2b8edcb296c4ac1f\",\n            \"quantity\": 1,\n            \"price\": 120000,\n            \"category\": \"60f7e1b9a9d7b4001f8e8f8b\",\n            \"pet\": \"60f7e1b9a9d7b4001f8e8f8a\"\n        }\n    ]\n}"
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/api/coupons/saved",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"coupons",
+								"saved"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"auth": {
+				"type": "bearer",
+				"bearer": [
+					{
+						"key": "token",
+						"value": "{{ACCESS_TOKEN}}",
+						"type": "string"
+					}
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "BASE_URL",
+			"value": "http://localhost:3000",
+			"type": "string"
+		},
+		{
+			"key": "ACCESS_TOKEN",
+			"value": "",
+			"type": "string"
+		}
+	]
+}
+
