@@ -11,19 +11,19 @@
 
 ## 📌 Mục lục
 
-* [Giới thiệu](#giới-thiệu)
-* [Tính năng chính](#tính-năng-chính)
-* [Biểu đồ Use Case](#biểu-đồ-use-case)
-* [WebSocket & Realtime Notification](#websocket--realtime-notification)
-* [Công nghệ sử dụng](#công-ngệ-sử-dụng)
-* [Cấu trúc thư mục](#cấu-trúc-thư-mục)
-* [Cài đặt và chạy dự án](#cài-đặt-và-chạy-dự-án)
-* [Biến môi trường](#biến-môi-trường)
-* [Giao diện minh họa](#giao-diện-minh-họa)
-* [Kiểm thử & Triển khai](#kiểm-thử--triển-khai)
-* [Đóng góp](#đóng-góp)
-* [Tác giả](#tác-giả)
-* [Giấy phép](#giấy-phép)
+* [Giới thiệu](#-giới-thiệu)
+* [Tính năng chính](#-tính-năng-chính)
+* [Biểu đồ Use Case](#-biểu-đồ-use-case)
+* [WebSocket & Realtime Notification](#-websocket--realtime-notification)
+* [Công nghệ sử dụng](#-công-ngệ-sử-dụng)
+* [Cấu trúc thư mục](#-cấu-trúc-thư-mục)
+* [Cài đặt và chạy dự án](#-cài-đặt-và-chạy-dự-án)
+* [Biến môi trường](#-biến-môi-trường)
+* [Giao diện minh họa](#-giao-diện-minh-họa)
+* [Kiểm thử & Triển khai](#-kiểm-thử--triển-khai)
+* [Đóng góp](#-đóng-góp)
+* [Tác giả](#-tác-giả)
+* [Giấy phép](#-giấy-phép)
 
 ---
 
@@ -238,17 +238,8 @@ Xem chi tiết trong file `.env.example`.
 
 ---
 
-## 🖼 Giao diện minh họa
 
-> Cần bổ sung ảnh màn hình thực tế của bạn vào thư mục `docs/screens/`
 
-| Trang             | Ảnh minh họa      |
-| ----------------- | ----------------- |
-| User - Trang chủ  | *(đang cập nhật)* |
-| User - Giỏ hàng   | *(đang cập nhật)* |
-| Admin - Dashboard | *(đang cập nhật)* |
-
----
 
 ## ✅ Kiểm thử & Triển khai
 
@@ -268,6 +259,8 @@ Vui lòng:
 ---
 
 ## 👨‍💻 Tác giả
+ 
+*** Trường: Đại học Sư phạm Kỹ thuật Thành phố Hồ Chí Minh ***
 
 **Thành viên 1**
 
