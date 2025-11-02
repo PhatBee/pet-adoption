@@ -34,12 +34,12 @@ export default function Header() {
           >
             Sản phẩm
           </Link>
-          <Link
+          {/* <Link
             to="/pets"
             className="text-gray-700 hover:text-indigo-600 no-underline"
           >
             Thú cưng
-          </Link>
+          </Link> */}
           <Link
             to="/about"
             className="text-gray-700 hover:text-indigo-600 no-underline"

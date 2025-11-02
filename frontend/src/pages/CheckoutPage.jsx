@@ -34,9 +34,11 @@ export default function CheckoutPage() {
   // 2. Quyết định xem nên hiển thị sản phẩm nào
   // Ưu tiên sản phẩm được chọn từ giỏ hàng, nếu không có thì dùng cả giỏ hàng (trường hợp vào thẳng checkout)
   const itemsToDisplay =
-    reorderItems && reorderItems.length > 0
-      ? reorderItems
-      : itemsFromCart || cart?.items || [];
+    itemsFromCart && itemsFromCart.length > 0 // 1. Ưu tiên itemsFromCart (từ "Mua ngay" hoặc "Giỏ hàng") TRƯỚC
+      ? itemsFromCart
+      : (reorderItems && reorderItems.length > 0 // 2. Chỉ dùng reorderItems nếu không có itemsFromCart
+          ? reorderItems
+          : cart?.items || []); // 3. Cuối cùng mới dùng cart
 
   const itemsTotal = itemsToDisplay.reduce(
     (sum, item) => sum + item.product.price * item.quantity,
@@ -46,6 +48,11 @@ export default function CheckoutPage() {
   useEffect(() => {
     // Vẫn gọi để lấy thông tin giỏ hàng, nhưng phần địa chỉ sẽ dùng từ authSlice
     dispatch(fetchCheckoutData());
+
+    return () => {
+      dispatch(clearReorder());
+    };
+
   }, [dispatch]);
 
   // // --- TÍNH TOÁN SỐ TIỀN GIẢM GIÁ ---

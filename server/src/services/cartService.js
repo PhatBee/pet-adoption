@@ -69,6 +69,9 @@ const removeCartItem = async (userId, productId) => {
     cart.items.splice(itemIndex, 1);
   }
 
+  // THÊM DÒNG NÀY ĐỂ POPULATE LẠI DỮ LIỆU
+  await cart.populate("items.product");
+
   await cart.save();
   return cart;
 };
