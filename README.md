@@ -2,7 +2,7 @@
 
 
 
-**Nội dung đề tài** – Xây dựng website bán hànghàng thú cưng với hai vai trò chính: **Khách hàng (User)** và **Quản trị viên (Admin)**.
+**Nội dung đề tài** – Xây dựng website bán hàng thú cưng với hai vai trò chính: **Khách hàng (User)** và **Quản trị viên (Admin)**.
 
 * **User**: Phát triển bằng **MERN Stack** (MongoDB, Express.js, React.js, Node.js).
 * **Admin**: Phát triển bằng **NestJS (Backend)** và **NextJS (Frontend)**.
