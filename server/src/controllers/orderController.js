@@ -1,4 +1,6 @@
 const orderService = require("../services/orderService");
+const notificationService = require("../services/notificationService");
+
 const Order = require("../models/Order");
 const Review = require("../models/Review")
 const User = require("../models/User");
@@ -6,7 +8,6 @@ const mongoose = require("mongoose");
 const querystring = require('qs');
 const { processIpn: processVnpayIpn, processReturnUrl: processVnpayReturnUrl } = require("../services/vnpayService");
 const { processIpn: processMomoIpn, verifyReturnUrl: verifyMomoReturnUrl } = require("../services/momoService");
-const { createAndSendNotification } = require("../services/notificationService")
 async function getListMyOrders(req, res) {
   try {
     const userId = req.user.id;

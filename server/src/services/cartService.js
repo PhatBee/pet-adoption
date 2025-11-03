@@ -110,6 +110,7 @@ const createOrderFromCart = async ({ userId, shippingAddress, paymentMethod, ite
 
       // Kiểm tra tồn kho, tính tổng tiền hàng
       let itemsTotal = 0;
+      const itemsWithDbPrice = [];
       const orderItems = items.map((item) => {
         const product = productMap.get(item.product._id);
         const quantity = item.quantity;
@@ -119,6 +120,12 @@ const createOrderFromCart = async ({ userId, shippingAddress, paymentMethod, ite
         const price = product.price;
         const lineTotal = price * quantity;
         itemsTotal += lineTotal;
+
+        // Thêm item (với giá DB) vào mảng để tính coupon
+        itemsWithDbPrice.push({
+          product: product, // Chứa thông tin đầy đủ của sản phẩm (bao gồm giá)
+          quantity: quantity
+        });
 
         // snapshot thông tin sản phẩm
         const productSnapshot = {
